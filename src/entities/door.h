@@ -13,7 +13,13 @@ struct Door {
     float timeSpawned;
     float animationOpenTime;
     Color color;
-
+    int playerEffect;
+    bool isDebuff;
+    Rectangle finalRect;
 };
+
+void InitDoorsWithRandomEffect(struct Door *d);
+
+void DrawDoor(struct Door *d);
 
 #endif //RAYLIB_GAME_TEMPLATE_DOOR_H

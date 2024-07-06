@@ -7,7 +7,11 @@
 
 #define maxBooletsOnMap 512
 #define playerCount 4
+#define playerEffectCapacityAndLifespan 4
 
+#define debugMode true
+
+static int playersPlaying = 2;
 static const int screenWidth = 800;
 static const int screenHeight = 450;
 
@@ -27,5 +31,11 @@ typedef enum {
     FIGHT,
     CHOOSEDOOR
 } GameState;
+
+typedef enum {
+    STRAIGHT,
+    SWIRLY,
+    EXPLODING
+} BooletType;
 
 #endif //RAYLIB_GAME_TEMPLATE_CONSTANTS_H

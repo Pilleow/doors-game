@@ -12,6 +12,8 @@
 *
 ********************************************************************************************/
 
+#include <time.h>
+#include <stdlib.h>
 #include "raylib.h"
 #include "screens.h"    // NOTE: Declares global (extern) variables and screens functions
 #include "constants.h"
@@ -60,6 +62,7 @@ int main(void) {
     InitWindow(screenWidth, screenHeight, "Door Game");
 
     InitAudioDevice();      // Initialize audio device
+    srand(time(NULL));      // Initialize random module
 
     // Load global data (assets that must be available in all screens, i.e. font)
 //    font = LoadFont("resources/mecha.png");

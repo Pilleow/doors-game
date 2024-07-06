@@ -4,15 +4,10 @@
 
 #include "raylib.h"
 #include "player.h"
+#include "../constants.h"
 
 #ifndef RAYLIB_GAME_TEMPLATE_BOOLET_H
 #define RAYLIB_GAME_TEMPLATE_BOOLET_H
-
-typedef enum {
-    STRAIGHT,
-    SWIRLY,
-    EXPLODING
-} BooletType;
 
 struct Boolet {
     Rectangle rect;
