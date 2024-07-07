@@ -7,9 +7,7 @@
 
 #define maxBooletsOnMap 512
 #define playerCount 4
-#define playerEffectCapacityAndLifespan 4
-
-#define debugMode true
+#define playerEffectCapacityAndLifespan 3
 
 static int playersPlaying = 2;
 static const int screenWidth = 800;

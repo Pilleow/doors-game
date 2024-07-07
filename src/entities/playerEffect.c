@@ -6,16 +6,13 @@
 #include "../constants.h"
 
 #include <stdlib.h>
-#include <stdio.h>
 
 void AssignEffectToPlayer(PlayerEffect playerEffect, struct Player *p) {
 
     undoEffectFromPlayer(p->activeEffects[p->nextEffectToSwapIndex], p);
-
     p->activeEffects[p->nextEffectToSwapIndex] = playerEffect;
-    IncreaseEffectToSwapIndex(p);
-
     applyEffectToPlayer(p->activeEffects[p->nextEffectToSwapIndex], p);
+    IncreaseEffectToSwapIndex(p);
 }
 
 void applyEffectToPlayer(PlayerEffect effectToApply, struct Player *p) {
@@ -50,7 +47,7 @@ void applyEffectToPlayer(PlayerEffect effectToApply, struct Player *p) {
             p->maxHealth += max_health_modifier;
             break;
         case LESS_MAX_HEALTH:
-            p->maxHealth -= max_health_modifier;
+            if (p->maxHealth > 1) p->maxHealth -= max_health_modifier;
             break;
         case LESS_FRICTION:
             p->friction += friction_modifier;
@@ -64,17 +61,8 @@ void applyEffectToPlayer(PlayerEffect effectToApply, struct Player *p) {
         case LONGER_SHOOT_COOLDOWN_TIME:
             p->shotCooldownTime += shoot_cooldown_time_modifier;
             break;
-        case EVERYONE_GETS_RANDOM_BUFFS:
-            applyEffectToPlayer(rand() % playerEffectCapacityAndLifespan, p);
-            break;
-        case EVERYONE_GETS_RANDOM_DEBUFFS:
-            applyEffectToPlayer(rand() % playerEffectCapacityAndLifespan, p);
-            break;
-        case EVERYONE_GETS_RANDOM_EFFECTS:
-            applyEffectToPlayer(rand() % playerEffectCapacityAndLifespan, p);
-            break;
         default:
-            printf("[ERROR] Invalid effect provided to applyEffectToPlayer method: %d .", effectToApply);
+            break;
     }
 }
 
@@ -107,7 +95,7 @@ void undoEffectFromPlayer(PlayerEffect effectToUndo, struct Player *p) {
         case MORE_RANDOM_BULLET_SPREAD:
             break;
         case MORE_MAX_HEALTH:
-            p->maxHealth -= max_health_modifier;
+            if (p->maxHealth > 1) p->maxHealth -= max_health_modifier;
             break;
         case LESS_MAX_HEALTH:
             p->maxHealth += max_health_modifier;
@@ -125,16 +113,16 @@ void undoEffectFromPlayer(PlayerEffect effectToUndo, struct Player *p) {
             p->shotCooldownTime -= shoot_cooldown_time_modifier;
             break;
         default:
-            printf("[ERROR] Invalid effect provided to undoEffectFromPlayer method: %d .", effectToUndo);
+            break;
     }
 }
 
 int getRandomBuff() {
-    return 2 * (rand() % playerEffectCount / 2) + 1;
+    return 2 * (rand() % (playerEffectCount / 2));
 }
 
 int getRandomDebuff() {
-    return 2 * (rand() % playerEffectCount / 2);
+    return 2 * (rand() % (playerEffectCount / 2)) + 1;
 }
 
 void IncreaseEffectToSwapIndex(struct Player *p) {

@@ -1,8 +1,9 @@
 #include "raylib.h"
 #include "screens.h"
-#include "constants.h"
 #include <stdlib.h>
+#include <stdio.h>
 
+#include "constants.h"
 #include "entities/door.h"
 #include "entities/player.h"
 #include "entities/boolet.h"
@@ -16,7 +17,6 @@ struct Boolet boolets[maxBooletsOnMap];
 struct Door doors[4];
 static int nextBooletIndex = 0;
 static GameState gameState = FIGHT;
-static int lastDebugInfoTime = 0;
 
 //----------------------------------------------------------------------------------
 // Gameplay Screen Functions Definition
@@ -33,7 +33,7 @@ void InitGameplayScreen(void) {
     );
     players[0] = player1;
     InitPlayerDefaults(&player2,
-                       TOPRIGHT,
+                       BOTTOMRIGHT,
                        KEY_I, KEY_K, KEY_J, KEY_L,
                        KEY_I, KEY_K, KEY_J, KEY_L,
                        KEY_SPACE
@@ -46,15 +46,15 @@ void InitGameplayScreen(void) {
     );
     players[2] = player3;
     InitPlayerDefaults(&player4,
-                       BOTTOMRIGHT,
+                       TOPRIGHT,
                        KEY_NULL, KEY_NULL, KEY_NULL, KEY_NULL,
                        KEY_NULL, KEY_NULL, KEY_NULL, KEY_NULL,
                        KEY_NULL
     );
     players[3] = player4;
 
-    if (playersPlaying < 4) players[2].isDead = true;
-    if (playersPlaying < 3) players[1].isDead = true;
+    if (playersPlaying < 3) players[2].isDead = true;
+    if (playersPlaying < 4) players[3].isDead = true;
 
     for (int i = 0; i < maxBooletsOnMap; ++i) boolets[i].enabled = false;
 
@@ -67,7 +67,7 @@ void InitGameplayScreen(void) {
     }
 }
 
-void resetPlayersButDoNotTouchEffects() {
+void resetLevel() {
     char atCornerPhase = rand() % 4;
     Location possibleSpawnLocations[] = {
             TOPLEFT, TOPRIGHT,
@@ -82,8 +82,11 @@ void resetPlayersButDoNotTouchEffects() {
         players[i].lastShotTime = GetTime();
         players[i].health = players[i].maxHealth;
     }
-    if (playersPlaying < 4) players[2].isDead = true;
-    if (playersPlaying < 3) players[1].isDead = true;
+    if (playersPlaying < 3) players[2].isDead = true;
+    if (playersPlaying < 4) players[3].isDead = true;
+    for (int i = 0; i < 4; ++i) {
+        InitDoorsWithRandomEffect(&doors[i]);
+    }
 }
 
 bool isOutOfWindowBounds(Rectangle r) {
@@ -135,20 +138,18 @@ void updateGameplayScreenDuringChooseDoor() {
         ApplyPlayerVelocity(&players[i]);
 
         for (int j = 0; j < 4; ++j) {
-            if (CheckCollisionRecs(doors[j].finalRect, players[j].rect)) {
-                resetPlayersButDoNotTouchEffects();
-                if (
-                        doors[j].playerEffect == EVERYONE_GETS_RANDOM_DEBUFFS
-                        || doors[j].playerEffect == EVERYONE_GETS_RANDOM_BUFFS
-                        || doors[j].playerEffect == EVERYONE_GETS_RANDOM_EFFECTS
-                        )
-                    for (int k = 0; k < playerCount; ++k) AssignEffectToPlayer(doors[j].playerEffect, &players[k]);
-                else if (doors[j].playerEffect == CLEAR_ALL_EFFECTS)
+            if (CheckCollisionRecs(doors[j].finalRect, players[i].rect)) {
+                if (doors[j].playerEffect == CLEAR_ALL_EFFECTS)
                     for (int k = 0; k < playerCount; ++k) ClearPlayerOfEffects(&players[k]);
-                else if (doors[j].isDebuff) AssignEffectToPlayer(doors[j].playerEffect, &players[j]);
-                else if (doors[j].isDebuff) AssignEffectToPlayer(doors[j].playerEffect, &players[j]);
+                else if (doors[j].isDebuff) AssignEffectToPlayer(doors[j].playerEffect, &players[i]);
+                else {
+                    int r = i;
+                    while (r == i) r = rand() % playersPlaying;
+                    AssignEffectToPlayer(doors[j].playerEffect, &players[r]);
+                }
+                for (int k = 0; k < maxBooletsOnMap; ++k) boolets[k].enabled = false;
 
-                for (int i = 0; i < maxBooletsOnMap; ++i) boolets[i].enabled = false;
+                resetLevel();
                 gameState = FIGHT;
             }
         }
@@ -166,13 +167,12 @@ void UpdateGameplayScreen(void) {
             break;
     }
 
-    if (GetTime() - lastDebugInfoTime > 1) {
-        for (int i = 0; i < player_speed_modifier; ++i) {
-
-            if (playersPlaying >= 4) players[2];
-            if (playersPlaying >= 3) players[1];
-        }
-        lastDebugInfoTime = GetTime();
+    if (IsKeyPressed(KEY_F3)) {
+        printDebugMessage(&players[0]);
+        printDebugMessage(&players[1]);
+        if (playersPlaying >= 3) printDebugMessage(&players[2]);;
+        if (playersPlaying >= 4) printDebugMessage(&players[3]);;
+        printf("\n");
     }
 }
 

@@ -22,7 +22,7 @@ void InitPlayerDefaults(
     p->velocity.y = 0;
     p->shootingDirection.x = 0;
     p->shootingDirection.y = 0;
-    p->maxHealth = 1;
+    p->maxHealth = 2;
     p->health = p->maxHealth;
     p->defaultSpeed = 300;
     p->speed = p->defaultSpeed;
@@ -36,7 +36,7 @@ void InitPlayerDefaults(
     p->keyShootRight = rightShoot;
     p->keyDodge = dodge;
     p->isDead = false;
-    p->huePhase = atCorner * 60;
+    p->huePhase = (atCorner * 60) % 360;
     p->lastShotTime = GetTime();
     p->shotCooldownTime = 0.5F;
     p->friction = 0.9F;
@@ -44,11 +44,25 @@ void InitPlayerDefaults(
     p->lastDodgeTime = GetTime();
     p->dodgeCooldownTime = 1.5F;
     p->nextEffectToSwapIndex = 0;
+    for (int i = 0; i < playerEffectCapacityAndLifespan; ++i) {
+        p->activeEffects[i] = -1;
+    }
 }
 
 void printDebugMessage(struct Player *p) {
-    printf("");
+    printf("Player Info: hue:%d, rect[%.2f, %.2f, %.2f, %.2f], vel[%.2f, %.2f], HP:%d/%d, spd:%d/%d, bulSpd:%d, dead:%d, shot:%.2f/%.2f, dodge:%.2f/%.2f, fric:%.2f, eff[%d, %d, %d]\n",
+           p->huePhase,
+           p->rect.x, p->rect.y, p->rect.width, p->rect.height,
+           p->velocity.x, p->velocity.y,
+           p->health, p->maxHealth,
+           p->speed, p->defaultSpeed,
+           p->bulletSpeed, p->isDead,
+           p->lastShotTime, p->shotCooldownTime,
+           p->lastDodgeTime, p->dodgeCooldownTime,
+           p->friction,
+           p->activeEffects[0], p->activeEffects[1], p->activeEffects[2]);
 }
+
 
 void SetPlayerLocation(struct Player *p, Location atCorner) {
     switch (atCorner) {

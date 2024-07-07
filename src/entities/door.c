@@ -6,6 +6,7 @@
 #include "playerEffect.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 void InitDoorsWithRandomEffect(struct Door *d) {
     d->animationOpenTime = 1;

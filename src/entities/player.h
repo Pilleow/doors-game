@@ -46,6 +46,8 @@ void InitPlayerDefaults(
         KeyboardKey dodge
 );
 
+void printDebugMessage(struct Player *p);
+
 void SetPlayerLocation(struct Player *p, Location atCorner);
 
 void ProcessPlayerInput(struct Player *p);
