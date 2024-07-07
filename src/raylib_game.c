@@ -60,7 +60,9 @@ int main(void) {
     // Initialization
     //---------------------------------------------------------
 
+    SetConfigFlags(FLAG_BORDERLESS_WINDOWED_MODE);
     InitWindow(screenWidth, screenHeight, "Door Game");
+    ToggleFullscreen();
 
     InitAudioDevice();      // Initialize audio device
     srand(time(NULL));      // Initialize random module

@@ -37,12 +37,12 @@ typedef enum {
     CLEAR_ALL_EFFECTS
 } PlayerEffect;
 
-static const int player_speed_modifier = 100;
-static const int bullet_speed_modifier = 100;
-static const int body_size_modifier = 5;
+static const int player_speed_modifier = 150;
+static const int bullet_speed_modifier = 150;
+static const int body_size_modifier = 10;
 static const int bullet_spread_modifier = 0; // this is not implemented yet! todo implement this
 static const int max_health_modifier = 1;
-static const float friction_modifier = 0.08;
+static const float friction_modifier = 0.075;
 static const float shoot_cooldown_time_modifier = 0.25;
 
 // -------------------------------------------------------------------

@@ -17,10 +17,11 @@ struct Boolet {
     bool enabled;
     BooletType type;
     struct Player* parent;
+    Color color;
 };
 
 void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float yStart, float size, float xVelocity, float yVelocity,
-                        unsigned char damage, unsigned short speed, BooletType btype);
+                        unsigned char damage, unsigned short speed, BooletType btype, Color color);
 
 void DrawBoolet(struct Boolet *b);
 

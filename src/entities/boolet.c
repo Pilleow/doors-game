@@ -5,7 +5,7 @@
 #include "boolet.h"
 
 void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float yStart, float size, float xVelocity, float yVelocity,
-                        unsigned char damage, unsigned short speed, BooletType btype) {
+                        unsigned char damage, unsigned short speed, BooletType btype, Color color) {
     b->parent = parent;
     b->rect.x = xStart;
     b->rect.y = yStart;
@@ -17,10 +17,11 @@ void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, f
     b->speed = speed;
     b->enabled = true;
     b->type = btype;
+    b->color = color;
 }
 
 void DrawBoolet(struct Boolet *b) {
-    DrawRectangle(b->rect.x, b->rect.y, b->rect.width, b->rect.height, WHITE);
+    DrawRectangle(b->rect.x, b->rect.y, b->rect.width, b->rect.height, b->color);
 }
 
 void ApplyBooletVelocity(struct Boolet *b) {

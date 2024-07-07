@@ -106,7 +106,7 @@ void updateGameplayScreenDuringFight() {
                     &boolets[nextBooletIndex++], &players[i],
                     players[i].rect.x + players[i].rect.width / 2, players[i].rect.y + players[i].rect.height / 2,
                     5, players[i].shootingDirection.x, players[i].shootingDirection.y, 1, players[i].bulletSpeed,
-                    STRAIGHT
+                    STRAIGHT, ColorFromHSV(players[i].huePhase, 1, 1)
             );
             nextBooletIndex %= maxBooletsOnMap;
         }
@@ -129,7 +129,8 @@ void updateGameplayScreenDuringFight() {
                         playersAlive++;
                     }
                 }
-                if (playersAlive <= 1) {
+                if (playersAlive == 0) resetLevel();
+                else if (playersAlive == 1) {
                     AddWinToPlayer(alivePlayer);
                     gameState = CHOOSEDOOR;
                     for (int k = 0; k < 4; ++k) doors[k].timeSpawned = GetTime();

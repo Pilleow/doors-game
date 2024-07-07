@@ -16,15 +16,15 @@ void InitPlayerDefaults(
         KeyboardKey dodge
 ) {
     SetPlayerLocation(p, atCorner);
-    p->rect.height = 30;
-    p->rect.width = 30;
+    p->rect.height = 40;
+    p->rect.width = 40;
     p->velocity.x = 0;
     p->velocity.y = 0;
     p->shootingDirection.x = 0;
     p->shootingDirection.y = 0;
     p->maxHealth = 2;
     p->health = p->maxHealth;
-    p->defaultSpeed = 300;
+    p->defaultSpeed = 350;
     p->speed = p->defaultSpeed;
     p->keyMoveUp = up;
     p->keyMoveDown = down;
@@ -43,8 +43,8 @@ void InitPlayerDefaults(
     p->huePhase = (atCorner * 60) % 360;
     p->lastShotTime = GetTime();
     p->shotCooldownTime = 0.5F;
-    p->friction = 0.9F;
-    p->bulletSpeed = 500;
+    p->friction = 0.91F;
+    p->bulletSpeed = 600;
     p->lastDodgeTime = GetTime();
     p->dodgeCooldownTime = 1.5F;
     p->nextEffectToSwapIndex = 0;
@@ -112,10 +112,10 @@ void ProcessPlayerInput(struct Player *p) {
     if (Vector2LengthSqr(p->velocity) > 1)
         p->velocity = Vector2Normalize(p->velocity);
 
-    if (p->speed > p->defaultSpeed) p->speed =  p->defaultSpeed + 0.9 * (p->speed - p->defaultSpeed);
+    if (p->speed > p->defaultSpeed) p->speed =  p->defaultSpeed + 0.925 * (p->speed - p->defaultSpeed);
     if (IsKeyDown(p->keyDodge) && GetTime() - p->lastDodgeTime > p->dodgeCooldownTime) {
         p->lastDodgeTime = GetTime();
-        p->speed *= 3;
+        p->speed *= 4;
     }
 
     p->shootingDirection.x = 0;

@@ -11,10 +11,11 @@
 #define doorFontSize 32
 #define winsFontSize 32
 #define showFPS false
+#define isFullscreen true
 
 static int playersPlaying = 2;
-static int screenWidth = 800;   // default: 800
-static int screenHeight = 450;  // default: 450
+static int screenWidth = 1920;   // default: 800
+static int screenHeight = 1080;  // default: 450
 
 typedef enum {
     TOPLEFT,
