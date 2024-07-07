@@ -18,6 +18,7 @@ struct Player {
     unsigned short defaultSpeed;
     unsigned short bulletSpeed;
     bool isDead;
+    bool isPlaying;
     unsigned short huePhase;
     float lastShotTime;
     float shotCooldownTime;
@@ -26,6 +27,11 @@ struct Player {
     float friction;
     int activeEffects[playerEffectCapacityAndLifespan];
     int nextEffectToSwapIndex;
+    int wins;
+    char winsString[16];
+    int winsStringX;
+    int winsStringY;
+    Location startLocation;
     KeyboardKey keyMoveUp;
     KeyboardKey keyMoveDown;
     KeyboardKey keyMoveLeft;
@@ -45,6 +51,10 @@ void InitPlayerDefaults(
         KeyboardKey leftShoot, KeyboardKey rightShoot,
         KeyboardKey dodge
 );
+
+void AddWinToPlayer(struct Player *p);
+
+void DrawPlayerScore(struct Player *p);
 
 void printDebugMessage(struct Player *p);
 

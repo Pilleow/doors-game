@@ -6,11 +6,12 @@
 #include "playerEffect.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 
 void InitDoorsWithRandomEffect(struct Door *d) {
     d->animationOpenTime = 1;
-    d->color = ColorFromHSV(30 * (rand() % 12), 1, .5);
+
     if (rand() % 100 < 50) {
         d->isDebuff = false;
         d->playerEffect = getRandomBuff();
@@ -18,30 +19,44 @@ void InitDoorsWithRandomEffect(struct Door *d) {
         d->isDebuff = true;
         d->playerEffect = getRandomDebuff();
     }
+
+    d->color = ColorFromHSV((360 / playerEffectCount * d->playerEffect) % 360, .9, .9);
+
+    sprintf(d->playerEffectString, "%d", d->playerEffect);
+    int textWidth = MeasureText(d->playerEffectString, doorFontSize);
+
     switch (d->location) {
         case TOP:
             d->finalRect.height = 5;
             d->finalRect.width = screenWidth * 0.3;
             d->finalRect.x = (screenWidth - d->finalRect.width) / 2;
             d->finalRect.y = 0;
+            d->playerEffectStringPositionX = d->finalRect.x + d->finalRect.width / 2 - textWidth;
+            d->playerEffectStringPositionY = 15;
             break;
         case LEFT:
             d->finalRect.height = screenHeight * 0.3;
             d->finalRect.width = 5;
             d->finalRect.x = 0;
             d->finalRect.y = (screenHeight - d->finalRect.height) / 2;
+            d->playerEffectStringPositionX = 15;
+            d->playerEffectStringPositionY = screenHeight / 2 - doorFontSize / 2;
             break;
         case RIGHT:
             d->finalRect.height = screenHeight * 0.3;
             d->finalRect.width = 5;
             d->finalRect.x = screenWidth - d->finalRect.width;
             d->finalRect.y = (screenHeight - d->finalRect.height) / 2;
+            d->playerEffectStringPositionX = screenWidth - textWidth - 15;
+            d->playerEffectStringPositionY = screenHeight / 2 - doorFontSize / 2;
             break;
         case BOTTOM:
             d->finalRect.height = 5;
             d->finalRect.width = screenWidth * 0.3;
             d->finalRect.x = (screenWidth - d->finalRect.width) / 2;
             d->finalRect.y = screenHeight - d->finalRect.height;
+            d->playerEffectStringPositionX = d->finalRect.x + d->finalRect.width / 2 - textWidth;
+            d->playerEffectStringPositionY = screenHeight - 15 - doorFontSize;
             break;
         default:
             break;
@@ -67,4 +82,5 @@ void DrawDoor(struct Door *d) {
         default:
             break;
     }
+    DrawText(d->playerEffectString, d->playerEffectStringPositionX, d->playerEffectStringPositionY, doorFontSize, d->color);
 }

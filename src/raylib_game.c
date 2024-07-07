@@ -66,7 +66,7 @@ int main(void) {
     srand(time(NULL));      // Initialize random module
 
     // Load global data (assets that must be available in all screens, i.e. font)
-//    font = LoadFont("resources/mecha.png");
+//    font = LoadFont("resources/font/BebasNeue-Regular.ttf");
 //    music = LoadMusicStream("resources/ambient.ogg");
 //    fxCoin = LoadSound("resources/coin.wav");
 

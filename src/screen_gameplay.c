@@ -17,6 +17,7 @@ struct Boolet boolets[maxBooletsOnMap];
 struct Door doors[4];
 static int nextBooletIndex = 0;
 static GameState gameState = FIGHT;
+static char fpsString[16];
 
 //----------------------------------------------------------------------------------
 // Gameplay Screen Functions Definition
@@ -28,15 +29,15 @@ void InitGameplayScreen(void) {
     InitPlayerDefaults(&player1,
                        TOPLEFT,
                        KEY_W, KEY_S, KEY_A, KEY_D,
-                       KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT,
-                       KEY_LEFT_SHIFT
+                       KEY_W, KEY_S, KEY_A, KEY_D,
+                       KEY_LEFT_ALT
     );
     players[0] = player1;
     InitPlayerDefaults(&player2,
                        BOTTOMRIGHT,
-                       KEY_I, KEY_K, KEY_J, KEY_L,
-                       KEY_I, KEY_K, KEY_J, KEY_L,
-                       KEY_SPACE
+                       KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT,
+                       KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT,
+                       KEY_RIGHT_CONTROL
     );
     players[1] = player2;
     InitPlayerDefaults(&player3,
@@ -53,8 +54,8 @@ void InitGameplayScreen(void) {
     );
     players[3] = player4;
 
-    if (playersPlaying < 3) players[2].isDead = true;
-    if (playersPlaying < 4) players[3].isDead = true;
+    if (playersPlaying < 3) players[2].isPlaying = false;
+    if (playersPlaying < 4) players[3].isPlaying = false;
 
     for (int i = 0; i < maxBooletsOnMap; ++i) boolets[i].enabled = false;
 
@@ -82,8 +83,8 @@ void resetLevel() {
         players[i].lastShotTime = GetTime();
         players[i].health = players[i].maxHealth;
     }
-    if (playersPlaying < 3) players[2].isDead = true;
-    if (playersPlaying < 4) players[3].isDead = true;
+    if (playersPlaying < 3) players[2].isPlaying = false;
+    if (playersPlaying < 4) players[3].isPlaying = false;
     for (int i = 0; i < 4; ++i) {
         InitDoorsWithRandomEffect(&doors[i]);
     }
@@ -97,7 +98,7 @@ bool isOutOfWindowBounds(Rectangle r) {
 
 void updateGameplayScreenDuringFight() {
     for (int i = 0; i < 4; ++i) {
-        if (players[i].isDead) continue;
+        if (!players[i].isPlaying || players[i].isDead) continue;
         ProcessPlayerInput(&players[i]);
         ApplyPlayerVelocity(&players[i]);
         if (IsPlayerShooting(&players[i])) {
@@ -112,17 +113,24 @@ void updateGameplayScreenDuringFight() {
     }
 
     for (int i = 0; i < maxBooletsOnMap; ++i) {
-        ApplyBooletVelocity(&boolets[i]);
-        if (isOutOfWindowBounds(boolets[i].rect)) boolets[i].enabled = false;
         if (!boolets[i].enabled) continue;
+        if (isOutOfWindowBounds(boolets[i].rect)) boolets[i].enabled = false;
+        ApplyBooletVelocity(&boolets[i]);
         for (int j = 0; j < 4; ++j) {
-            if (!players[j].isDead && &players[j] != boolets[i].parent &&
+            if (!players[j].isDead && players[j].isPlaying && &players[j] != boolets[i].parent &&
                 CheckCollisionRecs(boolets[i].rect, players[j].rect)) {
                 ApplyDamageToPlayer(&players[j], boolets[i].damage);
                 boolets[i].enabled = false;
                 char playersAlive = 0;
-                for (int k = 0; k < 4; ++k) if (!players[k].isDead) playersAlive++;
+                struct Player *alivePlayer;
+                for (int k = 0; k < 4; ++k) {
+                    if (!players[k].isDead && players[k].isPlaying) {
+                        alivePlayer = &players[k];
+                        playersAlive++;
+                    }
+                }
                 if (playersAlive <= 1) {
+                    AddWinToPlayer(alivePlayer);
                     gameState = CHOOSEDOOR;
                     for (int k = 0; k < 4; ++k) doors[k].timeSpawned = GetTime();
                 }
@@ -133,7 +141,7 @@ void updateGameplayScreenDuringFight() {
 
 void updateGameplayScreenDuringChooseDoor() {
     for (int i = 0; i < 4; ++i) {
-        if (players[i].isDead) continue;
+        if (players[i].isDead || !players[i].isPlaying) continue;
         ProcessPlayerInput(&players[i]);
         ApplyPlayerVelocity(&players[i]);
 
@@ -153,6 +161,12 @@ void updateGameplayScreenDuringChooseDoor() {
                 gameState = FIGHT;
             }
         }
+    }
+
+    for (int i = 0; i < maxBooletsOnMap; ++i) {
+        if (!boolets[i].enabled) continue;
+        if (isOutOfWindowBounds(boolets[i].rect)) boolets[i].enabled = false;
+        ApplyBooletVelocity(&boolets[i]);
     }
 }
 
@@ -180,8 +194,17 @@ void UpdateGameplayScreen(void) {
 void DrawGameplayScreen(void) {
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), ColorFromHSV(180, 0.1, 0.1));
     for (int i = 0; i < maxBooletsOnMap; ++i) if (boolets[i].enabled) DrawBoolet(&boolets[i]);
-    for (int i = 0; i < 4; ++i) if (!players[i].isDead) DrawPlayer(&players[i]);
     if (gameState == CHOOSEDOOR) for (int i = 0; i < 4; ++i) DrawDoor(&doors[i]);
+    for (int i = 0; i < 4; ++i) {
+        if (!players[i].isPlaying) continue;
+        DrawPlayerScore(&players[i]);
+        if (!players[i].isDead) DrawPlayer(&players[i]);
+    }
+
+    if (showFPS) {
+        sprintf(fpsString, "%d", GetFPS());
+        DrawText(fpsString, 2, 2, 14, GREEN);
+    }
 }
 
 // Gameplay Screen Unload logic

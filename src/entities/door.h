@@ -14,6 +14,9 @@ struct Door {
     float animationOpenTime;
     Color color;
     int playerEffect;
+    char playerEffectString[32];
+    int playerEffectStringPositionX;
+    int playerEffectStringPositionY;
     bool isDebuff;
     Rectangle finalRect;
 };

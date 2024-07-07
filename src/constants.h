@@ -8,6 +8,9 @@
 #define maxBooletsOnMap 512
 #define playerCount 4
 #define playerEffectCapacityAndLifespan 3
+#define doorFontSize 32
+#define winsFontSize 32
+#define showFPS false
 
 static int playersPlaying = 2;
 static int screenWidth = 800;   // default: 800
