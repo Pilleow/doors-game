@@ -6,7 +6,7 @@
 #include "playerEffect.h"
 
 #include <stdlib.h>
-#include <stdio.h>
+#include <math.h>
 
 void InitDoorsWithRandomEffect(struct Door *d) {
     d->animationOpenTime = 1;
@@ -26,13 +26,13 @@ void InitDoorsWithRandomEffect(struct Door *d) {
             d->finalRect.y = 0;
             break;
         case LEFT:
-            d->finalRect.height = screenHeight * 0.2;
+            d->finalRect.height = screenHeight * 0.3;
             d->finalRect.width = 5;
             d->finalRect.x = 0;
             d->finalRect.y = (screenHeight - d->finalRect.height) / 2;
             break;
         case RIGHT:
-            d->finalRect.height = screenHeight * 0.2;
+            d->finalRect.height = screenHeight * 0.3;
             d->finalRect.width = 5;
             d->finalRect.x = screenWidth - d->finalRect.width;
             d->finalRect.y = (screenHeight - d->finalRect.height) / 2;
@@ -49,5 +49,22 @@ void InitDoorsWithRandomEffect(struct Door *d) {
 }
 
 void DrawDoor(struct Door *d) {
-    DrawRectangle(d->finalRect.x, d->finalRect.y, d->finalRect.width, d->finalRect.height, d->color);
+    float percentageOpen = sqrtf((GetTime() - d->timeSpawned) / d->animationOpenTime);
+    if (percentageOpen > 1) percentageOpen = 1;
+    switch (d->location) {
+        case TOP:
+            DrawRectangle(d->finalRect.x, d->finalRect.y, d->finalRect.width * percentageOpen, d->finalRect.height, d->color);
+            break;
+        case LEFT:
+            DrawRectangle(d->finalRect.x, d->finalRect.y, d->finalRect.width, d->finalRect.height * percentageOpen, d->color);
+            break;
+        case RIGHT:
+            DrawRectangle(d->finalRect.x, d->finalRect.y, d->finalRect.width, d->finalRect.height * percentageOpen, d->color);
+            break;
+        case BOTTOM:
+            DrawRectangle(d->finalRect.x, d->finalRect.y, d->finalRect.width * percentageOpen, d->finalRect.height, d->color);
+            break;
+        default:
+            break;
+    }
 }

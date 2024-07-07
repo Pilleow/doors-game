@@ -59,6 +59,7 @@ static void UpdateDrawFrame(void);          // Update and draw one frame
 int main(void) {
     // Initialization
     //---------------------------------------------------------
+
     InitWindow(screenWidth, screenHeight, "Door Game");
 
     InitAudioDevice();      // Initialize audio device
@@ -205,6 +206,9 @@ static void UpdateDrawFrame(void) {
     // Update
     //----------------------------------------------------------------------------------
     UpdateMusicStream(music);       // NOTE: Music keeps playing between screens
+
+    screenWidth = GetScreenWidth();
+    screenHeight = GetScreenHeight();
 
     if (!onTransition) {
         switch (currentScreen) {

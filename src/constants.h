@@ -10,8 +10,8 @@
 #define playerEffectCapacityAndLifespan 3
 
 static int playersPlaying = 2;
-static const int screenWidth = 800;
-static const int screenHeight = 450;
+static int screenWidth = 800;   // default: 800
+static int screenHeight = 450;  // default: 450
 
 typedef enum {
     TOPLEFT,

@@ -25,6 +25,7 @@ endif()
 
 # Our Project
 add_executable(${PROJECT_NAME}
+        src/entities/player.c
         src/entities/player.h
         src/constants.h
         src/entities/boolet.c
@@ -45,6 +46,7 @@ add_custom_command(
 
 #set(raylib_VERBOSE 1)
 target_link_libraries(${PROJECT_NAME} raylib)
+target_link_libraries(${PROJECT_NAME} m)
 
 # Checks if OSX and links appropriate frameworks (Only required on MacOS)
 if (APPLE)
