@@ -18,6 +18,8 @@
 #include "screens.h"    // NOTE: Declares global (extern) variables and screens functions
 #include "constants.h"
 
+#define SUPPORT_FILEFORMAT_MP3
+
 #if defined(PLATFORM_WEB)
 #include <emscripten/emscripten.h>
 #endif
@@ -27,9 +29,6 @@
 // NOTE: Those variables are shared between modules through screens.h
 //----------------------------------------------------------------------------------
 GameScreen currentScreen = GAMEPLAY;
-Font font = {0};
-Music music = {0};
-Sound fxCoin = {0};
 
 //----------------------------------------------------------------------------------
 // Local Variables Definition (local to this module)
@@ -40,6 +39,7 @@ static float transAlpha = 0.0f;
 static bool onTransition = false;
 static bool transFadeOut = false;
 static int transFromScreen = -1;
+static Music bgMusic[bgMusicCount];
 static GameScreen transToScreen = UNKNOWN;
 
 //----------------------------------------------------------------------------------
@@ -67,13 +67,15 @@ int main(void) {
     InitAudioDevice();      // Initialize audio device
     srand(time(NULL));      // Initialize random module
 
+    // Load bg music files here individually
+    bgMusic[0] = LoadMusicStream("resources/bgm/gnosisHardware.mp3");
+
     // Load global data (assets that must be available in all screens, i.e. font)
 //    font = LoadFont("resources/font/BebasNeue-Regular.ttf");
-//    music = LoadMusicStream("resources/ambient.ogg");
 //    fxCoin = LoadSound("resources/coin.wav");
 
-//    SetMusicVolume(music, 1.0f);
-//    PlayMusicStream(music);
+    for (int i = 0; i < bgMusicCount; ++i) SetMusicVolume(bgMusic[i], bgMusicVolume);
+    PlayMusicStream(bgMusic[0]);
 
     // Setup and init first screen
     currentScreen = GAMEPLAY;
@@ -105,7 +107,7 @@ int main(void) {
 
     // Unload global data loaded
 //    UnloadFont(font);
-//    UnloadMusicStream(music);
+    for (int i = 0; i < bgMusicCount; ++i) UnloadMusicStream(bgMusic[i]);
 //    UnloadSound(fxCoin);
 
     CloseAudioDevice();     // Close audio context
@@ -207,7 +209,7 @@ static void DrawTransition(void) {
 static void UpdateDrawFrame(void) {
     // Update
     //----------------------------------------------------------------------------------
-    UpdateMusicStream(music);       // NOTE: Music keeps playing between screens
+    for (int i = 0; i < bgMusicCount; ++i) UpdateMusicStream(bgMusic[i]); // NOTE: Music keeps playing between screens
 
     screenWidth = GetScreenWidth();
     screenHeight = GetScreenHeight();

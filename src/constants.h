@@ -10,13 +10,14 @@
 #define maxBooletsOnMap 512
 #define doorFontSize 64
 #define winsFontSize 128
+#define bgMusicCount 1
 #define playerCount 4
 
 static int showFPS = 1;
-
 static int playersPlaying = 2;
 static int screenWidth = 1920;
 static int screenHeight = 1080;
+static float bgMusicVolume = 0.0f;
 
 typedef enum {
     TOPLEFT,
