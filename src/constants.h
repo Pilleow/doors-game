@@ -2,6 +2,8 @@
 // Created by igor on 2024.07.06..
 //
 
+#include <stdbool.h>
+
 #ifndef RAYLIB_GAME_TEMPLATE_CONSTANTS_H
 #define RAYLIB_GAME_TEMPLATE_CONSTANTS_H
 
@@ -17,10 +19,14 @@
 #define playerCount 4
 #define bgMusicCount 1
 
-static int showFPS = 1;
+static bool useGamepads = true;
+static bool showFPS = true;
+
 static int playersPlaying = 2;
 static int screenWidth = 1920;
 static int screenHeight = 1080;
+
+static float masterVolume = 0.0f;
 static float bgMusicVolume = 0.5f;
 static float sfxShootVolume = 0.5f;
 static float sfxDeadVolume = 0.5f;

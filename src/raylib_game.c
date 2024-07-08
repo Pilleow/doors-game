@@ -69,8 +69,9 @@ int main(void) {
     InitWindow(screenWidth, screenHeight, "Door Game");
     ToggleFullscreen();
 
-    InitAudioDevice();      // Initialize audio device
     srand(time(NULL));      // Initialize random module
+    InitAudioDevice();      // Initialize audio device
+    SetMasterVolume(masterVolume);
 
     // Load sfx here individually
     for (int i = 0; i < sfxShootCount; ++i) {
@@ -94,13 +95,14 @@ int main(void) {
 
     // Load bg music files here individually
     bgMusic[0] = LoadMusicStream("resources/bgm/gnosisHardware.mp3");
+    for (int i = 0; i < bgMusicCount; ++i) SetMusicVolume(bgMusic[i], bgMusicVolume);
+
+    PlayMusicStream(bgMusic[0]);
 
     // Load global data (assets that must be available in all screens, i.e. font)
 //    font = LoadFont("resources/font/BebasNeue-Regular.ttf");
 //    fxCoin = LoadSound("resources/coin.wav");
 
-    for (int i = 0; i < bgMusicCount; ++i) SetMusicVolume(bgMusic[i], bgMusicVolume);
-    PlayMusicStream(bgMusic[0]);
 
     // Setup and init first screen
     currentScreen = GAMEPLAY;

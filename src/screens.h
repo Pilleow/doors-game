@@ -29,8 +29,6 @@ void UpdateGameplayScreen(void);
 void DrawGameplayScreen(void);
 void UnloadGameplayScreen(void);
 
-__attribute__((unused)) int FinishGameplayScreen(void);
-
 #ifdef __cplusplus
 }
 #endif

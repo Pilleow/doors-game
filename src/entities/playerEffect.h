@@ -17,7 +17,7 @@
  * etc.
  */
 
-static int playerEffectCount = 14;
+static int playerEffectCount = 15;
 
 typedef enum {
     MORE_PLAYER_SPEED = 0,

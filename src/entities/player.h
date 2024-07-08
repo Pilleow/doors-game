@@ -65,7 +65,7 @@ void printDebugMessage(struct Player *p);
 
 void SetPlayerLocation(struct Player *p, Location atCorner);
 
-void ProcessPlayerInput(struct Player *p);
+void ProcessPlayerInput(struct Player *p, char gamepadId);
 
 void ApplyPlayerVelocity(struct Player *p);
 

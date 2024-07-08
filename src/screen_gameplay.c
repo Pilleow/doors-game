@@ -21,6 +21,7 @@ static char fpsString[16];
 static Rectangle bgRect1;
 static Rectangle bgRect2;
 static Vector2 center;
+static char playersCurrentlyPlaying;
 
 // functions definition below ------------------------------------------------------------------------------------------
 
@@ -68,8 +69,11 @@ void InitGameplayScreen(void) {
     );
     players[3] = player4;
 
-    if (playersPlaying < 3) players[2].isPlaying = false;
-    if (playersPlaying < 4) players[3].isPlaying = false;
+    if (useGamepads) {
+        playersPlaying = 0;
+        for (int i = 0; i < playerCount; ++i) players[i].isPlaying = false;
+    } else if (playersPlaying < 3) players[2].isPlaying = false;
+    else if (playersPlaying < 4) players[3].isPlaying = false;
 
     for (int i = 0; i < maxBooletsOnMap; ++i) boolets[i].enabled = false;
 
@@ -119,11 +123,36 @@ bool isOutOfWindowBounds(Rectangle r) {
 
 // this function updates the game when gameState == FIGHT
 void updateGameplayScreenDuringFight() {
+    // look for gamepads -----------------------------------------------------------------------------------------------
+    if (useGamepads && playersPlaying < playerCount) {
+        for (int gamepadId = 0; gamepadId < playerCount; ++gamepadId) {
+            if (!IsGamepadAvailable(gamepadId)) {
+                if (players[gamepadId].isPlaying == false) continue;
+                else {
+                    players[gamepadId].isPlaying = false;
+                    players[gamepadId].isDead = true;
+                    playersPlaying--;
+                }
+            }
+            if (players[gamepadId].isPlaying == false) {
+                players[gamepadId].isPlaying = true;
+                players[gamepadId].isDead = false;
+                playersPlaying++;
+            }
+        }
+    }
+
     // player update ---------------------------------------------------------------------------------------------------
+    char playersAlive = 0;
+    playersCurrentlyPlaying = 0;
+
     for (int i = 0; i < 4; ++i) {
-        if (!players[i].isPlaying || players[i].isDead) continue;
+        if (players[i].isPlaying) playersCurrentlyPlaying++;
+        else continue;
+        if (!players[i].isDead) playersAlive++;
+        else continue;
         struct Player *p = &players[i];
-        ProcessPlayerInput(p);
+        ProcessPlayerInput(p, i);
         ApplyPlayerVelocity(p);
         if (IsPlayerShooting(p)) {
             InitBooletDefaults(
@@ -135,6 +164,23 @@ void updateGameplayScreenDuringFight() {
             nextBooletIndex %= maxBooletsOnMap;
             PlaySound(sfxShoot[p->sfxShootSoundIndex++]);
             p->sfxShootSoundIndex %= sfxShootCount;
+        }
+    }
+
+    // if there is 1 or 0 players alive --------------------------------------------------------------------------------
+    if (playersAlive <= 1 && playersCurrentlyPlaying >= 2) {
+        struct Player *alivePlayer;
+        for (int k = 0; k < 4; ++k) {
+            if (!players[k].isDead && players[k].isPlaying) {
+                alivePlayer = &players[k];
+                break;
+            }
+        }
+        if (playersAlive == 0) resetLevel();
+        else if (playersAlive == 1) {
+            AddWinToPlayer(alivePlayer);
+            gameState = CHOOSEDOOR;
+            for (int k = 0; k < 4; ++k) doors[k].timeSpawned = GetTime();
         }
     }
 
@@ -150,25 +196,9 @@ void updateGameplayScreenDuringFight() {
                 if (players[j].isDead) PlaySound(sfxDead[rand() % sfxDeadCount]);
                 else PlaySound(sfxHit[rand() % sfxHitCount]);
                 boolets[i].enabled = false;
-                char playersAlive = 0;
-                struct Player *alivePlayer;
-                for (int k = 0; k < 4; ++k) {
-                    if (!players[k].isDead && players[k].isPlaying) {
-                        alivePlayer = &players[k];
-                        playersAlive++;
-                    }
-                }
-                if (playersAlive == 0) resetLevel();
-                else if (playersAlive == 1) {
-                    AddWinToPlayer(alivePlayer);
-                    gameState = CHOOSEDOOR;
-                    for (int k = 0; k < 4; ++k) doors[k].timeSpawned = GetTime();
-                }
             }
         }
     }
-
-    // pickupItem update -----------------------------------------------------------------------------------------------
 }
 
 // this function updates the game when gameState == CHOOSEDOOR
@@ -176,7 +206,7 @@ void updateGameplayScreenDuringChooseDoor() {
     // player update ---------------------------------------------------------------------------------------------------
     for (int i = 0; i < 4; ++i) {
         if (players[i].isDead || !players[i].isPlaying) continue;
-        ProcessPlayerInput(&players[i]);
+        ProcessPlayerInput(&players[i], i);
         ApplyPlayerVelocity(&players[i]);
 
         for (int j = 0; j < 4; ++j) {
@@ -234,18 +264,21 @@ void UpdateGameplayScreen(void) {
     }
 
     // read the code bro
-    if (IsKeyPressed(KEY_F3)) {
-        showFPS += 1;
-        showFPS %= 2;
-    }
+    if (IsKeyPressed(KEY_F3)) showFPS = !showFPS;
 }
 
 // this function handles drawing of all elements on the window
 void DrawGameplayScreen(void) {
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), ColorFromHSV(180, 0.1, 0.1));
-    DrawRectanglePro(bgRect1, center, 0.5 * sinf(GetTime()), ColorFromHSV(180, 0.1, 0.12));
-    DrawRectanglePro(bgRect2, center, 0.5 * sinf(GetTime() + PI/3), ColorFromHSV(180, 0.1, 0.14));
-
+    DrawRectanglePro(bgRect1, center, 0.7 * sinf(GetTime()), ColorFromHSV(180, 0.1, 0.12));
+    DrawRectanglePro(bgRect2, center, 0.7 * sinf(GetTime() + PI / 3), ColorFromHSV(180, 0.1, 0.14));
+    if (playersCurrentlyPlaying < 2) {
+        int fontSize = 128;
+        int textWidth = MeasureTextEx(GetFontDefault(), "WAITING FOR PLAYERS", fontSize, 10).x;
+        DrawTextPro(GetFontDefault(), "WAITING FOR PLAYERS",
+                    (Vector2) {screenWidth / 2, screenHeight / 2},
+                    (Vector2) {textWidth / 2, fontSize / 2}, 0.7 * sinf(GetTime() + 2 * PI / 3), fontSize, 10, ColorFromHSV(180, 0.1, 0.2));
+    }
     for (int i = 0; i < maxBooletsOnMap; ++i) if (boolets[i].enabled) DrawBoolet(&boolets[i]);
     if (gameState == CHOOSEDOOR) for (int i = 0; i < 4; ++i) DrawDoor(&doors[i]);
     for (int i = 0; i < 4; ++i) if (players[i].isPlaying && !players[i].isDead) DrawPlayerTail(&players[i]);

@@ -111,28 +111,44 @@ void SetPlayerLocation(struct Player *p, Location atCorner) {
     }
 }
 
-void ProcessPlayerInput(struct Player *p) {
+void ProcessPlayerInput(struct Player *p, char gamepadId) {
     p->velocity.x *= p->friction;
     p->velocity.y *= p->friction;
-    if (IsKeyDown(p->keyMoveUp)) p->velocity.y -= 1;
-    if (IsKeyDown(p->keyMoveDown)) p->velocity.y += 1;
-    if (IsKeyDown(p->keyMoveLeft)) p->velocity.x -= 1;
-    if (IsKeyDown(p->keyMoveRight)) p->velocity.x += 1;
+
+    if (!useGamepads) {
+        if (IsKeyDown(p->keyMoveUp)) p->velocity.y -= 1;
+        if (IsKeyDown(p->keyMoveDown)) p->velocity.y += 1;
+        if (IsKeyDown(p->keyMoveLeft)) p->velocity.x -= 1;
+        if (IsKeyDown(p->keyMoveRight)) p->velocity.x += 1;
+    } else {
+        p->velocity.x = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_LEFT_X);
+        p->velocity.y = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_LEFT_Y);
+    }
+
     if (Vector2LengthSqr(p->velocity) > 1)
         p->velocity = Vector2Normalize(p->velocity);
 
     if (p->speed > p->defaultSpeed) p->speed = p->defaultSpeed + 0.925 * (p->speed - p->defaultSpeed);
-    if (IsKeyDown(p->keyDodge) && GetTime() - p->lastDodgeTime > p->dodgeCooldownTime) {
+    if (
+            ((!useGamepads && IsKeyDown(p->keyDodge)) ||
+             (useGamepads && IsGamepadButtonDown(gamepadId, GAMEPAD_BUTTON_RIGHT_FACE_LEFT)))
+            && GetTime() - p->lastDodgeTime > p->dodgeCooldownTime
+            ) {
         p->lastDodgeTime = GetTime();
         p->speed *= 4;
     }
 
     p->shootingDirection.x = 0;
     p->shootingDirection.y = 0;
-    if (IsKeyDown(p->keyShootUp)) p->shootingDirection.y -= 1;
-    if (IsKeyDown(p->keyShootDown)) p->shootingDirection.y += 1;
-    if (IsKeyDown(p->keyShootLeft)) p->shootingDirection.x -= 1;
-    if (IsKeyDown(p->keyShootRight)) p->shootingDirection.x += 1;
+    if (!useGamepads) {
+        if (IsKeyDown(p->keyShootUp)) p->shootingDirection.y -= 1;
+        if (IsKeyDown(p->keyShootDown)) p->shootingDirection.y += 1;
+        if (IsKeyDown(p->keyShootLeft)) p->shootingDirection.x -= 1;
+        if (IsKeyDown(p->keyShootRight)) p->shootingDirection.x += 1;
+    } else {
+        p->shootingDirection.x = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_RIGHT_X);
+        p->shootingDirection.y = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_RIGHT_Y);
+    }
     p->shootingDirection = Vector2Normalize(p->shootingDirection);
 }
 
@@ -169,7 +185,7 @@ void DrawPlayerTail(struct Player *p) {
         DrawRectangle(
                 p->pastPos[i].x, p->pastPos[i].y,
                 p->rect.width, p->rect.height,
-                ColorAlpha(ColorFromHSV(p->huePhase, 1, 0.7), 1 - (float)i / (float)pastPlayerPositionsCount)
+                ColorAlpha(ColorFromHSV(p->huePhase, 1, 0.7), 1 - (float) i / (float) pastPlayerPositionsCount)
         );
     }
 }
@@ -177,7 +193,8 @@ void DrawPlayerTail(struct Player *p) {
 void DrawPlayer(struct Player *p) {
     int pd = 3;
     DrawRectangle(p->rect.x, p->rect.y, p->rect.width, p->rect.height, ColorFromHSV(p->huePhase, 1, 0.7));
-    DrawRectangle(p->rect.x + pd, p->rect.y + pd, p->rect.width - 2 * pd, p->rect.height - 2 * pd, ColorFromHSV(p->huePhase, 1, 1));
+    DrawRectangle(p->rect.x + pd, p->rect.y + pd, p->rect.width - 2 * pd, p->rect.height - 2 * pd,
+                  ColorFromHSV(p->huePhase, 1, 1));
     float s = 1 - (float) p->health / (float) p->maxHealth;
     DrawRectangle(p->rect.x + p->rect.width / 2 * (1 - s), p->rect.y + p->rect.height / 2 * (1 - s), p->rect.width * s,
                   p->rect.height * s, ColorFromHSV(180, 0.1, 0.1));
@@ -213,7 +230,8 @@ void AddWinToPlayer(struct Player *p) {
 }
 
 void DrawPlayerScore(struct Player *p) {
-    DrawText(p->winsString, p->winsStringX, p->winsStringY, winsFontSize, ColorAlpha(ColorFromHSV(p->huePhase, 0.7, 1), 0.2));
+    DrawText(p->winsString, p->winsStringX, p->winsStringY, winsFontSize,
+             ColorAlpha(ColorFromHSV(p->huePhase, 0.7, 1), 0.2));
 }
 
 bool IsPlayerShooting(struct Player *p) {
