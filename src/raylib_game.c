@@ -46,6 +46,7 @@ Sound sfxShoot[sfxShootCount];
 Sound sfxHit[sfxHitCount];
 Sound sfxDead[sfxDeadCount];
 static GameScreen transToScreen = UNKNOWN;
+RenderTexture2D screenRenderTexture;
 
 //----------------------------------------------------------------------------------
 // Local Functions Declaration
@@ -65,9 +66,16 @@ int main(void) {
     // Initialization
     //---------------------------------------------------------
 
-    SetConfigFlags(FLAG_BORDERLESS_WINDOWED_MODE);
-    InitWindow(screenWidth, screenHeight, "Door Game");
+    InitWindow(1, 1, "Door Game");
+    int monitor = GetCurrentMonitor();
+    finalWidth = GetMonitorWidth(monitor);
+    finalHeight = GetMonitorHeight(monitor);
+    CloseWindow();
+
+    InitWindow(finalWidth, finalHeight, "Door Game");
     ToggleFullscreen();
+
+    screenRenderTexture = LoadRenderTexture(screenWidth, screenHeight);
 
     srand(time(NULL));      // Initialize random module
     InitAudioDevice();      // Initialize audio device
@@ -258,10 +266,8 @@ static void UpdateDrawFrame(void) {
 
     // Draw
     //----------------------------------------------------------------------------------
-    BeginDrawing();
-
+    BeginTextureMode(screenRenderTexture);
     ClearBackground(RAYWHITE);
-
     switch (currentScreen) {
         case GAMEPLAY:
             DrawGameplayScreen();
@@ -269,12 +275,18 @@ static void UpdateDrawFrame(void) {
         default:
             break;
     }
-
-    // Draw full screen rectangle in front of everything
     if (onTransition) DrawTransition();
+    EndTextureMode();
 
-    //DrawFPS(10, 10);
-
+    BeginDrawing();
+    DrawTexturePro(
+            screenRenderTexture.texture,
+            (Rectangle) {0, 0, (float) (screenRenderTexture.texture.width),
+                         (float) (-screenRenderTexture.texture.height)},
+            (Rectangle) {0, 0, (float) (finalWidth), (float) (finalHeight)},
+            (Vector2) {0, 0},
+            0,
+            WHITE);
     EndDrawing();
     //----------------------------------------------------------------------------------
 }

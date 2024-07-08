@@ -131,7 +131,7 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
     if (p->speed > p->defaultSpeed) p->speed = p->defaultSpeed + 0.925 * (p->speed - p->defaultSpeed);
     if (
             ((!useGamepads && IsKeyDown(p->keyDodge)) ||
-             (useGamepads && IsGamepadButtonDown(gamepadId, GAMEPAD_BUTTON_RIGHT_FACE_LEFT)))
+             (useGamepads && IsGamepadButtonDown(gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_2)))
             && GetTime() - p->lastDodgeTime > p->dodgeCooldownTime
             ) {
         p->lastDodgeTime = GetTime();

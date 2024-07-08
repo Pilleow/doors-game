@@ -20,9 +20,12 @@
 #define bgMusicCount 1
 
 static bool useGamepads = true;
-static bool showFPS = true;
+static bool showFPS = false;
 
 static int playersPlaying = 2;
+
+static int finalWidth = 1920;
+static int finalHeight = 1080;
 static int screenWidth = 1920;
 static int screenHeight = 1080;
 
