@@ -36,6 +36,23 @@ typedef enum {
     LONGER_SHOOT_COOLDOWN_TIME,
     CLEAR_ALL_EFFECTS
 } PlayerEffect;
+static const char playerEffectNames[][24] = {
+        [MORE_PLAYER_SPEED] = "SPEED DEMON",
+        [LESS_PLAYER_SPEED] = "SUNDAY DRIVER",
+        [MORE_BULLET_SPEED] = "FAST PIECE",
+        [LESS_BULLET_SPEED] = "SLOW PIECE",
+        [SMALLER_BODY] = "ANT",
+        [LARGER_BODY] = "ANT EATER",
+        [MORE_BOOLET_AMPLITUDE] = "MORE SWAY",
+        [LESS_BOOLET_AMPLITUDE] = "LESS SWAY",
+        [MORE_MAX_HEALTH] = "HEALTH UP",
+        [LESS_MAX_HEALTH] = "ATTRITION",
+        [MORE_FRICTION] = "CRAMPONS",
+        [LESS_FRICTION] = "ICE SKATES",
+        [SHORTER_SHOOT_COOLDOWN_TIME] = "QUICK HANDS",
+        [LONGER_SHOOT_COOLDOWN_TIME] = "SLOW HANDS",
+        [CLEAR_ALL_EFFECTS] = "RM -RF EFFECTS"
+};
 
 static const int player_speed_modifier = 150;
 static const int boolet_speed_modifier = 150;

@@ -17,9 +17,12 @@ struct Door {
     char playerEffectString[32];
     int playerEffectStringPositionX;
     int playerEffectStringPositionY;
+    int playerEffectsStringWidth;
     bool isDebuff;
     Rectangle finalRect;
 };
+
+float _functionDrawDoorCalculate(struct Door *d, float x);
 
 void InitDoorsWithRandomEffect(struct Door *d);
 
