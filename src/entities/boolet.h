@@ -18,10 +18,12 @@ struct Boolet {
     BooletType type;
     struct Player* parent;
     Color color;
+    int timeCreated;
+    int amplitude;
 };
 
 void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float yStart, float size, float xVelocity, float yVelocity,
-                        unsigned char damage, unsigned short speed, BooletType btype, Color color);
+                        unsigned char damage, unsigned short speed, BooletType btype, Color color, int amplitude);
 
 void DrawBoolet(struct Boolet *b);
 

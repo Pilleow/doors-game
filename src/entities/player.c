@@ -43,12 +43,19 @@ void InitPlayerDefaults(
     p->huePhase = (atCorner * 60) % 360;
     p->lastShotTime = GetTime();
     p->shotCooldownTime = 0.5F;
+    p->booletType = STRAIGHT;
+    p->booletAmplitude = 5;
     p->friction = 0.91F;
     p->bulletSpeed = 600;
     p->lastDodgeTime = GetTime();
     p->dodgeCooldownTime = 1.5F;
     p->nextEffectToSwapIndex = 0;
     for (int i = 0; i < playerEffectCapacityAndLifespan; ++i) p->activeEffects[i] = -1;
+    p->lastPastPositionUpdateTime = GetTime();
+    for (int i = 0; i < pastPlayerPositionsCount; ++i) {
+        p->pastPos[i].x = p->rect.x;
+        p->pastPos[i].y = p->rect.y;
+    }
 }
 
 void printDebugMessage(struct Player *p) {
@@ -112,7 +119,7 @@ void ProcessPlayerInput(struct Player *p) {
     if (Vector2LengthSqr(p->velocity) > 1)
         p->velocity = Vector2Normalize(p->velocity);
 
-    if (p->speed > p->defaultSpeed) p->speed =  p->defaultSpeed + 0.925 * (p->speed - p->defaultSpeed);
+    if (p->speed > p->defaultSpeed) p->speed = p->defaultSpeed + 0.925 * (p->speed - p->defaultSpeed);
     if (IsKeyDown(p->keyDodge) && GetTime() - p->lastDodgeTime > p->dodgeCooldownTime) {
         p->lastDodgeTime = GetTime();
         p->speed *= 4;
@@ -145,11 +152,33 @@ void ApplyDamageToPlayer(struct Player *p, unsigned char damage) {
     } else p->health -= damage;
 }
 
+void DrawPlayerTail(struct Player *p) {
+    if (GetTime() - p->lastPastPositionUpdateTime > 0.001) {
+        p->lastPastPositionUpdateTime = GetTime();
+        for (int i = pastPlayerPositionsCount - 1; i > 0; --i) {
+            p->pastPos[i].x = p->pastPos[i - 1].x;
+            p->pastPos[i].y = p->pastPos[i - 1].y;
+        }
+        p->pastPos[0].x = p->rect.x;
+        p->pastPos[0].y = p->rect.y;
+    }
+    for (int i = pastPlayerPositionsCount - 1; i >= 0; --i) {
+        if (i != 0 && p->pastPos[i - 1].x == p->pastPos[i].x && p->pastPos[i - 1].y == p->pastPos[i].y) continue;
+        DrawRectangle(
+                p->pastPos[i].x, p->pastPos[i].y,
+                p->rect.width, p->rect.height,
+                ColorAlpha(ColorFromHSV(p->huePhase, 1, 0.7), 1 - (float)i / (float)pastPlayerPositionsCount)
+        );
+    }
+}
+
 void DrawPlayer(struct Player *p) {
-    DrawRectangle(p->rect.x, p->rect.y, p->rect.width, p->rect.height, ColorFromHSV(p->huePhase, 1, 1));
+    int pd = 3;
+    DrawRectangle(p->rect.x, p->rect.y, p->rect.width, p->rect.height, ColorFromHSV(p->huePhase, 1, 0.7));
+    DrawRectangle(p->rect.x + pd, p->rect.y + pd, p->rect.width - 2 * pd, p->rect.height - 2 * pd, ColorFromHSV(p->huePhase, 1, 1));
     float s = 1 - (float) p->health / (float) p->maxHealth;
     DrawRectangle(p->rect.x + p->rect.width / 2 * (1 - s), p->rect.y + p->rect.height / 2 * (1 - s), p->rect.width * s,
-                  p->rect.height * s,ColorFromHSV(180, 0.1, 0.1));
+                  p->rect.height * s, ColorFromHSV(180, 0.1, 0.1));
 }
 
 void AddWinToPlayer(struct Player *p) {
@@ -157,22 +186,22 @@ void AddWinToPlayer(struct Player *p) {
     sprintf(p->winsString, "%d", p->wins);
 
     int textWidth = MeasureText(p->winsString, winsFontSize);
-    int padding = 15;
+    int padding = 50;
     switch (p->startLocation) {
         case TOPLEFT:
-            p->winsStringX = padding;
+            p->winsStringX = padding * 1.5;
             p->winsStringY = padding;
             break;
         case BOTTOMLEFT:
-            p->winsStringX = padding;
+            p->winsStringX = padding * 1.5;
             p->winsStringY = screenHeight - padding - winsFontSize;
             break;
         case TOPRIGHT:
-            p->winsStringX = screenWidth - padding - textWidth;
+            p->winsStringX = screenWidth - padding * 1.5 - textWidth;
             p->winsStringY = padding;
             break;
         case BOTTOMRIGHT:
-            p->winsStringX = screenWidth - padding - textWidth;
+            p->winsStringX = screenWidth - padding * 1.5 - textWidth;
             p->winsStringY = screenHeight - padding - winsFontSize;
             break;
         default:
@@ -182,7 +211,7 @@ void AddWinToPlayer(struct Player *p) {
 }
 
 void DrawPlayerScore(struct Player *p) {
-    DrawText(p->winsString, p->winsStringX, p->winsStringY, winsFontSize, ColorFromHSV(p->huePhase, 0.7, 0.7));
+    DrawText(p->winsString, p->winsStringX, p->winsStringY, winsFontSize, ColorAlpha(ColorFromHSV(p->huePhase, 0.7, 1), 0.2));
 }
 
 bool IsPlayerShooting(struct Player *p) {

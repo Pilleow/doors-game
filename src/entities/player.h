@@ -9,29 +9,29 @@
 #define RAYLIB_GAME_TEMPLATE_PLAYER_H
 
 struct Player {
-    Rectangle rect;
-    Vector2 velocity;
-    Vector2 shootingDirection;
+    bool isDead;
+    bool isPlaying;
+    char winsString[16];
     unsigned char health;
     unsigned char maxHealth;
     unsigned short speed;
     unsigned short defaultSpeed;
     unsigned short bulletSpeed;
-    bool isDead;
-    bool isPlaying;
     unsigned short huePhase;
-    float lastShotTime;
-    float shotCooldownTime;
-    float lastDodgeTime;
-    float dodgeCooldownTime;
-    float friction;
     int activeEffects[playerEffectCapacityAndLifespan];
     int nextEffectToSwapIndex;
     int wins;
-    char winsString[16];
     int winsStringX;
     int winsStringY;
+    int booletAmplitude;
+    float lastPastPositionUpdateTime;
+    float lastDodgeTime;
+    float lastShotTime;
+    float shotCooldownTime;
+    float dodgeCooldownTime;
+    float friction;
     Location startLocation;
+    BooletType booletType;
     KeyboardKey keyMoveUp;
     KeyboardKey keyMoveDown;
     KeyboardKey keyMoveLeft;
@@ -41,6 +41,10 @@ struct Player {
     KeyboardKey keyShootLeft;
     KeyboardKey keyShootRight;
     KeyboardKey keyDodge;
+    Vector2 velocity;
+    Vector2 shootingDirection;
+    Vector2 pastPos[pastPlayerPositionsCount];
+    Rectangle rect;
 };
 
 void InitPlayerDefaults(
@@ -65,6 +69,8 @@ void ProcessPlayerInput(struct Player *p);
 void ApplyPlayerVelocity(struct Player *p);
 
 void ApplyDamageToPlayer(struct Player *p, unsigned char damage);
+
+void DrawPlayerTail(struct Player *p);
 
 void DrawPlayer(struct Player *p);
 

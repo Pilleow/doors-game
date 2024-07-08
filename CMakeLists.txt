@@ -33,7 +33,8 @@ add_executable(${PROJECT_NAME}
         src/entities/door.c
         src/entities/door.h
         src/entities/playerEffect.c
-        src/entities/playerEffect.h)
+        src/entities/playerEffect.h
+)
 add_subdirectory(src)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES

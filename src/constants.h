@@ -5,17 +5,18 @@
 #ifndef RAYLIB_GAME_TEMPLATE_CONSTANTS_H
 #define RAYLIB_GAME_TEMPLATE_CONSTANTS_H
 
-#define maxBooletsOnMap 512
-#define playerCount 4
 #define playerEffectCapacityAndLifespan 3
-#define doorFontSize 32
-#define winsFontSize 32
-#define showFPS false
-#define isFullscreen true
+#define pastPlayerPositionsCount 32
+#define maxBooletsOnMap 512
+#define doorFontSize 64
+#define winsFontSize 128
+#define playerCount 4
+
+static int showFPS = 1;
 
 static int playersPlaying = 2;
-static int screenWidth = 1920;   // default: 800
-static int screenHeight = 1080;  // default: 450
+static int screenWidth = 1920;
+static int screenHeight = 1080;
 
 typedef enum {
     TOPLEFT,
@@ -37,7 +38,10 @@ typedef enum {
 typedef enum {
     STRAIGHT,
     SWIRLY,
-    EXPLODING
+    EXPLODING,
+    TIMEBENDING,
+    HITSCAN
 } BooletType;
+static const int booletTypeCount = 5;
 
 #endif //RAYLIB_GAME_TEMPLATE_CONSTANTS_H

@@ -26,10 +26,10 @@ void applyEffectToPlayer(PlayerEffect effectToApply, struct Player *p) {
             p->speed -= player_speed_modifier;
             break;
         case MORE_BULLET_SPEED:
-            p->bulletSpeed += bullet_speed_modifier;
+            p->bulletSpeed += boolet_speed_modifier;
             break;
         case LESS_BULLET_SPEED:
-            p->bulletSpeed -= bullet_speed_modifier;
+            p->bulletSpeed -= boolet_speed_modifier;
             break;
         case SMALLER_BODY:
             p->rect.width -= body_size_modifier;
@@ -39,9 +39,11 @@ void applyEffectToPlayer(PlayerEffect effectToApply, struct Player *p) {
             p->rect.width += body_size_modifier;
             p->rect.height += body_size_modifier;
             break;
-        case LESS_RANDOM_BULLET_SPREAD:
+        case MORE_BOOLET_AMPLITUDE:
+            p->booletAmplitude += boolet_amplitude_modifier;
             break;
-        case MORE_RANDOM_BULLET_SPREAD:
+        case LESS_BOOLET_AMPLITUDE:
+            p->booletAmplitude -= boolet_amplitude_modifier;
             break;
         case MORE_MAX_HEALTH:
             p->maxHealth += max_health_modifier;
@@ -77,10 +79,10 @@ void undoEffectFromPlayer(PlayerEffect effectToUndo, struct Player *p) {
             p->speed += player_speed_modifier;
             break;
         case MORE_BULLET_SPEED:
-            p->bulletSpeed -= bullet_speed_modifier;
+            p->bulletSpeed -= boolet_speed_modifier;
             break;
         case LESS_BULLET_SPEED:
-            p->bulletSpeed += bullet_speed_modifier;
+            p->bulletSpeed += boolet_speed_modifier;
             break;
         case SMALLER_BODY:
             p->rect.width += body_size_modifier;
@@ -90,9 +92,11 @@ void undoEffectFromPlayer(PlayerEffect effectToUndo, struct Player *p) {
             p->rect.width -= body_size_modifier;
             p->rect.height -= body_size_modifier;
             break;
-        case LESS_RANDOM_BULLET_SPREAD:
+        case MORE_BOOLET_AMPLITUDE:
+            p->booletAmplitude -= boolet_amplitude_modifier;
             break;
-        case MORE_RANDOM_BULLET_SPREAD:
+        case LESS_BOOLET_AMPLITUDE:
+            p->booletAmplitude += boolet_amplitude_modifier;
             break;
         case MORE_MAX_HEALTH:
             if (p->maxHealth > 1) p->maxHealth -= max_health_modifier;

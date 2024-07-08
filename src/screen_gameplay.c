@@ -2,6 +2,7 @@
 #include "screens.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "constants.h"
 #include "entities/door.h"
@@ -9,22 +10,35 @@
 #include "entities/boolet.h"
 #include "entities/playerEffect.h"
 
-//----------------------------------------------------------------------------------
-// Module Variables Definition (local)
-//----------------------------------------------------------------------------------
+// local variable declaration below ------------------------------------------------------------------------------------
+
 struct Player players[playerCount];
 struct Boolet boolets[maxBooletsOnMap];
 struct Door doors[4];
 static int nextBooletIndex = 0;
 static GameState gameState = FIGHT;
 static char fpsString[16];
+static Rectangle bgRect1;
+static Rectangle bgRect2;
+static Vector2 center;
 
-//----------------------------------------------------------------------------------
-// Gameplay Screen Functions Definition
-//----------------------------------------------------------------------------------
+// functions definition below ------------------------------------------------------------------------------------------
 
-// Gameplay Screen Initialization logic
+// this function initializes the gameplay screen
 void InitGameplayScreen(void) {
+    bgRect1.x = screenWidth / 2 + screenWidth * 0.03;
+    bgRect1.y = screenHeight / 2 + screenHeight * 0.03;
+    bgRect1.width = screenWidth * 0.94;
+    bgRect1.height = screenHeight * 0.94;
+
+    bgRect2.x = screenWidth / 2 + screenWidth * 0.06;
+    bgRect2.y = screenHeight / 2 + screenHeight * 0.06;
+    bgRect2.width = screenWidth * 0.88;
+    bgRect2.height = screenHeight * 0.88;
+
+    center.x = screenWidth / 2;
+    center.y = screenHeight / 2;
+
     struct Player player1, player2, player3, player4;
     InitPlayerDefaults(&player1,
                        TOPLEFT,
@@ -68,6 +82,7 @@ void InitGameplayScreen(void) {
     }
 }
 
+// this function resets the players and map for a new round of the game
 void resetLevel() {
     char atCornerPhase = rand() % 4;
     Location possibleSpawnLocations[] = {
@@ -82,6 +97,7 @@ void resetLevel() {
         players[i].lastDodgeTime = GetTime();
         players[i].lastShotTime = GetTime();
         players[i].health = players[i].maxHealth;
+        players[i].booletType = rand() % booletTypeCount;
     }
     if (playersPlaying < 3) players[2].isPlaying = false;
     if (playersPlaying < 4) players[3].isPlaying = false;
@@ -90,28 +106,33 @@ void resetLevel() {
     }
 }
 
+// this function returns if the rectangle is completely out of bounds
 bool isOutOfWindowBounds(Rectangle r) {
-    return (r.x<-r.width || r.x>(
-    float)screenWidth || r.y<r.height || r.y>(
-    float)screenHeight);
+    return r.x<-r.width || r.x>(
+    float)screenWidth || r.y<-r.height || r.y>(
+    float)screenHeight;
 }
 
+// this function updates the game when gameState == FIGHT
 void updateGameplayScreenDuringFight() {
+    // player update ---------------------------------------------------------------------------------------------------
     for (int i = 0; i < 4; ++i) {
         if (!players[i].isPlaying || players[i].isDead) continue;
-        ProcessPlayerInput(&players[i]);
-        ApplyPlayerVelocity(&players[i]);
-        if (IsPlayerShooting(&players[i])) {
+        struct Player *p = &players[i];
+        ProcessPlayerInput(p);
+        ApplyPlayerVelocity(p);
+        if (IsPlayerShooting(p)) {
             InitBooletDefaults(
-                    &boolets[nextBooletIndex++], &players[i],
-                    players[i].rect.x + players[i].rect.width / 2, players[i].rect.y + players[i].rect.height / 2,
-                    5, players[i].shootingDirection.x, players[i].shootingDirection.y, 1, players[i].bulletSpeed,
-                    STRAIGHT, ColorFromHSV(players[i].huePhase, 1, 1)
+                    &boolets[nextBooletIndex++], p,
+                    p->rect.x + p->rect.width / 2, p->rect.y + p->rect.height / 2,
+                    5, p->shootingDirection.x, p->shootingDirection.y, 1, p->bulletSpeed,
+                    p->booletType, ColorFromHSV(p->huePhase, 1, 1), p->booletAmplitude
             );
             nextBooletIndex %= maxBooletsOnMap;
         }
     }
 
+    // boolet update ---------------------------------------------------------------------------------------------------
     for (int i = 0; i < maxBooletsOnMap; ++i) {
         if (!boolets[i].enabled) continue;
         if (isOutOfWindowBounds(boolets[i].rect)) boolets[i].enabled = false;
@@ -138,9 +159,13 @@ void updateGameplayScreenDuringFight() {
             }
         }
     }
+
+    // pickupItem update -----------------------------------------------------------------------------------------------
 }
 
+// this function updates the game when gameState == CHOOSEDOOR
 void updateGameplayScreenDuringChooseDoor() {
+    // player update ---------------------------------------------------------------------------------------------------
     for (int i = 0; i < 4; ++i) {
         if (players[i].isDead || !players[i].isPlaying) continue;
         ProcessPlayerInput(&players[i]);
@@ -164,6 +189,7 @@ void updateGameplayScreenDuringChooseDoor() {
         }
     }
 
+    // boolet update ---------------------------------------------------------------------------------------------------
     for (int i = 0; i < maxBooletsOnMap; ++i) {
         if (!boolets[i].enabled) continue;
         if (isOutOfWindowBounds(boolets[i].rect)) boolets[i].enabled = false;
@@ -171,8 +197,9 @@ void updateGameplayScreenDuringChooseDoor() {
     }
 }
 
-// Gameplay Screen Update logic
+// this function updates the game regardless of current gameState
 void UpdateGameplayScreen(void) {
+    // call function based on current gameState
     switch (gameState) {
         case FIGHT:
             updateGameplayScreenDuringFight();
@@ -182,20 +209,38 @@ void UpdateGameplayScreen(void) {
             break;
     }
 
-    if (IsKeyPressed(KEY_F3)) {
+    // print debug message on button press
+    if (IsKeyPressed(KEY_F1)) {
         printDebugMessage(&players[0]);
         printDebugMessage(&players[1]);
-        if (playersPlaying >= 3) printDebugMessage(&players[2]);;
-        if (playersPlaying >= 4) printDebugMessage(&players[3]);;
+        if (playersPlaying >= 3) printDebugMessage(&players[2]);
+        if (playersPlaying >= 4) printDebugMessage(&players[3]);
         printf("\n");
+    }
+
+    // switch boolet type on all players to the next one on button press
+    if (IsKeyPressed(KEY_F2)) {
+        for (int i = 0; i < playerCount; ++i) {
+            players[i].booletType = (players[i].booletType + 1) % booletTypeCount;
+        }
+    }
+
+    // read the code bro
+    if (IsKeyPressed(KEY_F3)) {
+        showFPS += 1;
+        showFPS %= 2;
     }
 }
 
-// Gameplay Screen Draw logic
+// this function handles drawing of all elements on the window
 void DrawGameplayScreen(void) {
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), ColorFromHSV(180, 0.1, 0.1));
+    DrawRectanglePro(bgRect1, center, 0.5 * sinf(GetTime()), ColorFromHSV(180, 0.1, 0.12));
+    DrawRectanglePro(bgRect2, center, 0.5 * sinf(GetTime() + PI/3), ColorFromHSV(180, 0.1, 0.14));
+
     for (int i = 0; i < maxBooletsOnMap; ++i) if (boolets[i].enabled) DrawBoolet(&boolets[i]);
     if (gameState == CHOOSEDOOR) for (int i = 0; i < 4; ++i) DrawDoor(&doors[i]);
+    for (int i = 0; i < 4; ++i) if (players[i].isPlaying && !players[i].isDead) DrawPlayerTail(&players[i]);
     for (int i = 0; i < 4; ++i) {
         if (!players[i].isPlaying) continue;
         DrawPlayerScore(&players[i]);
@@ -208,7 +253,5 @@ void DrawGameplayScreen(void) {
     }
 }
 
-// Gameplay Screen Unload logic
-void UnloadGameplayScreen(void) {
-    // Unload GAMEPLAY screen variables here!
-}
+// lol who needs garbage collection #memoryleak
+void UnloadGameplayScreen(void) {}

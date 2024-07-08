@@ -26,8 +26,8 @@ typedef enum {
     LESS_BULLET_SPEED,
     SMALLER_BODY,
     LARGER_BODY,
-    LESS_RANDOM_BULLET_SPREAD,
-    MORE_RANDOM_BULLET_SPREAD,
+    MORE_BOOLET_AMPLITUDE,
+    LESS_BOOLET_AMPLITUDE,
     MORE_MAX_HEALTH,
     LESS_MAX_HEALTH,
     MORE_FRICTION,
@@ -38,9 +38,9 @@ typedef enum {
 } PlayerEffect;
 
 static const int player_speed_modifier = 150;
-static const int bullet_speed_modifier = 150;
+static const int boolet_speed_modifier = 150;
 static const int body_size_modifier = 10;
-static const int bullet_spread_modifier = 0; // this is not implemented yet! todo implement this
+static const int boolet_amplitude_modifier = 2;
 static const int max_health_modifier = 1;
 static const float friction_modifier = 0.075;
 static const float shoot_cooldown_time_modifier = 0.25;
