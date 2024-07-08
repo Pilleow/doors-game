@@ -43,7 +43,7 @@ static const int body_size_modifier = 10;
 static const int boolet_amplitude_modifier = 2;
 static const int max_health_modifier = 1;
 static const float friction_modifier = 0.075;
-static const float shoot_cooldown_time_modifier = 0.25;
+static const float shoot_cooldown_time_modifier = 0.2;
 
 // -------------------------------------------------------------------
 

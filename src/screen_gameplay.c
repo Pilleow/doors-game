@@ -98,6 +98,10 @@ void resetLevel() {
         players[i].lastShotTime = GetTime();
         players[i].health = players[i].maxHealth;
         players[i].booletType = rand() % booletTypeCount;
+        for (int j = 0; j < pastPlayerPositionsCount; ++j) {
+            players[i].pastPos[j].x = players[i].rect.x;
+            players[i].pastPos[j].y = players[i].rect.y;
+        }
     }
     if (playersPlaying < 3) players[2].isPlaying = false;
     if (playersPlaying < 4) players[3].isPlaying = false;
