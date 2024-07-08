@@ -5,6 +5,7 @@
 #include "../constants.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 // this should only be used once on first initialization
 void InitPlayerDefaults(
@@ -56,6 +57,7 @@ void InitPlayerDefaults(
         p->pastPos[i].x = p->rect.x;
         p->pastPos[i].y = p->rect.y;
     }
+    p->sfxShootSoundIndex = rand() % sfxShootCount;
 }
 
 void printDebugMessage(struct Player *p) {

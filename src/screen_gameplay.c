@@ -133,6 +133,8 @@ void updateGameplayScreenDuringFight() {
                     p->booletType, ColorFromHSV(p->huePhase, 1, 1), p->booletAmplitude
             );
             nextBooletIndex %= maxBooletsOnMap;
+            PlaySound(sfxShoot[p->sfxShootSoundIndex++]);
+            p->sfxShootSoundIndex %= sfxShootCount;
         }
     }
 
@@ -145,6 +147,8 @@ void updateGameplayScreenDuringFight() {
             if (!players[j].isDead && players[j].isPlaying && &players[j] != boolets[i].parent &&
                 CheckCollisionRecs(boolets[i].rect, players[j].rect)) {
                 ApplyDamageToPlayer(&players[j], boolets[i].damage);
+                if (players[j].isDead) PlaySound(sfxDead[rand() % sfxDeadCount]);
+                else PlaySound(sfxHit[rand() % sfxHitCount]);
                 boolets[i].enabled = false;
                 char playersAlive = 0;
                 struct Player *alivePlayer;

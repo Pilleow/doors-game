@@ -1,6 +1,8 @@
 #ifndef SCREENS_H
 #define SCREENS_H
 
+#include "constants.h"
+
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
@@ -10,9 +12,10 @@ typedef enum GameScreen { UNKNOWN = -1, GAMEPLAY = 0 } GameScreen;
 // Global Variables Declaration (shared by several modules)
 //----------------------------------------------------------------------------------
 extern GameScreen currentScreen;
-extern Font font;
-extern Music music;
-extern Sound fxCoin;
+extern Music bgMusic[bgMusicCount];
+extern Sound sfxShoot[sfxShootCount];
+extern Sound sfxDead[sfxDeadCount];
+extern Sound sfxHit[sfxHitCount];
 
 #ifdef __cplusplus
 extern "C" {            // Prevents name mangling of functions

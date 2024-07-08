@@ -14,10 +14,12 @@
 
 #include <time.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "raylib.h"
 #include "screens.h"    // NOTE: Declares global (extern) variables and screens functions
 #include "constants.h"
 
+#define SUPPORT_FILEFORMAT_WAV
 #define SUPPORT_FILEFORMAT_MP3
 
 #if defined(PLATFORM_WEB)
@@ -39,7 +41,10 @@ static float transAlpha = 0.0f;
 static bool onTransition = false;
 static bool transFadeOut = false;
 static int transFromScreen = -1;
-static Music bgMusic[bgMusicCount];
+Music bgMusic[bgMusicCount];
+Sound sfxShoot[sfxShootCount];
+Sound sfxHit[sfxHitCount];
+Sound sfxDead[sfxDeadCount];
 static GameScreen transToScreen = UNKNOWN;
 
 //----------------------------------------------------------------------------------
@@ -66,6 +71,26 @@ int main(void) {
 
     InitAudioDevice();      // Initialize audio device
     srand(time(NULL));      // Initialize random module
+
+    // Load sfx here individually
+    for (int i = 0; i < sfxShootCount; ++i) {
+        char filename[32] = "resources/sfx/shoot/shoot%d.wav";
+        sprintf(filename, filename, i);
+        sfxShoot[i] = LoadSound(filename);
+        SetSoundVolume(sfxShoot[i], sfxShootVolume);
+    }
+    for (int i = 0; i < sfxDeadCount; ++i) {
+        char filename[32] = "resources/sfx/dead/dead%d.wav";
+        sprintf(filename, filename, i);
+        sfxDead[i] = LoadSound(filename);
+        SetSoundVolume(sfxDead[i], sfxDeadVolume);
+    }
+    for (int i = 0; i < sfxHitCount; ++i) {
+        char filename[32] = "resources/sfx/hit/hit%d.wav";
+        sprintf(filename, filename, i);
+        sfxHit[i] = LoadSound(filename);
+        SetSoundVolume(sfxHit[i], sfxHitVolume);
+    }
 
     // Load bg music files here individually
     bgMusic[0] = LoadMusicStream("resources/bgm/gnosisHardware.mp3");
@@ -106,9 +131,8 @@ int main(void) {
     }
 
     // Unload global data loaded
-//    UnloadFont(font);
     for (int i = 0; i < bgMusicCount; ++i) UnloadMusicStream(bgMusic[i]);
-//    UnloadSound(fxCoin);
+    for (int i = 0; i < sfxShootCount; ++i) UnloadSound(sfxShoot[i]);
 
     CloseAudioDevice();     // Close audio context
 

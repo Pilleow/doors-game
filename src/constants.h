@@ -6,18 +6,25 @@
 #define RAYLIB_GAME_TEMPLATE_CONSTANTS_H
 
 #define playerEffectCapacityAndLifespan 3
-#define pastPlayerPositionsCount 32
 #define maxBooletsOnMap 512
 #define doorFontSize 64
 #define winsFontSize 128
-#define bgMusicCount 1
+
+#define pastPlayerPositionsCount 32
+#define sfxDeadCount 1
+#define sfxHitCount 1
+#define sfxShootCount 3
 #define playerCount 4
+#define bgMusicCount 1
 
 static int showFPS = 1;
 static int playersPlaying = 2;
 static int screenWidth = 1920;
 static int screenHeight = 1080;
-static float bgMusicVolume = 0.0f;
+static float bgMusicVolume = 0.5f;
+static float sfxShootVolume = 0.5f;
+static float sfxDeadVolume = 0.5f;
+static float sfxHitVolume = 0.5f;
 
 typedef enum {
     TOPLEFT,
