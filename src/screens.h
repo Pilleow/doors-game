@@ -12,14 +12,21 @@ typedef enum GameScreen { UNKNOWN = -1, GAMEPLAY = 0 } GameScreen;
 // Global Variables Declaration (shared by several modules)
 //----------------------------------------------------------------------------------
 extern GameScreen currentScreen;
-extern Music bgMusic[bgMusicCount];
 extern Sound sfxShoot[sfxShootCount];
 extern Sound sfxDead[sfxDeadCount];
 extern Sound sfxHit[sfxHitCount];
+extern Sound sfxDoorOpen[sfxDoorOpenCount];
+extern Sound sfxDash[sfxDashCount];
 
 #ifdef __cplusplus
 extern "C" {            // Prevents name mangling of functions
 #endif
+
+//----------------------------------------------------------------------------------
+// Util Functions Declaration
+//----------------------------------------------------------------------------------
+void shuffleArray(Music arr[], int n);
+void loadSfxIntoArray(Sound sfxArray[], char filename[], int totalCount, float initVolume);
 
 //----------------------------------------------------------------------------------
 // Gameplay Screen Functions Declaration

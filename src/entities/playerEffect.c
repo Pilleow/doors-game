@@ -63,6 +63,12 @@ void applyEffectToPlayer(PlayerEffect effectToApply, struct Player *p) {
         case LONGER_SHOOT_COOLDOWN_TIME:
             p->shotCooldownTime += shoot_cooldown_time_modifier;
             break;
+        case SHORTER_DASH_COOLDOWN:
+            p->dodgeCooldownTime -= dodge_cooldown_time_modifier;
+            break;
+        case LONGER_DASH_COOLDOWN:
+            p->dodgeCooldownTime += dodge_cooldown_time_modifier;
+            break;
         default:
             break;
     }
@@ -116,6 +122,12 @@ void undoEffectFromPlayer(PlayerEffect effectToUndo, struct Player *p) {
         case LONGER_SHOOT_COOLDOWN_TIME:
             p->shotCooldownTime -= shoot_cooldown_time_modifier;
             break;
+        case SHORTER_DASH_COOLDOWN:
+            p->dodgeCooldownTime += dodge_cooldown_time_modifier;
+            break;
+        case LONGER_DASH_COOLDOWN:
+            p->dodgeCooldownTime -= dodge_cooldown_time_modifier;
+            break;
         default:
             break;
     }
@@ -129,6 +141,10 @@ int getRandomDebuff() {
     return 2 * (rand() % (playerEffectCount / 2)) + 1;
 }
 
+int getRandomSpecialEffect() {
+    return playerEffectCount + (rand() % specialPlayerEffectCount) - 1;
+}
+
 void IncreaseEffectToSwapIndex(struct Player *p) {
     p->nextEffectToSwapIndex = (p->nextEffectToSwapIndex + 1) % playerEffectCapacityAndLifespan;
 }
@@ -136,6 +152,7 @@ void IncreaseEffectToSwapIndex(struct Player *p) {
 void ClearPlayerOfEffects(struct Player *p) {
     for (int i = 0; i < playerEffectCapacityAndLifespan; ++i) {
         undoEffectFromPlayer(p->activeEffects[i], p);
+        p->activeEffects[i] = -1;
     }
     p->nextEffectToSwapIndex = 0;
 }

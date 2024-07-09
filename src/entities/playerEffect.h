@@ -17,7 +17,8 @@
  * etc.
  */
 
-static int playerEffectCount = 15;
+static int playerEffectCount = 17;
+static int specialPlayerEffectCount = 2;
 
 typedef enum {
     MORE_PLAYER_SPEED = 0,
@@ -34,7 +35,10 @@ typedef enum {
     LESS_FRICTION,
     SHORTER_SHOOT_COOLDOWN_TIME,
     LONGER_SHOOT_COOLDOWN_TIME,
-    CLEAR_ALL_EFFECTS
+    SHORTER_DASH_COOLDOWN,
+    LONGER_DASH_COOLDOWN,
+    CLEAR_ALL_EFFECTS,                      // do not count this in playerEffectCount as this is a special case
+    RANDOM_EFFECT_TO_EVERYONE               // do not count this in playerEffectCount as this is a special case
 } PlayerEffect;
 static const char playerEffectNames[][24] = {
         [MORE_PLAYER_SPEED] = "SPEED DEMON",
@@ -51,7 +55,10 @@ static const char playerEffectNames[][24] = {
         [LESS_FRICTION] = "ICE SKATES",
         [SHORTER_SHOOT_COOLDOWN_TIME] = "QUICK HANDS",
         [LONGER_SHOOT_COOLDOWN_TIME] = "SLOW HANDS",
-        [CLEAR_ALL_EFFECTS] = "RM -RF EFFECTS"
+        [SHORTER_DASH_COOLDOWN] = "NEW BALANCE",
+        [LONGER_DASH_COOLDOWN] = "OLD SNEAKERS",
+        [CLEAR_ALL_EFFECTS] = "RM -RF EFFECTS",
+        [RANDOM_EFFECT_TO_EVERYONE] = "???"
 };
 
 static const int player_speed_modifier = 150;
@@ -60,7 +67,8 @@ static const int body_size_modifier = 10;
 static const int boolet_amplitude_modifier = 2;
 static const int max_health_modifier = 1;
 static const float friction_modifier = 0.075;
-static const float shoot_cooldown_time_modifier = 0.2;
+static const float shoot_cooldown_time_modifier = 0.15;
+static const float dodge_cooldown_time_modifier = 0.3;
 
 // -------------------------------------------------------------------
 
@@ -75,6 +83,8 @@ void IncreaseEffectToSwapIndex(struct Player *p);
 int getRandomBuff();
 
 int getRandomDebuff();
+
+int getRandomSpecialEffect();
 
 void ClearPlayerOfEffects(struct Player *p);
 

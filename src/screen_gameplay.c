@@ -180,6 +180,7 @@ void updateGameplayScreenDuringFight() {
         else if (playersAlive == 1) {
             AddWinToPlayer(alivePlayer);
             gameState = CHOOSEDOOR;
+            PlaySound(sfxDoorOpen[rand() % sfxDoorOpenCount]);
             for (int k = 0; k < 4; ++k) doors[k].timeSpawned = GetTime();
         }
     }
@@ -213,6 +214,8 @@ void updateGameplayScreenDuringChooseDoor() {
             if (CheckCollisionRecs(doors[j].finalRect, players[i].rect)) {
                 if (doors[j].playerEffect == CLEAR_ALL_EFFECTS)
                     for (int k = 0; k < playerCount; ++k) ClearPlayerOfEffects(&players[k]);
+                else if (doors[j].playerEffect == RANDOM_EFFECT_TO_EVERYONE)
+                    for (int k = 0; k < playerCount; ++k) AssignEffectToPlayer(rand() % playerEffectCount, &players[k]);
                 else if (doors[j].isDebuff) AssignEffectToPlayer(doors[j].playerEffect, &players[i]);
                 else {
                     int r = i;

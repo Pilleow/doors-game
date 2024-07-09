@@ -15,8 +15,9 @@
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "raylib.h"
-#include "screens.h"    // NOTE: Declares global (extern) variables and screens functions
+#include "screens.h"
 #include "constants.h"
 
 #define SUPPORT_FILEFORMAT_WAV
@@ -31,22 +32,27 @@
 // NOTE: Those variables are shared between modules through screens.h
 //----------------------------------------------------------------------------------
 GameScreen currentScreen = GAMEPLAY;
+Sound sfxDoorOpen[sfxDoorOpenCount];
+Sound sfxShoot[sfxShootCount];
+Sound sfxDash[sfxDashCount];
+Sound sfxDead[sfxDeadCount];
+Sound sfxHit[sfxHitCount];
+RenderTexture2D screenRenderTexture;
 
 //----------------------------------------------------------------------------------
 // Local Variables Definition (local to this module)
 //----------------------------------------------------------------------------------
 
 // Required variables to manage screen transitions (fade-in, fade-out)
+static Music startMusic;
+static Music bgMusic[bgMusicCount];
 static float transAlpha = 0.0f;
 static bool onTransition = false;
 static bool transFadeOut = false;
 static int transFromScreen = -1;
-Music bgMusic[bgMusicCount];
-Sound sfxShoot[sfxShootCount];
-Sound sfxHit[sfxHitCount];
-Sound sfxDead[sfxDeadCount];
+static float bgmPreviousTime = -1;
+static int currentMusicIndex = -1;
 static GameScreen transToScreen = UNKNOWN;
-RenderTexture2D screenRenderTexture;
 
 //----------------------------------------------------------------------------------
 // Local Functions Declaration
@@ -58,6 +64,28 @@ static void UpdateTransition(void);         // Update transition effect
 static void DrawTransition(void);           // Draw transition effect (full-screen rectangle)
 
 static void UpdateDrawFrame(void);          // Update and draw one frame
+
+
+// A function to generate a random permutation of arr[]
+void shuffleArray(Music arr[], int n)
+{
+    for (int i = n-1; i > 0; i--)
+    {
+        int j = rand() % (i+1);
+        Music temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
+}
+
+void loadSfxIntoArray(Sound sfxArray[], char filename[], int totalCount, float initVolume) {
+    for (int i = 0; i < totalCount; ++i) {
+        char fn[64];
+        sprintf(fn, filename, i);
+        sfxArray[i] = LoadSound(fn);
+        SetSoundVolume(sfxArray[i], initVolume);
+    }
+}
 
 //----------------------------------------------------------------------------------
 // Main entry point
@@ -82,35 +110,31 @@ int main(void) {
     SetMasterVolume(masterVolume);
 
     // Load sfx here individually
-    for (int i = 0; i < sfxShootCount; ++i) {
-        char filename[32] = "resources/sfx/shoot/shoot%d.wav";
-        sprintf(filename, filename, i);
-        sfxShoot[i] = LoadSound(filename);
-        SetSoundVolume(sfxShoot[i], sfxShootVolume);
-    }
-    for (int i = 0; i < sfxDeadCount; ++i) {
-        char filename[32] = "resources/sfx/dead/dead%d.wav";
-        sprintf(filename, filename, i);
-        sfxDead[i] = LoadSound(filename);
-        SetSoundVolume(sfxDead[i], sfxDeadVolume);
-    }
-    for (int i = 0; i < sfxHitCount; ++i) {
-        char filename[32] = "resources/sfx/hit/hit%d.wav";
-        sprintf(filename, filename, i);
-        sfxHit[i] = LoadSound(filename);
-        SetSoundVolume(sfxHit[i], sfxHitVolume);
-    }
+    loadSfxIntoArray(sfxShoot, "resources/sfx/shoot/shoot%d.wav", sfxShootCount, sfxShootVolume);
+    loadSfxIntoArray(sfxDead, "resources/sfx/dead/dead%d.wav", sfxDeadCount, sfxDeadVolume);
+    loadSfxIntoArray(sfxHit, "resources/sfx/hit/hit%d.wav", sfxHitCount, sfxHitVolume);
+    loadSfxIntoArray(sfxDoorOpen, "resources/sfx/doorOpen/doorOpen%d.wav", sfxDoorOpenCount, sfxDoorOpenVolume);
+    loadSfxIntoArray(sfxDash, "resources/sfx/dash/dash%d.wav", sfxDashCount, sfxDashVolume);
 
     // Load bg music files here individually
-    bgMusic[0] = LoadMusicStream("resources/bgm/gnosisHardware.mp3");
+    startMusic = LoadMusicStream("resources/bgm/gnosisHardware.mp3");
+    bgMusic[0] = LoadMusicStream("resources/bgm/comeTrue.mp3");
+    bgMusic[1] = LoadMusicStream("resources/bgm/akihabara.mp3");
+    bgMusic[2] = LoadMusicStream("resources/bgm/outHereAtTheAtmosphere.mp3");
+    bgMusic[3] = LoadMusicStream("resources/bgm/passportsOne.mp3");
+    bgMusic[4] = LoadMusicStream("resources/bgm/chaos.mp3");
+    bgMusic[5] = LoadMusicStream("resources/bgm/chicago.mp3");
+    bgMusic[6] = LoadMusicStream("resources/bgm/nothingStopsDetroit.mp3");
+    bgMusic[7] = LoadMusicStream("resources/bgm/passportsTwo.mp3");
+    SetMusicVolume(startMusic, bgMusicVolume);
     for (int i = 0; i < bgMusicCount; ++i) SetMusicVolume(bgMusic[i], bgMusicVolume);
+    shuffleArray(bgMusic, bgMusicCount);
 
-    PlayMusicStream(bgMusic[0]);
+    PlayMusicStream(startMusic);
 
     // Load global data (assets that must be available in all screens, i.e. font)
 //    font = LoadFont("resources/font/BebasNeue-Regular.ttf");
 //    fxCoin = LoadSound("resources/coin.wav");
-
 
     // Setup and init first screen
     currentScreen = GAMEPLAY;
@@ -243,7 +267,35 @@ static void DrawTransition(void) {
 static void UpdateDrawFrame(void) {
     // Update
     //----------------------------------------------------------------------------------
-    for (int i = 0; i < bgMusicCount; ++i) UpdateMusicStream(bgMusic[i]); // NOTE: Music keeps playing between screens
+    if (currentMusicIndex == -1) {
+        UpdateMusicStream(startMusic);
+        if (bgmPreviousTime > GetMusicTimePlayed(startMusic)) {
+            PauseMusicStream(startMusic);
+            StopMusicStream(startMusic);
+            currentMusicIndex = 0;
+            PlayMusicStream(bgMusic[currentMusicIndex]);
+            bgmPreviousTime = -1;
+        }
+//        else if (GetMusicTimePlayed(startMusic) < 5)
+//        SeekMusicStream(startMusic, GetMusicTimeLength(startMusic) - 3);
+        bgmPreviousTime = GetMusicTimePlayed(startMusic);
+    } else {
+        UpdateMusicStream(bgMusic[currentMusicIndex]);
+        if (bgmPreviousTime > GetMusicTimePlayed(bgMusic[currentMusicIndex])) {
+            PauseMusicStream(bgMusic[currentMusicIndex]);
+            StopMusicStream(bgMusic[currentMusicIndex]);
+            currentMusicIndex++;
+            bgmPreviousTime = -1;
+            if (currentMusicIndex >= bgMusicCount) {
+                currentMusicIndex = 0;
+                shuffleArray(bgMusic, bgMusicCount);
+            }
+            PlayMusicStream(bgMusic[currentMusicIndex]);
+        }
+//        else if (GetMusicTimePlayed(bgMusic[currentMusicIndex]) < 5)
+//        SeekMusicStream(bgMusic[currentMusicIndex], GetMusicTimeLength(bgMusic[currentMusicIndex]) - 3);
+        bgmPreviousTime = GetMusicTimePlayed(bgMusic[currentMusicIndex]);
+    }
 
     screenWidth = GetScreenWidth();
     screenHeight = GetScreenHeight();

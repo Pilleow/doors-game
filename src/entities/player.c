@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include "raymath.h"
+#include "../screens.h"
 
 #include "player.h"
 #include "../constants.h"
@@ -61,7 +62,7 @@ void InitPlayerDefaults(
 }
 
 void printDebugMessage(struct Player *p) {
-    printf("Player Info: hue:%d, rect[%.2f, %.2f, %.2f, %.2f], vel[%.2f, %.2f], HP:%d/%d, spd:%d/%d, bulSpd:%d, dead:%d, shot:%.2f/%.2f, dodge:%.2f/%.2f, fric:%.2f, sLoc:%d, eff[%d, %d, %d]\n",
+    printf("Player Info: hue:%d, rect[%.2f, %.2f, %.2f, %.2f], vel[%.2f, %.2f], HP:%d/%d, spd:%d/%d, bulSpd:%d, isDead:%d, shot:%.2f/%.2f, dodge:%.2f/%.2f, fric:%.2f, sLoc:%d, eff[%d, %d, %d]\n",
            p->huePhase,
            p->rect.x, p->rect.y, p->rect.width, p->rect.height,
            p->velocity.x, p->velocity.y,
@@ -112,23 +113,26 @@ void SetPlayerLocation(struct Player *p, Location atCorner) {
 }
 
 void ProcessPlayerInput(struct Player *p, char gamepadId) {
-    p->velocity.x *= p->friction;
-    p->velocity.y *= p->friction;
-
+    if (p->speed < p->defaultSpeed * 1.1) {
+        p->velocity.x *= p->friction;
+        p->velocity.y *= p->friction;
+    }
     if (!useGamepads) {
         if (IsKeyDown(p->keyMoveUp)) p->velocity.y -= 1;
         if (IsKeyDown(p->keyMoveDown)) p->velocity.y += 1;
         if (IsKeyDown(p->keyMoveLeft)) p->velocity.x -= 1;
         if (IsKeyDown(p->keyMoveRight)) p->velocity.x += 1;
     } else {
-        p->velocity.x = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_LEFT_X);
-        p->velocity.y = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_LEFT_Y);
+        float x = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_LEFT_X);
+        float y = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_LEFT_Y);
+        p->velocity.x = x == 0 ? p->velocity.x : x;
+        p->velocity.y = y == 0 ? p->velocity.y : y;
     }
 
     if (Vector2LengthSqr(p->velocity) > 1)
         p->velocity = Vector2Normalize(p->velocity);
 
-    if (p->speed > p->defaultSpeed) p->speed = p->defaultSpeed + 0.925 * (p->speed - p->defaultSpeed);
+    if (p->speed > p->defaultSpeed) p->speed = p->defaultSpeed + (p->friction < 0.96 ? p->friction : 0.96) * (p->speed - p->defaultSpeed);
     if (
             ((!useGamepads && IsKeyDown(p->keyDodge)) ||
              (useGamepads && IsGamepadButtonDown(gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_2)))
@@ -136,6 +140,7 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
             ) {
         p->lastDodgeTime = GetTime();
         p->speed *= 4;
+        PlaySound(sfxDash[rand() % sfxDashCount]);
     }
 
     p->shootingDirection.x = 0;
@@ -191,6 +196,16 @@ void DrawPlayerTail(struct Player *p) {
 }
 
 void DrawPlayer(struct Player *p) {
+    if (p->shootingDirection.x != 0 || p->shootingDirection.y != 0) {
+        int centerX = p->rect.x + p->rect.width / 2;
+        int centerY = p->rect.y + p->rect.height / 2;
+        int len = p->rect.width * 2;
+        DrawRectangleV(
+                (Vector2) {centerX + len * p->shootingDirection.x, centerY + len * p->shootingDirection.y},
+                (Vector2) {5, 5},
+                ColorFromHSV(p->huePhase, 1, 1)
+        );
+    }
     int pd = 3;
     DrawRectangle(p->rect.x, p->rect.y, p->rect.width, p->rect.height, ColorFromHSV(p->huePhase, 1, 0.7));
     DrawRectangle(p->rect.x + pd, p->rect.y + pd, p->rect.width - 2 * pd, p->rect.height - 2 * pd,
