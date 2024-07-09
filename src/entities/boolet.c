@@ -6,10 +6,13 @@
 
 #include <math.h>
 
-void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float yStart, float size, float xVelocity, float yVelocity,
-                        unsigned char damage, unsigned short speed, BooletType btype, Color color, int amplitude) {
+void
+InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float yStart, float size, float xVelocity,
+                   float yVelocity, unsigned char damage, unsigned short speed, BooletType btype, Color color, int amplitude, float decayTimeLeft) {
     if (btype == EXPLODING) {
         size *= 2;
+    } else if (btype == BOUNCING) {
+        decayTimeLeft *= 2;
     }
     b->parent = parent;
     b->rect.x = xStart;
@@ -25,7 +28,7 @@ void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, f
     b->color = color;
     b->amplitude = amplitude;
     b->timeCreated = GetTime();
-    b->decayTimeLeft = 1.3;
+    b->decayTimeLeft = decayTimeLeft;
 }
 
 void ExplodeBoolet(struct Boolet *b, int *nextBooletIndex, struct Boolet boolets[], BooletType type) {
@@ -33,39 +36,47 @@ void ExplodeBoolet(struct Boolet *b, int *nextBooletIndex, struct Boolet boolets
     for (int j = 0; j < 8; ++j) {
         switch (j) {
             case 0: // left
-                x = -1; y = 0;
+                x = -1;
+                y = 0;
                 break;
             case 1: // left up
-                x = -0.707; y = -0.707;
+                x = -0.707;
+                y = -0.707;
                 break;
             case 2: // up
-                x = 0; y = -1;
+                x = 0;
+                y = -1;
                 break;
             case 3: // right up
-                x = 0.707; y = -0.707;
+                x = 0.707;
+                y = -0.707;
                 break;
             case 4: // right
-                x = 1; y = 0;
+                x = 1;
+                y = 0;
                 break;
             case 5: // right down
-                x = 0.707; y = 0.707;
+                x = 0.707;
+                y = 0.707;
                 break;
             case 6: // down
-                x = 0; y = 1;
+                x = 0;
+                y = 1;
                 break;
             case 7: // down left
-                x = -0.707; y = 0.707;
+                x = -0.707;
+                y = 0.707;
                 break;
             default: // default: down
-                x = 0; y = 1;
+                x = 0;
+                y = 1;
         }
         InitBooletDefaults(
                 &boolets[*nextBooletIndex], b->parent,
                 b->rect.x + b->rect.width / 2, b->rect.y + b->rect.height / 2, 5,
                 x, y,
-                1, 400, type, b->color, b->amplitude
+                1, 400, type, b->color, b->amplitude, 0.5
         );
-        boolets[*nextBooletIndex].decayTimeLeft = 0.5;
         (*nextBooletIndex)++;
         *nextBooletIndex %= maxBooletsOnMap;
     }
@@ -88,7 +99,7 @@ void ApplyBooletVelocity(struct Boolet *b) {
         b->rect.height *= 0.9;
     }
 
-        float swayX, swayY;
+    float swayX, swayY;
     switch (b->type) {
         case EXPLODING:
             b->speed *= 0.97;

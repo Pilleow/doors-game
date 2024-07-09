@@ -31,6 +31,7 @@ struct Player {
     float shotCooldownTime;
     float dodgeCooldownTime;
     float friction;
+    float booletDecayTimeLeft;
     Location startLocation;
     BooletType booletType;
     KeyboardKey keyMoveUp;
