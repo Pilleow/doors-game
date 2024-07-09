@@ -34,6 +34,8 @@ add_executable(${PROJECT_NAME}
         src/entities/door.h
         src/entities/playerEffect.c
         src/entities/playerEffect.h
+        src/entities/wall.c
+        src/entities/wall.h
 )
 add_subdirectory(src)
 

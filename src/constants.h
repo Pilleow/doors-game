@@ -3,23 +3,24 @@
 //
 
 #include <stdbool.h>
+#include <math.h>
 
 #ifndef RAYLIB_GAME_TEMPLATE_CONSTANTS_H
 #define RAYLIB_GAME_TEMPLATE_CONSTANTS_H
 
 #define playerEffectCapacityAndLifespan 3
-#define maxBooletsOnMap 512
-#define doorFontSize 64
-#define winsFontSize 128
-
 #define pastPlayerPositionsCount 32
+#define maxBooletsOnMap 512
 #define sfxDoorOpenCount 3
+#define winsFontSize 128
+#define doorFontSize 64
+#define maxWallCount 16
 #define sfxShootCount 7
 #define sfxDeadCount 1
 #define bgMusicCount 8
 #define sfxDashCount 5
-#define sfxHitCount 1
 #define playerCount 4
+#define sfxHitCount 1
 
 static bool useGamepads = true;
 static bool showFPS = true;
@@ -31,7 +32,7 @@ static int finalHeight = 1080;
 static int screenWidth = 1920;
 static int screenHeight = 1080;
 
-static float masterVolume = 1.0f;
+static float masterVolume = 0.0f;
 static float bgMusicVolume = 0.5f;
 static float sfxDoorOpenVolume = 0.5f;
 static float sfxShootVolume = 0.5f;

@@ -5,6 +5,7 @@
 #include <math.h>
 
 #include "constants.h"
+#include "entities/wall.h"
 #include "entities/door.h"
 #include "entities/player.h"
 #include "entities/boolet.h"
@@ -12,6 +13,7 @@
 
 // local variable declaration below ------------------------------------------------------------------------------------
 
+struct Wall walls[maxWallCount];
 struct Player players[playerCount];
 struct Boolet boolets[maxBooletsOnMap];
 struct Door doors[4];
@@ -76,14 +78,17 @@ void InitGameplayScreen(void) {
     else if (playersPlaying < 4) players[3].isPlaying = false;
 
     for (int i = 0; i < maxBooletsOnMap; ++i) boolets[i].enabled = false;
+    for (int i = 0; i < maxWallCount; ++i) walls[i].enabled = false;
 
     doors[0].location = LEFT;
     doors[1].location = RIGHT;
     doors[2].location = TOP;
     doors[3].location = BOTTOM;
-    for (int i = 0; i < 4; ++i) {
-        InitDoorsWithRandomEffect(&doors[i]);
-    }
+    for (int i = 0; i < 4; ++i) InitDoorsWithRandomEffect(&doors[i]);
+
+    walls[0].enabled = true;
+    walls[0].color = WHITE;
+    walls[0].rect = (Rectangle) {300, 200, 600, 300};
 }
 
 // this function resets the players and map for a new round of the game
@@ -157,6 +162,7 @@ void updateGameplayScreenDuringFight() {
         struct Player *p = &players[i];
         ProcessPlayerInput(p, i);
         ApplyPlayerVelocity(p);
+        for (int j = 0; j < maxWallCount; ++j) CheckWallPlayerCollisionAndFixPosition(&walls[j], p);
         if (IsPlayerShooting(p)) {
             InitBooletDefaults(
                     &boolets[nextBooletIndex++], p,
@@ -210,6 +216,7 @@ void updateGameplayScreenDuringFight() {
             }
         }
         ApplyBooletVelocity(&boolets[i]);
+        for (int j = 0; j < maxWallCount; ++j) CheckWallBooletCollisionAndFixPosition(&walls[j], &boolets[i]);
         if (boolets[i].type == EXPLODING && boolets[i].speed < 100) {
             ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
         }
@@ -232,7 +239,7 @@ void updateGameplayScreenDuringChooseDoor() {
         if (players[i].isDead || !players[i].isPlaying) continue;
         ProcessPlayerInput(&players[i], i);
         ApplyPlayerVelocity(&players[i]);
-
+        for (int j = 0; j < maxWallCount; ++j) CheckWallPlayerCollisionAndFixPosition(&walls[j], &players[i]);
         for (int j = 0; j < 4; ++j) {
             if (CheckCollisionRecs(doors[j].finalRect, players[i].rect)) {
                 if (doors[j].playerEffect == CLEAR_ALL_EFFECTS)
@@ -258,6 +265,7 @@ void updateGameplayScreenDuringChooseDoor() {
         if (!boolets[i].enabled) continue;
         if (isOutOfWindowBounds(boolets[i].rect)) boolets[i].enabled = false;
         ApplyBooletVelocity(&boolets[i]);
+        for (int j = 0; j < maxWallCount; ++j) CheckWallBooletCollisionAndFixPosition(&walls[j], &boolets[i]);
     }
 }
 
@@ -313,6 +321,7 @@ void DrawGameplayScreen(void) {
         DrawPlayerScore(&players[i]);
         if (!players[i].isDead) DrawPlayer(&players[i]);
     }
+    for (int i = 0; i < maxWallCount; ++i) DrawWall(&walls[i]);
 
     if (showFPS) {
         sprintf(fpsString, "%d", GetFPS());
