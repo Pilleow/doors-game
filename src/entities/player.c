@@ -45,13 +45,14 @@ void InitPlayerDefaults(
     p->huePhase = (atCorner * 60) % 360;
     p->lastShotTime = GetTime();
     p->shotCooldownTime = 0.5F;
-    p->booletType = EXPLODING;
+    p->booletType = BOUNCING;
     p->booletAmplitude = 5;
     p->friction = 0.91F;
     p->bulletSpeed = 600;
     p->lastDodgeTime = GetTime();
     p->dodgeCooldownTime = 1.5F;
     p->nextEffectToSwapIndex = 0;
+    p->booletDecayTimeLeft = 1.3;
     for (int i = 0; i < playerEffectCapacityAndLifespan; ++i) p->activeEffects[i] = -1;
     p->lastPastPositionUpdateTime = GetTime();
     for (int i = 0; i < pastPlayerPositionsCount; ++i) {

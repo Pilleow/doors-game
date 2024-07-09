@@ -14,7 +14,7 @@
 
 #define pastPlayerPositionsCount 32
 #define sfxDoorOpenCount 3
-#define sfxShootCount 3
+#define sfxShootCount 7
 #define sfxDeadCount 1
 #define bgMusicCount 8
 #define sfxDashCount 5
@@ -61,11 +61,10 @@ typedef enum {
     SWIRLY,
     TIMEBENDING,
     EXPLODING,
+    BOUNCING,
     HITSCAN,                // todo implement, hitscan (too op? maybe lower fire rate?)
-    BOUNCING,               // todo implement, projectile bounces one or more times from the edge
     ROTATING,               // todo implement, bullets rotate outwards in a spiral from the point where they spawned
-    INVERSE_ROTATING,       // todo implement, same as above but the other way
 } BooletType;
-static const int booletTypeCount = 4;   // this counts only implemented bullet types
+static const int booletTypeCount = 5;   // this counts only implemented bullet types
 
 #endif //RAYLIB_GAME_TEMPLATE_CONSTANTS_H

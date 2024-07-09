@@ -114,11 +114,14 @@ void resetLevel() {
     }
 }
 
-// this function returns if the rectangle is completely out of bounds
-bool isOutOfWindowBounds(Rectangle r) {
-    return r.x<-r.width || r.x>(
-    float)screenWidth || r.y<-r.height || r.y>(
-    float)screenHeight;
+// this function returns if ANY PART of the rectangle is out of bounds
+// returns -1 if not out of bounds or out of bounds LOCATION if out of bounds
+int isOutOfWindowBounds(Rectangle r) {
+    if (r.y < 0)                        return TOP;
+    if (r.x < 0)                        return LEFT;
+    if (r.x > (float)screenWidth)       return RIGHT;
+    if (r.y > (float)screenHeight)      return BOTTOM;
+                                        return -1;
 }
 
 // this function updates the game when gameState == FIGHT
@@ -159,7 +162,7 @@ void updateGameplayScreenDuringFight() {
                     &boolets[nextBooletIndex++], p,
                     p->rect.x + p->rect.width / 2, p->rect.y + p->rect.height / 2,
                     5, p->shootingDirection.x, p->shootingDirection.y, 1, p->bulletSpeed,
-                    p->booletType, ColorFromHSV(p->huePhase, 1, 1), p->booletAmplitude
+                    p->booletType, ColorFromHSV(p->huePhase, 1, 1), p->booletAmplitude, p->booletDecayTimeLeft
             );
             nextBooletIndex %= maxBooletsOnMap;
             PlaySound(sfxShoot[p->sfxShootSoundIndex++]);
@@ -188,7 +191,24 @@ void updateGameplayScreenDuringFight() {
     // boolet update ---------------------------------------------------------------------------------------------------
     for (int i = 0; i < maxBooletsOnMap; ++i) {
         if (!boolets[i].enabled) continue;
-        if (isOutOfWindowBounds(boolets[i].rect)) boolets[i].enabled = false;
+        int oob = isOutOfWindowBounds(boolets[i].rect);
+        if (oob != -1) {
+            if (boolets[i].type != BOUNCING) boolets[i].enabled = false;
+            else {
+                switch (oob) {
+                    case TOP:
+                    case BOTTOM:
+                        boolets[i].velocity.y *= -1;
+                        break;
+                    case LEFT:
+                    case RIGHT:
+                        boolets[i].velocity.x *= -1;
+                        break;
+                    default:
+                        boolets[i].enabled = false;
+                }
+            }
+        }
         ApplyBooletVelocity(&boolets[i]);
         if (boolets[i].type == EXPLODING && boolets[i].speed < 100) {
             ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);

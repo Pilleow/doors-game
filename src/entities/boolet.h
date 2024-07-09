@@ -24,7 +24,7 @@ struct Boolet {
 };
 
 void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float yStart, float size, float xVelocity, float yVelocity,
-                        unsigned char damage, unsigned short speed, BooletType btype, Color color, int amplitude);
+                        unsigned char damage, unsigned short speed, BooletType btype, Color color, int amplitude, float decayTimeLeft);
 
 void ExplodeBoolet(struct Boolet *b, int *nextBooletIndex, struct Boolet boolets[], BooletType type);
 
