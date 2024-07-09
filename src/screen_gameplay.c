@@ -190,6 +190,9 @@ void updateGameplayScreenDuringFight() {
         if (!boolets[i].enabled) continue;
         if (isOutOfWindowBounds(boolets[i].rect)) boolets[i].enabled = false;
         ApplyBooletVelocity(&boolets[i]);
+        if (boolets[i].type == EXPLODING && boolets[i].speed < 100) {
+            ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
+        }
         for (int j = 0; j < 4; ++j) {
             if (!players[j].isDead && players[j].isPlaying && &players[j] != boolets[i].parent &&
                 CheckCollisionRecs(boolets[i].rect, players[j].rect)) {
@@ -282,9 +285,9 @@ void DrawGameplayScreen(void) {
                     (Vector2) {screenWidth / 2, screenHeight / 2},
                     (Vector2) {textWidth / 2, fontSize / 2}, 0.7 * sinf(GetTime() + 2 * PI / 3), fontSize, 10, ColorFromHSV(180, 0.1, 0.2));
     }
+    for (int i = 0; i < 4; ++i) if (players[i].isPlaying && !players[i].isDead) DrawPlayerTail(&players[i]);
     for (int i = 0; i < maxBooletsOnMap; ++i) if (boolets[i].enabled) DrawBoolet(&boolets[i]);
     if (gameState == CHOOSEDOOR) for (int i = 0; i < 4; ++i) DrawDoor(&doors[i]);
-    for (int i = 0; i < 4; ++i) if (players[i].isPlaying && !players[i].isDead) DrawPlayerTail(&players[i]);
     for (int i = 0; i < 4; ++i) {
         if (!players[i].isPlaying) continue;
         DrawPlayerScore(&players[i]);

@@ -31,7 +31,7 @@ static int finalHeight = 1080;
 static int screenWidth = 1920;
 static int screenHeight = 1080;
 
-static float masterVolume = 0.5f;
+static float masterVolume = 1.0f;
 static float bgMusicVolume = 0.5f;
 static float sfxDoorOpenVolume = 0.5f;
 static float sfxShootVolume = 0.5f;
@@ -60,12 +60,12 @@ typedef enum {
     STRAIGHT,
     SWIRLY,
     TIMEBENDING,
-    EXPLODING,              // todo implement, bullets slowly coming to a stop then spawning STRAIGHT type bullets in a round pattern
+    EXPLODING,
     HITSCAN,                // todo implement, hitscan (too op? maybe lower fire rate?)
     BOUNCING,               // todo implement, projectile bounces one or more times from the edge
     ROTATING,               // todo implement, bullets rotate outwards in a spiral from the point where they spawned
     INVERSE_ROTATING,       // todo implement, same as above but the other way
 } BooletType;
-static const int booletTypeCount = 3;   // this counts only implemented bullet types
+static const int booletTypeCount = 4;   // this counts only implemented bullet types
 
 #endif //RAYLIB_GAME_TEMPLATE_CONSTANTS_H

@@ -13,10 +13,10 @@ void InitDoorsWithRandomEffect(struct Door *d) {
     d->animationOpenTime = 60;
 
     float chance = rand() % 100;
-    if (chance < 4) {
+    if (chance < 40) {
         d->isDebuff = false;
         d->playerEffect = getRandomBuff();
-    } else if (chance < 6) {
+    } else if (chance < 80) {
         d->isDebuff = true;
         d->playerEffect = getRandomDebuff();
     } else {

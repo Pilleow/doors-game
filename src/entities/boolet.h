@@ -20,10 +20,13 @@ struct Boolet {
     Color color;
     int timeCreated;
     int amplitude;
+    float decayTimeLeft;
 };
 
 void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float yStart, float size, float xVelocity, float yVelocity,
                         unsigned char damage, unsigned short speed, BooletType btype, Color color, int amplitude);
+
+void ExplodeBoolet(struct Boolet *b, int *nextBooletIndex, struct Boolet boolets[], BooletType type);
 
 void DrawBoolet(struct Boolet *b);
 

@@ -45,7 +45,7 @@ void InitPlayerDefaults(
     p->huePhase = (atCorner * 60) % 360;
     p->lastShotTime = GetTime();
     p->shotCooldownTime = 0.5F;
-    p->booletType = STRAIGHT;
+    p->booletType = EXPLODING;
     p->booletAmplitude = 5;
     p->friction = 0.91F;
     p->bulletSpeed = 600;
@@ -202,8 +202,8 @@ void DrawPlayer(struct Player *p) {
         int len = p->rect.width * 2;
         DrawRectangleV(
                 (Vector2) {centerX + len * p->shootingDirection.x, centerY + len * p->shootingDirection.y},
-                (Vector2) {5, 5},
-                ColorFromHSV(p->huePhase, 1, 1)
+                (Vector2) {10, 10},
+                ColorFromHSV(p->huePhase, 1, 0.7)
         );
     }
     int pd = 3;
@@ -253,6 +253,8 @@ bool IsPlayerShooting(struct Player *p) {
     if (GetTime() - p->lastShotTime > p->shotCooldownTime &&
         (p->shootingDirection.x != 0 || p->shootingDirection.y != 0)) {
         p->lastShotTime = GetTime();
+        if (p->booletType == STRAIGHT) p->lastShotTime -= p->shotCooldownTime * 0.5;
+        else if (p->booletType == EXPLODING) p->lastShotTime += p->shotCooldownTime * 0.5;
         return true;
     }
     return false;
