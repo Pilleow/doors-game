@@ -23,10 +23,18 @@
 #define sfxHitCount 1
 #define levelCount 1
 
+#define hueRotationSpeedOnWinMultiplier 120
+#define hueRotationSpeedOnDeathMultiplier 80
+#define hueRotationSpeedOnHitMultiplier 40
+
 static bool useGamepads = true;
 static bool showFPS = true;
 
 static int playersPlaying = 2;
+
+static float defaultHueRotationSpeed = 10;
+extern float hueRotationSpeed;
+extern float hueRotationTimer;
 
 static int finalWidth = 1920;
 static int finalHeight = 1080;

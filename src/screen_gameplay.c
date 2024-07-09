@@ -22,6 +22,8 @@ struct Player players[playerCount];
 struct Boolet boolets[maxBooletsOnMap];
 struct Level levels[levelCount];
 struct Door doors[4];
+float hueRotationSpeed = 40;
+float hueRotationTimer = 0;
 static int currentLevelIndex = 0;
 static int nextBooletIndex = 0;
 static char fpsString[16];
@@ -31,7 +33,7 @@ static char playersCurrentlyPlaying;
 
 // this function initializes the gameplay screen
 void InitGameplayScreen(void) {
-    LoadAllLevels(&levels);
+    LoadAllLevels(levels);
 
     bgRect1.x = screenWidth / 2 + screenWidth * 0.03;
     bgRect1.y = screenHeight / 2 + screenHeight * 0.03;
@@ -190,6 +192,7 @@ void updateGameplayScreenDuringFight() {
         else if (playersAlive == 1) {
             AddWinToPlayer(alivePlayer);
             gameState = CHOOSEDOOR;
+            hueRotationSpeed = defaultHueRotationSpeed * hueRotationSpeedOnWinMultiplier;
             PlaySound(sfxDoorOpen[rand() % sfxDoorOpenCount]);
             for (int k = 0; k < 4; ++k) doors[k].timeSpawned = GetTime();
         }
@@ -225,8 +228,14 @@ void updateGameplayScreenDuringFight() {
             if (!players[j].isDead && players[j].isPlaying && &players[j] != boolets[i].parent &&
                 CheckCollisionRecs(boolets[i].rect, players[j].rect)) {
                 ApplyDamageToPlayer(&players[j], boolets[i].damage);
-                if (players[j].isDead) PlaySound(sfxDead[rand() % sfxDeadCount]);
-                else PlaySound(sfxHit[rand() % sfxHitCount]);
+                if (players[j].isDead) {
+                    hueRotationSpeed = defaultHueRotationSpeed * hueRotationSpeedOnDeathMultiplier;
+                    PlaySound(sfxDead[rand() % sfxDeadCount]);
+                }
+                else {
+                    hueRotationSpeed = defaultHueRotationSpeed * hueRotationSpeedOnHitMultiplier;
+                    PlaySound(sfxHit[rand() % sfxHitCount]);
+                }
                 boolets[i].enabled = false;
             }
         }
@@ -272,6 +281,11 @@ void updateGameplayScreenDuringChooseDoor() {
 
 // this function updates the game regardless of current gameState
 void UpdateGameplayScreen(void) {
+    hueRotationTimer += GetFrameTime() * hueRotationSpeed;
+    if (hueRotationSpeed > defaultHueRotationSpeed) {
+        hueRotationSpeed = defaultHueRotationSpeed + 0.98 * (hueRotationSpeed - defaultHueRotationSpeed);
+    }
+
     // call function based on current gameState
     switch (gameState) {
         case FIGHT:
@@ -326,7 +340,6 @@ void DrawGameplayScreen(void) {
         if (!players[i].isDead) DrawPlayer(&players[i]);
     }
     for (int i = 0; i < maxWallCount; ++i) if (levels[currentLevelIndex].walls[i].enabled) {
-        printf("hi\n");
         DrawWall(&levels[currentLevelIndex].walls[i]);
     }
 

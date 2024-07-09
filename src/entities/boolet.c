@@ -13,6 +13,8 @@ InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float 
         size *= 2;
     } else if (btype == BOUNCING) {
         decayTimeLeft *= 2;
+    } else if (btype == TIMEBENDING) {
+        decayTimeLeft *= 2;
     }
     b->parent = parent;
     b->rect.x = xStart;
