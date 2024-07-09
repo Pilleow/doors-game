@@ -108,5 +108,5 @@ bool FixEntityPosition(struct Wall *w, Rectangle *rect) {
 }
 
 void DrawWall(struct Wall *w) {
-    DrawRectangleRec(w->rect, w->color);
+    DrawRectangleRec(w->rect, ColorFromHSV((int)(10 * GetTime()) % 360, 1, 1));
 }

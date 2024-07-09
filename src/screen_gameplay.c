@@ -7,28 +7,32 @@
 #include "constants.h"
 #include "entities/wall.h"
 #include "entities/door.h"
+#include "entities/level.h"
 #include "entities/player.h"
 #include "entities/boolet.h"
 #include "entities/playerEffect.h"
 
 // local variable declaration below ------------------------------------------------------------------------------------
 
-struct Wall walls[maxWallCount];
-struct Player players[playerCount];
-struct Boolet boolets[maxBooletsOnMap];
-struct Door doors[4];
-static int nextBooletIndex = 0;
 static GameState gameState = FIGHT;
-static char fpsString[16];
 static Rectangle bgRect1;
 static Rectangle bgRect2;
 static Vector2 center;
+struct Player players[playerCount];
+struct Boolet boolets[maxBooletsOnMap];
+struct Level levels[levelCount];
+struct Door doors[4];
+static int currentLevelIndex = 0;
+static int nextBooletIndex = 0;
+static char fpsString[16];
 static char playersCurrentlyPlaying;
 
 // functions definition below ------------------------------------------------------------------------------------------
 
 // this function initializes the gameplay screen
 void InitGameplayScreen(void) {
+    LoadAllLevels(&levels);
+
     bgRect1.x = screenWidth / 2 + screenWidth * 0.03;
     bgRect1.y = screenHeight / 2 + screenHeight * 0.03;
     bgRect1.width = screenWidth * 0.94;
@@ -78,17 +82,12 @@ void InitGameplayScreen(void) {
     else if (playersPlaying < 4) players[3].isPlaying = false;
 
     for (int i = 0; i < maxBooletsOnMap; ++i) boolets[i].enabled = false;
-    for (int i = 0; i < maxWallCount; ++i) walls[i].enabled = false;
 
     doors[0].location = LEFT;
     doors[1].location = RIGHT;
     doors[2].location = TOP;
     doors[3].location = BOTTOM;
     for (int i = 0; i < 4; ++i) InitDoorsWithRandomEffect(&doors[i]);
-
-    walls[0].enabled = true;
-    walls[0].color = WHITE;
-    walls[0].rect = (Rectangle) {300, 200, 600, 300};
 }
 
 // this function resets the players and map for a new round of the game
@@ -117,6 +116,8 @@ void resetLevel() {
     for (int i = 0; i < 4; ++i) {
         InitDoorsWithRandomEffect(&doors[i]);
     }
+    currentLevelIndex++;
+    currentLevelIndex %= levelCount;
 }
 
 // this function returns if ANY PART of the rectangle is out of bounds
@@ -162,7 +163,7 @@ void updateGameplayScreenDuringFight() {
         struct Player *p = &players[i];
         ProcessPlayerInput(p, i);
         ApplyPlayerVelocity(p);
-        for (int j = 0; j < maxWallCount; ++j) CheckWallPlayerCollisionAndFixPosition(&walls[j], p);
+        for (int j = 0; j < maxWallCount; ++j) CheckWallPlayerCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], p);
         if (IsPlayerShooting(p)) {
             InitBooletDefaults(
                     &boolets[nextBooletIndex++], p,
@@ -216,7 +217,7 @@ void updateGameplayScreenDuringFight() {
             }
         }
         ApplyBooletVelocity(&boolets[i]);
-        for (int j = 0; j < maxWallCount; ++j) CheckWallBooletCollisionAndFixPosition(&walls[j], &boolets[i]);
+        for (int j = 0; j < maxWallCount; ++j) CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i]);
         if (boolets[i].type == EXPLODING && boolets[i].speed < 100) {
             ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
         }
@@ -239,7 +240,7 @@ void updateGameplayScreenDuringChooseDoor() {
         if (players[i].isDead || !players[i].isPlaying) continue;
         ProcessPlayerInput(&players[i], i);
         ApplyPlayerVelocity(&players[i]);
-        for (int j = 0; j < maxWallCount; ++j) CheckWallPlayerCollisionAndFixPosition(&walls[j], &players[i]);
+        for (int j = 0; j < maxWallCount; ++j) CheckWallPlayerCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &players[i]);
         for (int j = 0; j < 4; ++j) {
             if (CheckCollisionRecs(doors[j].finalRect, players[i].rect)) {
                 if (doors[j].playerEffect == CLEAR_ALL_EFFECTS)
@@ -265,7 +266,7 @@ void updateGameplayScreenDuringChooseDoor() {
         if (!boolets[i].enabled) continue;
         if (isOutOfWindowBounds(boolets[i].rect)) boolets[i].enabled = false;
         ApplyBooletVelocity(&boolets[i]);
-        for (int j = 0; j < maxWallCount; ++j) CheckWallBooletCollisionAndFixPosition(&walls[j], &boolets[i]);
+        for (int j = 0; j < maxWallCount; ++j) CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i]);
     }
 }
 
@@ -299,6 +300,9 @@ void UpdateGameplayScreen(void) {
 
     // read the code bro
     if (IsKeyPressed(KEY_F3)) showFPS = !showFPS;
+
+    // change level to next one in list
+    if (IsKeyPressed(KEY_F4)) currentLevelIndex = (currentLevelIndex + 1) % levelCount;
 }
 
 // this function handles drawing of all elements on the window
@@ -321,7 +325,10 @@ void DrawGameplayScreen(void) {
         DrawPlayerScore(&players[i]);
         if (!players[i].isDead) DrawPlayer(&players[i]);
     }
-    for (int i = 0; i < maxWallCount; ++i) DrawWall(&walls[i]);
+    for (int i = 0; i < maxWallCount; ++i) if (levels[currentLevelIndex].walls[i].enabled) {
+        printf("hi\n");
+        DrawWall(&levels[currentLevelIndex].walls[i]);
+    }
 
     if (showFPS) {
         sprintf(fpsString, "%d", GetFPS());

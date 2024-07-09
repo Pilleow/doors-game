@@ -45,7 +45,7 @@ void InitPlayerDefaults(
     p->huePhase = (atCorner * 60) % 360;
     p->lastShotTime = GetTime();
     p->shotCooldownTime = 0.5F;
-    p->booletType = BOUNCING;
+    p->booletType = STRAIGHT;
     p->booletAmplitude = 5;
     p->friction = 0.91F;
     p->bulletSpeed = 600;
