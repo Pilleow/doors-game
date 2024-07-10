@@ -40,13 +40,27 @@ bool FixEntityPosition(struct Wall *w, Rectangle *rect) {
             rect->x + rect->width / 2,
             rect->y + rect->height / 2,
     };
+
+    bool isOnlyOneCornerTouching = false;
+    struct Vector2 corner;
+    int cornerIndex;
+
     for (int i = 0; i < 4; ++i) {
-        struct Vector2 corner = (Vector2) {
+        struct Vector2 tempCorner = (Vector2) {
                 w->rect.x + w->rect.width * (i / 2),
                 w->rect.y + w->rect.height * (i % 2)
         };
-        if (!CheckCollisionPointRec(corner, *rect)) continue;
+        if (!CheckCollisionPointRec(tempCorner, *rect)) continue;
+        if (isOnlyOneCornerTouching == true) {
+            isOnlyOneCornerTouching = false;
+            break;
+        }
+        isOnlyOneCornerTouching = true;
+        corner = tempCorner;
+        cornerIndex = i;
+    }
 
+    if (isOnlyOneCornerTouching) {
         int dx = 0, dy = 0;
         struct Vector2 eCorner;
 
@@ -61,10 +75,9 @@ bool FixEntityPosition(struct Wall *w, Rectangle *rect) {
             break;
         }
 
-        printf("\ndx: %d, dy: %d, ", dx, dy);
         if (dx > dy) {
-            printf("dx > dy, i: %d\n", i);
-            switch (i) {
+            printf("%d > %d, %d\n", dx, dy, cornerIndex);
+            switch (cornerIndex) {
                 case 0: // top left
                     rect->y = w->rect.y - rect->height;
                     break;
@@ -78,9 +91,9 @@ bool FixEntityPosition(struct Wall *w, Rectangle *rect) {
                     rect->y = w->rect.y + w->rect.height;
                     break;
             }
-        } else {
-            printf("dx < dy, i: %d\n", i);
-            switch (i) {
+        } else if (dx < dy) {
+            printf("%d < %d\n", dx, dy);
+            switch (cornerIndex) {
                 case 0: // top left
                     rect->x = w->rect.x - rect->width;
                     break;
@@ -94,17 +107,16 @@ bool FixEntityPosition(struct Wall *w, Rectangle *rect) {
                     rect->x = w->rect.x + w->rect.width;
                     break;
             }
-        }
-        return true;
-    }
-    if (eCenter.x > w->rect.x && eCenter.x < w->rect.x + w->rect.width) {
-        if (eCenter.y < w->rect.y + w->rect.height / 2) rect->y = w->rect.y - rect->height;
-        else rect->y = w->rect.y + w->rect.height;
+        } else printf("equal");
     } else {
-        if (eCenter.x < w->rect.x + w->rect.width / 2) rect->x = w->rect.x - rect->width;
-        else rect->x = w->rect.x + w->rect.width;
+        if (eCenter.x > w->rect.x && eCenter.x < w->rect.x + w->rect.width) {
+            if (eCenter.y < w->rect.y + w->rect.height / 2) rect->y = w->rect.y - rect->height;
+            else rect->y = w->rect.y + w->rect.height;
+        } else {
+            if (eCenter.x < w->rect.x + w->rect.width / 2) rect->x = w->rect.x - rect->width;
+            else rect->x = w->rect.x + w->rect.width;
+        }
     }
-
     return true;
 }
 

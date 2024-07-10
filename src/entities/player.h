@@ -58,6 +58,8 @@ void InitPlayerDefaults(
         KeyboardKey dodge
 );
 
+void MovePlayerBackOneStep(struct Player *b);
+
 void AddWinToPlayer(struct Player *p);
 
 void DrawPlayerScore(struct Player *p);

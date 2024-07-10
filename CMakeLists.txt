@@ -38,6 +38,7 @@ add_executable(${PROJECT_NAME}
         src/entities/wall.h
         src/entities/level.c
         src/entities/level.h
+        src/screen_leveleditor.c
 )
 add_subdirectory(src)
 

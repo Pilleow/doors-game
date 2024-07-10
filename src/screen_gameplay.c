@@ -28,11 +28,13 @@ static int currentLevelIndex = 2;
 static int nextBooletIndex = 0;
 static char fpsString[16];
 static char playersCurrentlyPlaying;
+bool gotoLevelEditor = false;
 
 // functions definition below ------------------------------------------------------------------------------------------
 
 // this function initializes the gameplay screen
 void InitGameplayScreen(void) {
+    gotoLevelEditor = false;
     LoadAllLevels(levels);
 
     bgRect1.x = screenWidth / 2 + screenWidth * 0.03;
@@ -264,12 +266,7 @@ void updateGameplayScreenDuringChooseDoor() {
         ProcessPlayerInput(&players[i], i);
         ApplyPlayerVelocity(&players[i]);
         for (int j = 0; j < maxWallCount; ++j)
-            if (CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i])) {
-                if (boolets[i].type == EXPLODING) {
-                    MoveBulletBackOneStep(&boolets[i]);
-                    ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
-                }
-            }
+            CheckWallPlayerCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &players[i]);
         for (int j = 0; j < 4; ++j) {
             if (CheckCollisionRecs(doors[j].finalRect, players[i].rect)) {
                 if (doors[j].playerEffect == CLEAR_ALL_EFFECTS)
@@ -296,7 +293,12 @@ void updateGameplayScreenDuringChooseDoor() {
         if (isOutOfWindowBounds(boolets[i].rect)) boolets[i].enabled = false;
         ApplyBooletVelocity(&boolets[i]);
         for (int j = 0; j < maxWallCount; ++j)
-            CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i]);
+            if (CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i])) {
+                if (boolets[i].type == EXPLODING) {
+                    MoveBulletBackOneStep(&boolets[i]);
+                    ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
+                }
+            }
     }
 }
 
@@ -338,6 +340,9 @@ void UpdateGameplayScreen(void) {
 
     // change level to next one in list
     if (IsKeyPressed(KEY_F4)) currentLevelIndex = (currentLevelIndex + 1) % levelCount;
+
+    // go to level editor
+    if (IsKeyPressed(KEY_F5)) gotoLevelEditor = true;
 }
 
 // this function handles drawing of all elements on the window
@@ -371,5 +376,6 @@ void DrawGameplayScreen(void) {
     }
 }
 
-// lol who needs garbage collection #memoryleak
-void UnloadGameplayScreen(void) {}
+bool GotoLevelEditorScreen(void) {
+    return gotoLevelEditor;
+}

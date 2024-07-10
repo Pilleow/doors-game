@@ -6,7 +6,11 @@
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
 //----------------------------------------------------------------------------------
-typedef enum GameScreen { UNKNOWN = -1, GAMEPLAY = 0 } GameScreen;
+typedef enum GameScreen {
+    UNKNOWN = -1,
+    GAMEPLAY = 0,
+    LEVELEDITOR,
+} GameScreen;
 
 //----------------------------------------------------------------------------------
 // Global Variables Declaration (shared by several modules)
@@ -34,7 +38,12 @@ void loadSfxIntoArray(Sound sfxArray[], char filename[], int totalCount, float i
 void InitGameplayScreen(void);
 void UpdateGameplayScreen(void);
 void DrawGameplayScreen(void);
-void UnloadGameplayScreen(void);
+bool GotoGameplayScreen(void);
+
+void UpdateLevelEditorScreen(void);
+void InitLevelEditorScreen(void);
+void DrawLevelEditorScreen(void);
+bool GotoLevelEditorScreen(void);
 
 #ifdef __cplusplus
 }

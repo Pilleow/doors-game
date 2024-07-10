@@ -10,25 +10,25 @@
 
 #define playerEffectCapacityAndLifespan 3
 #define pastPlayerPositionsCount 32
-#define maxBooletsOnMap 512
+#define maxBooletsOnMap 128
 #define sfxDoorOpenCount 3
-#define winsFontSize 128
-#define doorFontSize 64
-#define maxWallCount 16
+#define winsFontSize 96
+#define doorFontSize 48
+#define maxWallCount 48
 #define sfxShootCount 7
 #define sfxDeadCount 1
 #define bgMusicCount 8
 #define sfxDashCount 5
 #define playerCount 4
 #define sfxHitCount 1
-#define levelCount 3
+#define levelCount 1
 
 #define hueRotationSpeedOnWinMultiplier 120
 #define hueRotationSpeedOnDeathMultiplier 80
 #define hueRotationSpeedOnHitMultiplier 40
 
 static bool useGamepads = true;
-static bool showFPS = true;
+static bool showFPS = false;
 
 static int playersPlaying = 2;
 

@@ -88,7 +88,6 @@ void DrawDoor(struct Door *d) {
             x = d->playerEffectStringPositionX;
             y = d->playerEffectStringPositionY - 3 * doorFontSize * (1 - percentageSlideIn);
             DrawRectangleGradientV(d->finalRect.x, d->finalRect.y, d->finalRect.width * percentageOpen, d->finalRect.height * multiply, ColorAlpha(d->color, alpha), BLANK);
-
             break;
         case LEFT:
             x = d->playerEffectStringPositionX - 3 * d->playerEffectsStringWidth * (1 - percentageSlideIn);
@@ -103,7 +102,7 @@ void DrawDoor(struct Door *d) {
         case BOTTOM:
             x = d->playerEffectStringPositionX;
             y = d->playerEffectStringPositionY + 3 * doorFontSize * (1 - percentageSlideIn);
-            DrawRectangleGradientV(d->finalRect.x, d->finalRect.y - d->finalRect.height * (multiply + 1), d->finalRect.width * percentageOpen, d->finalRect.height * multiply, BLANK, ColorAlpha(d->color, alpha));
+            DrawRectangleGradientV(d->finalRect.x, d->finalRect.y - d->finalRect.height * (multiply - 1), d->finalRect.width * percentageOpen, d->finalRect.height * multiply, BLANK, ColorAlpha(d->color, alpha));
             break;
         default:
             return;

@@ -16,71 +16,33 @@ void LoadAllLevels(struct Level levels[]) {
     // IMPORTANT NOTE: Make sure to use position and size values in [0, 1] range as they get scaled at the end
     // -----------------------------------------------------------------------------------------------------------------
 
-    // level 0 ---------------------------------------------------------------------------------------------------------
     levels[0].enabled = true;
-    levels[0].walls[1] = (struct Wall) {
-            (Rectangle) {0.49, 0.3, 0.02, 0.4}, true
-    };
-    levels[0].walls[2] = (struct Wall) {
-            (Rectangle) {0.1, 0.3, 0.2, 0.02}, true
-    };
-    levels[0].walls[3] = (struct Wall) {
-            (Rectangle) {0.7, 0.3, 0.2, 0.02}, true
-    };
-    levels[0].walls[4] = (struct Wall) {
-            (Rectangle) {0.1, 0.68, 0.2, 0.02}, true
-    };
-    levels[0].walls[5] = (struct Wall) {
-            (Rectangle) {0.7, 0.68, 0.2, 0.02}, true
-    };
-
-    // level 1 ---------------------------------------------------------------------------------------------------------
-    levels[1].enabled = true;
-    levels[1].walls[1] = (struct Wall) {
-            (Rectangle) {0.1, 0.2, 0.1, 0.17}, true
-    };
-    levels[1].walls[2] = (struct Wall) {
-            (Rectangle) {0.8, 0.63, 0.1, 0.17}, true
-    };
-    levels[1].walls[3] = (struct Wall) {
-            (Rectangle) {0.7, 0.05, 0.1, 0.17}, true
-    };
-    levels[1].walls[4] = (struct Wall) {
-            (Rectangle) {0.2, 0.78, 0.1, 0.17}, true
-    };
-    levels[1].walls[5] = (struct Wall) {
-            (Rectangle) {0.45, 0.415, 0.1, 0.17}, true
-    };
-
-    // level 2 ---------------------------------------------------------------------------------------------------------
-    levels[2].enabled = true;
-    levels[2].walls[1] = (struct Wall) {
-            (Rectangle) {0.2, 0.25, 0.24, 0.02}, true
-    };
-    levels[2].walls[2] = (struct Wall) {
-            (Rectangle) {0.2, 0.73, 0.24, 0.02}, true
-    };
-    levels[2].walls[3] = (struct Wall) {
-            (Rectangle) {1 - 0.2 - 0.24, 0.25, 0.24, 0.02}, true
-    };
-    levels[2].walls[4] = (struct Wall) {
-            (Rectangle) {1 - 0.2 - 0.24, 0.73, 0.24, 0.02}, true
-    };
-    levels[2].walls[5] = (struct Wall) {
-            (Rectangle) {1 - 0.2, 0.25, 0.012, 0.15}, true
-    };
-    levels[2].walls[6] = (struct Wall) {
-            (Rectangle) {1 - 0.2, 0.73 - 0.15 + 0.02, 0.012, 0.15}, true
-    };
-    levels[2].walls[7] = (struct Wall) {
-            (Rectangle) {0.2 - 0.012, 0.25, 0.012, 0.15}, true
-    };
-    levels[2].walls[8] = (struct Wall) {
-            (Rectangle) {0.2 - 0.012, 0.73 - 0.15 + 0.02, 0.012, 0.15}, true
-    };
-    levels[2].walls[9] = (struct Wall) {
-            (Rectangle) {0.425, 0.5 - 0.01, 0.15, 0.02}, true
-    };
+    levels[0].walls[0] = (struct Wall) {(Rectangle) {0.328125, 0.000000, 0.015625, 0.250000}, true};
+    levels[0].walls[1] = (struct Wall) {(Rectangle) {0.328125, 0.250000, 0.171875, 0.027778}, true};
+    levels[0].walls[2] = (struct Wall) {(Rectangle) {0.500000, 0.722222, 0.171875, 0.027778}, true};
+    levels[0].walls[3] = (struct Wall) {(Rectangle) {0.656250, 0.750000, 0.015625, 0.250000}, true};
+    levels[0].walls[4] = (struct Wall) {(Rectangle) {0.656250, 0.000000, 0.015625, 0.027778}, true};
+    levels[0].walls[5] = (struct Wall) {(Rectangle) {0.500000, 0.555556, 0.015625, 0.166667}, true};
+    levels[0].walls[6] = (struct Wall) {(Rectangle) {0.484375, 0.277778, 0.015625, 0.166667}, true};
+    levels[0].walls[7] = (struct Wall) {(Rectangle) {0.671875, 0.305556, 0.093750, 0.027778}, true};
+    levels[0].walls[8] = (struct Wall) {(Rectangle) {0.828125, 0.305556, 0.171875, 0.027778}, true};
+    levels[0].walls[9] = (struct Wall) {(Rectangle) {0.656250, 0.138889, 0.015625, 0.472222}, true};
+    levels[0].walls[10] = (struct Wall) {(Rectangle) {0.328125, 0.388889, 0.015625, 0.472222}, true};
+    levels[0].walls[11] = (struct Wall) {(Rectangle) {0.328125, 0.972222, 0.015625, 0.027778}, true};
+    levels[0].walls[12] = (struct Wall) {(Rectangle) {0.343750, 0.722222, 0.046875, 0.027778}, true};
+    levels[0].walls[13] = (struct Wall) {(Rectangle) {0.453125, 0.722222, 0.046875, 0.027778}, true};
+    levels[0].walls[14] = (struct Wall) {(Rectangle) {0.500000, 0.250000, 0.046875, 0.027778}, true};
+    levels[0].walls[15] = (struct Wall) {(Rectangle) {0.609375, 0.250000, 0.046875, 0.027778}, true};
+    levels[0].walls[16] = (struct Wall) {(Rectangle) {0.500000, 0.416667, 0.015625, 0.027778}, true};
+    levels[0].walls[17] = (struct Wall) {(Rectangle) {0.484375, 0.555556, 0.015625, 0.027778}, true};
+    levels[0].walls[18] = (struct Wall) {(Rectangle) {0.000000, 0.666667, 0.171875, 0.027778}, true};
+    levels[0].walls[19] = (struct Wall) {(Rectangle) {0.234375, 0.666667, 0.093750, 0.027778}, true};
+    levels[0].walls[20] = (struct Wall) {(Rectangle) {0.078125, 0.250000, 0.171875, 0.027778}, true};
+    levels[0].walls[21] = (struct Wall) {(Rectangle) {0.000000, 0.250000, 0.015625, 0.027778}, true};
+    levels[0].walls[22] = (struct Wall) {(Rectangle) {0.312500, 0.250000, 0.015625, 0.027778}, true};
+    levels[0].walls[23] = (struct Wall) {(Rectangle) {0.671875, 0.722222, 0.015625, 0.027778}, true};
+    levels[0].walls[24] = (struct Wall) {(Rectangle) {0.750000, 0.722222, 0.171875, 0.027778}, true};
+    levels[0].walls[25] = (struct Wall) {(Rectangle) {0.984375, 0.722222, 0.015625, 0.027778}, true};
 
     // position and size scaling here ----------------------------------------------------------------------------------
     for (int i = 0; i < levelCount; ++i) {
@@ -95,8 +57,20 @@ void LoadAllLevels(struct Level levels[]) {
             levels[i].walls[j].rect.y *= screenHeight;
             levels[i].walls[j].rect.width *= screenWidth;
             levels[i].walls[j].rect.height *= screenHeight;
-            printf("x: %f, y: %f, w: %f, h: %f\n", levels[i].walls[j].rect.x, levels[i].walls[j].rect.y,
-                   levels[i].walls[j].rect.width, levels[i].walls[j].rect.height);
         }
+
+        int borderWallThickness = 3;
+        levels[i].walls[maxWallCount - 4] = (struct Wall) {
+                (Rectangle) {0, 0, borderWallThickness, screenHeight}, true
+        };
+        levels[i].walls[maxWallCount - 3] = (struct Wall) {
+                (Rectangle) {0, 0, screenWidth, borderWallThickness}, true
+        };
+        levels[i].walls[maxWallCount - 2] = (struct Wall) {
+                (Rectangle) {screenWidth - borderWallThickness, 0, borderWallThickness, screenHeight}, true
+        };
+        levels[i].walls[maxWallCount - 1] = (struct Wall) {
+                (Rectangle) {0, screenHeight - borderWallThickness, screenWidth, borderWallThickness}, true
+        };
     }
 }

@@ -113,6 +113,14 @@ void SetPlayerLocation(struct Player *p, Location atCorner) {
     }
 }
 
+void MovePlayerBackOneStep(struct Player *b) {
+    b->velocity.x *= -1;
+    b->velocity.y *= -1;
+    ApplyPlayerVelocity(b);
+    b->velocity.x *= -1;
+    b->velocity.y *= -1;
+}
+
 void ProcessPlayerInput(struct Player *p, char gamepadId) {
     if (p->speed < p->defaultSpeed * 1.1) {
         p->velocity.x *= p->friction;

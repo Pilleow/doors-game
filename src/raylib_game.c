@@ -58,20 +58,16 @@ static GameScreen transToScreen = UNKNOWN;
 // Local Functions Declaration
 //----------------------------------------------------------------------------------
 static void ChangeToScreen(int screen);     // Change to screen, no transition effect
-
 static void TransitionToScreen(int screen); // Request transition to next screen
 static void UpdateTransition(void);         // Update transition effect
 static void DrawTransition(void);           // Draw transition effect (full-screen rectangle)
-
 static void UpdateDrawFrame(void);          // Update and draw one frame
 
 
 // A function to generate a random permutation of arr[]
-void shuffleArray(Music arr[], int n)
-{
-    for (int i = n-1; i > 0; i--)
-    {
-        int j = rand() % (i+1);
+void shuffleArray(Music arr[], int n) {
+    for (int i = n - 1; i > 0; i--) {
+        int j = rand() % (i + 1);
         Music temp = arr[i];
         arr[i] = arr[j];
         arr[j] = temp;
@@ -155,14 +151,6 @@ int main(void) {
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
-    // Unload current screen data before closing
-    switch (currentScreen) {
-        case GAMEPLAY:
-            UnloadGameplayScreen();
-            break;
-        default:
-            break;
-    }
 
     // Unload global data loaded
     for (int i = 0; i < bgMusicCount; ++i) UnloadMusicStream(bgMusic[i]);
@@ -181,20 +169,14 @@ int main(void) {
 //----------------------------------------------------------------------------------
 // Change to next screen, no transition
 static void ChangeToScreen(GameScreen screen) {
-    // Unload current screen
-    switch (currentScreen) {
-        case GAMEPLAY:
-            UnloadGameplayScreen();
-            break;
-        default:
-            break;
-    }
 
     // Init next screen
     switch (screen) {
         case GAMEPLAY:
             InitGameplayScreen();
             break;
+        case LEVELEDITOR:
+            InitLevelEditorScreen();
         default:
             break;
     }
@@ -221,20 +203,22 @@ static void UpdateTransition(void) {
         if (transAlpha > 1.01f) {
             transAlpha = 1.0f;
 
-            // Unload current screen
-            switch (transFromScreen) {
-                case GAMEPLAY:
-                    UnloadGameplayScreen();
-                    break;
-                default:
-                    break;
-            }
+//            // Unload current screen
+//            switch (transFromScreen) {
+//                case GAMEPLAY:
+//                    UnloadGameplayScreen();
+//                    break;
+//                default:
+//                    break;
+//            }
 
             // Load next screen
             switch (transToScreen) {
                 case GAMEPLAY:
                     InitGameplayScreen();
                     break;
+                case LEVELEDITOR:
+                    InitLevelEditorScreen();
                 default:
                     break;
             }
@@ -302,19 +286,17 @@ static void UpdateDrawFrame(void) {
 
     if (!onTransition) {
         switch (currentScreen) {
-            case GAMEPLAY: {
+            case GAMEPLAY:
                 UpdateGameplayScreen();
-
-//                if (FinishGameplayScreen() == 1) TransitionToScreen(ENDING);
-                //else if (FinishGameplayScreen() == 2) TransitionToScreen(TITLE);
-
-            }
+                if (GotoLevelEditorScreen()) TransitionToScreen(LEVELEDITOR);
                 break;
+            case LEVELEDITOR:
+                UpdateLevelEditorScreen();
+                if (GotoGameplayScreen()) TransitionToScreen(GAMEPLAY);
             default:
                 break;
         }
     } else UpdateTransition();    // Update transition (fade-in, fade-out)
-    //----------------------------------------------------------------------------------
 
     // Draw
     //----------------------------------------------------------------------------------
@@ -324,6 +306,8 @@ static void UpdateDrawFrame(void) {
         case GAMEPLAY:
             DrawGameplayScreen();
             break;
+        case LEVELEDITOR:
+            DrawLevelEditorScreen();
         default:
             break;
     }
@@ -340,5 +324,4 @@ static void UpdateDrawFrame(void) {
             0,
             WHITE);
     EndDrawing();
-    //----------------------------------------------------------------------------------
 }

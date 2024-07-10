@@ -16,6 +16,7 @@ InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float 
         decayTimeLeft *= 2;
     } else if (btype == TIMEBENDING) {
         decayTimeLeft *= 2;
+        speed *= 1.3;
     }
     b->parent = parent;
     b->rect.x = xStart;
