@@ -30,11 +30,6 @@ bool CheckWallBooletCollisionAndFixPosition(struct Wall *w, struct Boolet *e) {
     return true;
 }
 
-bool CheckWallPlayerCollisionAndFixPosition(struct Wall *w, struct Player *e) {
-    if (!CheckCollisionRecs(w->rect, e->rect)) return false;
-    return FixEntityPosition(w, &e->rect);
-}
-
 bool FixEntityPosition(struct Wall *w, Rectangle *rect) {
     struct Vector2 eCenter = (Vector2) {
             rect->x + rect->width / 2,

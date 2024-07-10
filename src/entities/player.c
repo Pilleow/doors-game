@@ -26,7 +26,7 @@ void InitPlayerDefaults(
     p->shootingDirection.y = 0;
     p->maxHealth = 2;
     p->health = p->maxHealth;
-    p->defaultSpeed = 350;
+    p->defaultSpeed = 400;
     p->speed = p->defaultSpeed;
     p->keyMoveUp = up;
     p->keyMoveDown = down;
@@ -45,7 +45,7 @@ void InitPlayerDefaults(
     p->huePhase = (atCorner * 60) % 360;
     p->lastShotTime = GetTime();
     p->shotCooldownTime = 0.5F;
-    p->booletType = EXPLODING;
+    p->booletType = STRAIGHT;
     p->booletAmplitude = 5;
     p->friction = 0.91F;
     p->bulletSpeed = 600;
@@ -166,17 +166,51 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
     p->shootingDirection = Vector2Normalize(p->shootingDirection);
 }
 
-void ApplyPlayerVelocity(struct Player *p) {
+Rectangle _getUpdatedRectByVelocity(Rectangle rect, Vector2 velocity, float speed) {
     float frameTime = GetFrameTime();
-    if (p->velocity.x != 0) p->rect.x += p->velocity.x * p->speed * frameTime;
-    if (p->velocity.y != 0) p->rect.y += p->velocity.y * p->speed * frameTime;
+    if (velocity.x != 0) rect.x += velocity.x * speed * frameTime;
+    if (velocity.y != 0) rect.y += velocity.y * speed * frameTime;
 
-    if (p->rect.x < 0) p->rect.x = 0;
-    else if (p->rect.x + p->rect.width > screenWidth) p->rect.x = screenWidth - p->rect.width;
-    if (p->rect.y < 0) p->rect.y = 0;
-    else if (p->rect.y + p->rect.height > screenHeight) p->rect.y = screenHeight - p->rect.height;
+    if (rect.x < 0) rect.x = 0;
+    else if (rect.x + rect.width > screenWidth) rect.x = screenWidth - rect.width;
+    if (rect.y < 0) rect.y = 0;
+    else if (rect.y + rect.height > screenHeight) rect.y = screenHeight - rect.height;
+    return rect;
 }
 
+void ApplyPlayerVelocity(struct Player *p) {
+    p->rect = _getUpdatedRectByVelocity(p->rect, p->velocity, p->speed);
+}
+
+Rectangle GetPlayerRectIfMovedX(struct Player *p) {
+    Rectangle r = _getUpdatedRectByVelocity(
+            (Rectangle) {
+                    p->rect.x,
+                    p->rect.y,
+                    p->rect.width,
+                    p->rect.height
+            },
+            p->velocity,
+            p->speed
+    );
+    r.y = p->rect.y;
+    return r;
+}
+
+Rectangle GetPlayerRectIfMovedY(struct Player *p) {
+    Rectangle r = _getUpdatedRectByVelocity(
+            (Rectangle) {
+                    p->rect.x,
+                    p->rect.y,
+                    p->rect.width,
+                    p->rect.height
+            },
+            p->velocity,
+            p->speed
+    );
+    r.x = p->rect.x;
+    return r;
+}
 void ApplyDamageToPlayer(struct Player *p, unsigned char damage) {
     if (damage >= p->health) {
         p->health = 0;

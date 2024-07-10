@@ -58,6 +58,9 @@ void InitPlayerDefaults(
         KeyboardKey dodge
 );
 
+Rectangle GetPlayerRectIfMovedX(struct Player *p);
+Rectangle GetPlayerRectIfMovedY(struct Player *p);
+
 void MovePlayerBackOneStep(struct Player *b);
 
 void AddWinToPlayer(struct Player *p);

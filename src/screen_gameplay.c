@@ -24,7 +24,7 @@ struct Level levels[levelCount];
 struct Door doors[4];
 float hueRotationSpeed = 40;
 float hueRotationTimer = 0;
-static int currentLevelIndex = 2;
+int currentLevelIndex = 0;
 static int nextBooletIndex = 0;
 static char fpsString[16];
 static char playersCurrentlyPlaying;
@@ -34,6 +34,7 @@ bool gotoLevelEditor = false;
 
 // this function initializes the gameplay screen
 void InitGameplayScreen(void) {
+    HideCursor();
     gotoLevelEditor = false;
     LoadAllLevels(levels);
 
@@ -135,8 +136,14 @@ int isOutOfWindowBounds(Rectangle r) {
     return -1;
 }
 
-// this function updates the game when gameState == FIGHT
-void updateGameplayScreenDuringFight() {
+// this function updates the game regardless of current gameState
+void UpdateGameplayScreen(void) {
+    hueRotationTimer += GetFrameTime() * hueRotationSpeed;
+    if (hueRotationSpeed > defaultHueRotationSpeed) {
+        hueRotationSpeed = defaultHueRotationSpeed + 0.98 * (hueRotationSpeed - defaultHueRotationSpeed);
+    }
+
+
     // look for gamepads -----------------------------------------------------------------------------------------------
     if (useGamepads && playersPlaying < playerCount) {
         for (int gamepadId = 0; gamepadId < playerCount; ++gamepadId) {
@@ -167,9 +174,40 @@ void updateGameplayScreenDuringFight() {
         else continue;
         struct Player *p = &players[i];
         ProcessPlayerInput(p, i);
-        ApplyPlayerVelocity(p);
-        for (int j = 0; j < maxWallCount; ++j)
-            CheckWallPlayerCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], p);
+        for (int j = 0; j < maxWallCount; ++j) {
+            if (CheckCollisionRecs(levels[currentLevelIndex].walls[j].rect, players[i].rect)) {
+
+                // Calculation of centers of rectangles
+                const Vector2 center1 = {players[i].rect.x + players[i].rect.width / 2,
+                                         players[i].rect.y + players[i].rect.height / 2};
+                const Vector2 center2 = {
+                        levels[currentLevelIndex].walls[j].rect.x + levels[currentLevelIndex].walls[j].rect.width / 2,
+                        levels[currentLevelIndex].walls[j].rect.y + levels[currentLevelIndex].walls[j].rect.height / 2};
+
+                // Calculation of the distance vector between the centers of the rectangles
+                Vector2 delta = (Vector2) {
+                        center1.x - center2.x,
+                        center1.y - center2.y
+                };
+
+                // Calculation of half-widths and half-heights of rectangles
+                const Vector2 hs1 = {players[i].rect.width * .5f, players[i].rect.height * .5f};
+                const Vector2 hs2 = {levels[currentLevelIndex].walls[j].rect.width * .5f,
+                                     levels[currentLevelIndex].walls[j].rect.height * .5f};
+
+                // Calculation of the minimum distance at which the two rectangles can be separated
+                const float minDistX = hs1.x + hs2.x - fabsf(delta.x);
+                const float minDistY = hs1.y + hs2.y - fabsf(delta.y);
+
+                // Adjusted object position based on minimum distance
+                if (minDistX < minDistY) {
+                    players[i].rect.x += copysignf(minDistX, delta.x);
+                } else {
+                    players[i].rect.y += copysignf(minDistY, delta.y);
+                }
+            }
+        }
+        ApplyPlayerVelocity(&players[i]);
         if (IsPlayerShooting(p)) {
             InitBooletDefaults(
                     &boolets[nextBooletIndex++], p,
@@ -256,68 +294,6 @@ void updateGameplayScreenDuringFight() {
             }
         }
     }
-}
-
-// this function updates the game when gameState == CHOOSEDOOR
-void updateGameplayScreenDuringChooseDoor() {
-    // player update ---------------------------------------------------------------------------------------------------
-    for (int i = 0; i < 4; ++i) {
-        if (players[i].isDead || !players[i].isPlaying) continue;
-        ProcessPlayerInput(&players[i], i);
-        ApplyPlayerVelocity(&players[i]);
-        for (int j = 0; j < maxWallCount; ++j)
-            CheckWallPlayerCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &players[i]);
-        for (int j = 0; j < 4; ++j) {
-            if (CheckCollisionRecs(doors[j].finalRect, players[i].rect)) {
-                if (doors[j].playerEffect == CLEAR_ALL_EFFECTS)
-                    for (int k = 0; k < playerCount; ++k) ClearPlayerOfEffects(&players[k]);
-                else if (doors[j].playerEffect == RANDOM_EFFECT_TO_EVERYONE)
-                    for (int k = 0; k < playerCount; ++k) AssignEffectToPlayer(rand() % playerEffectCount, &players[k]);
-                else if (doors[j].isDebuff) AssignEffectToPlayer(doors[j].playerEffect, &players[i]);
-                else {
-                    int r = i;
-                    while (r == i) r = rand() % playersPlaying;
-                    AssignEffectToPlayer(doors[j].playerEffect, &players[r]);
-                }
-                for (int k = 0; k < maxBooletsOnMap; ++k) boolets[k].enabled = false;
-
-                resetLevel();
-                gameState = FIGHT;
-            }
-        }
-    }
-
-    // boolet update ---------------------------------------------------------------------------------------------------
-    for (int i = 0; i < maxBooletsOnMap; ++i) {
-        if (!boolets[i].enabled) continue;
-        if (isOutOfWindowBounds(boolets[i].rect)) boolets[i].enabled = false;
-        ApplyBooletVelocity(&boolets[i]);
-        for (int j = 0; j < maxWallCount; ++j)
-            if (CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i])) {
-                if (boolets[i].type == EXPLODING) {
-                    MoveBulletBackOneStep(&boolets[i]);
-                    ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
-                }
-            }
-    }
-}
-
-// this function updates the game regardless of current gameState
-void UpdateGameplayScreen(void) {
-    hueRotationTimer += GetFrameTime() * hueRotationSpeed;
-    if (hueRotationSpeed > defaultHueRotationSpeed) {
-        hueRotationSpeed = defaultHueRotationSpeed + 0.98 * (hueRotationSpeed - defaultHueRotationSpeed);
-    }
-
-    // call function based on current gameState
-    switch (gameState) {
-        case FIGHT:
-            updateGameplayScreenDuringFight();
-            break;
-        case CHOOSEDOOR:
-            updateGameplayScreenDuringChooseDoor();
-            break;
-    }
 
     // print debug message on button press
     if (IsKeyPressed(KEY_F1)) {
@@ -365,9 +341,11 @@ void DrawGameplayScreen(void) {
         DrawPlayerScore(&players[i]);
         if (!players[i].isDead) DrawPlayer(&players[i]);
     }
-    for (int i = 0; i < maxWallCount; ++i)
-        if (levels[currentLevelIndex].walls[i].enabled)
+    for (int i = 0; i < maxWallCount; ++i) {
+        if (levels[currentLevelIndex].walls[i].enabled) {
             DrawWall(&levels[currentLevelIndex].walls[i]);
+        }
+    }
     if (gameState == CHOOSEDOOR) for (int i = 0; i < 4; ++i) DrawDoor(&doors[i]);
 
     if (showFPS) {

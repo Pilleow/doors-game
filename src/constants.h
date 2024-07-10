@@ -9,7 +9,7 @@
 #define RAYLIB_GAME_TEMPLATE_CONSTANTS_H
 
 #define playerEffectCapacityAndLifespan 3
-#define pastPlayerPositionsCount 32
+#define pastPlayerPositionsCount 16
 #define maxBooletsOnMap 128
 #define sfxDoorOpenCount 3
 #define winsFontSize 96
@@ -21,7 +21,7 @@
 #define sfxDashCount 5
 #define playerCount 4
 #define sfxHitCount 1
-#define levelCount 1
+#define levelCount 9
 
 #define hueRotationSpeedOnWinMultiplier 120
 #define hueRotationSpeedOnDeathMultiplier 80

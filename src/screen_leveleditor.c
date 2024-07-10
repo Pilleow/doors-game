@@ -25,6 +25,7 @@ struct Wall walls[maxWallCount];
 
 // this function initializes the gameplay screen
 void InitLevelEditorScreen(void) {
+    ShowCursor();
     clickCount = 0;
     nextWallIndex = 0;
     gotoGameplayScreen = false;
@@ -56,14 +57,14 @@ void UpdateLevelEditorScreen(void) {
                 walls[nextWallIndex].rect.y -= snapSize;
                 walls[nextWallIndex].rect.height += 2 * snapSize;
             }
-
-            walls[nextWallIndex].enabled = true;
-            nextWallIndex++;
-            nextWallIndex %= maxWallCount;
+            if (walls[nextWallIndex].rect.width != 0 && walls[nextWallIndex].rect.height != 0) {
+                walls[nextWallIndex].enabled = true;
+                nextWallIndex++;
+                nextWallIndex %= maxWallCount;
+            }
         }
         clickCount++;
-    }
-    else if (IsKeyReleased(KEY_DELETE)) {
+    } else if (IsKeyReleased(KEY_DELETE)) {
         Vector2 mousePos = GetMousePosition();
         for (int i = 0; i < maxWallCount; ++i) {
             if (CheckCollisionPointRec(mousePos, walls[i].rect)) {
@@ -82,7 +83,7 @@ void UpdateLevelEditorScreen(void) {
             }
         }
         nextWallIndex--;
-        if (nextWallIndex < 0) nextWallIndex += maxWallCount;
+        if (nextWallIndex < 0) nextWallIndex = maxWallCount - 1;
     }
 
     // print level code to stdout
@@ -113,10 +114,12 @@ void UpdateLevelEditorScreen(void) {
 void DrawLevelEditorScreen(void) {
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), ColorFromHSV(180, 0.2, 0.2));
 
-    DrawRectangle((screenWidth * 0.7) / 2, 0, screenWidth * 0.3, 5, ColorFromHSV((int)(30 * GetTime()) % 360, 1, 1));
-    DrawRectangle(0, (screenHeight * 0.7) / 2, 5, screenHeight * 0.3, ColorFromHSV((int)(30 * GetTime()) % 360, 1, 1));
-    DrawRectangle(screenWidth - 5, (screenHeight * 0.7) / 2, 5, screenHeight * 0.3, ColorFromHSV((int)(30 * GetTime()) % 360, 1, 1));
-    DrawRectangle((screenWidth * 0.7) / 2, screenHeight - 5, screenWidth * 0.3, 5, ColorFromHSV((int)(30 * GetTime()) % 360, 1, 1));
+    DrawRectangle((screenWidth * 0.7) / 2, 0, screenWidth * 0.3, 5, ColorFromHSV((int) (30 * GetTime()) % 360, 1, 1));
+    DrawRectangle(0, (screenHeight * 0.7) / 2, 5, screenHeight * 0.3, ColorFromHSV((int) (30 * GetTime()) % 360, 1, 1));
+    DrawRectangle(screenWidth - 5, (screenHeight * 0.7) / 2, 5, screenHeight * 0.3,
+                  ColorFromHSV((int) (30 * GetTime()) % 360, 1, 1));
+    DrawRectangle((screenWidth * 0.7) / 2, screenHeight - 5, screenWidth * 0.3, 5,
+                  ColorFromHSV((int) (30 * GetTime()) % 360, 1, 1));
 
     for (int snapX = 0; snapX <= screenWidth / snapSize; ++snapX) {
         Color c = BLACK;
