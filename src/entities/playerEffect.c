@@ -50,6 +50,7 @@ void applyEffectToPlayer(PlayerEffect effectToApply, struct Player *p) {
             break;
         case LESS_MAX_HEALTH:
             if (p->maxHealth > 1) p->maxHealth -= max_health_modifier;
+            else p->activeEffects[p->nextEffectToSwapIndex] = -1;
             break;
         case LESS_FRICTION:
             p->friction += friction_modifier;

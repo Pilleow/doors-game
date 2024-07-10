@@ -61,9 +61,9 @@ static const char playerEffectNames[][24] = {
         [RANDOM_EFFECT_TO_EVERYONE] = "???"
 };
 
-static const int player_speed_modifier = 150;
+static const int player_speed_modifier = 100;
 static const int boolet_speed_modifier = 150;
-static const int body_size_modifier = 10;
+static const int body_size_modifier = 15;
 static const int boolet_amplitude_modifier = 2;
 static const int max_health_modifier = 1;
 static const float friction_modifier = 0.075;

@@ -18,8 +18,8 @@ void InitPlayerDefaults(
         KeyboardKey dodge
 ) {
     SetPlayerLocation(p, atCorner);
-    p->rect.height = 40;
-    p->rect.width = 40;
+    p->rect.height = 50;
+    p->rect.width = 50;
     p->velocity.x = 0;
     p->velocity.y = 0;
     p->shootingDirection.x = 0;
@@ -45,7 +45,7 @@ void InitPlayerDefaults(
     p->huePhase = (atCorner * 60) % 360;
     p->lastShotTime = GetTime();
     p->shotCooldownTime = 0.5F;
-    p->booletType = STRAIGHT;
+    p->booletType = EXPLODING;
     p->booletAmplitude = 5;
     p->friction = 0.91F;
     p->bulletSpeed = 600;

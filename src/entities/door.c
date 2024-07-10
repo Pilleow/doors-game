@@ -27,7 +27,7 @@ void InitDoorsWithRandomEffect(struct Door *d) {
     d->color = ColorFromHSV((360 / playerEffectCount * d->playerEffect) % 360, .9, .9);
 
     sprintf(d->playerEffectString, "%s", playerEffectNames[d->playerEffect]);
-    d->playerEffectsStringWidth = MeasureText(d->playerEffectString, doorFontSize);
+    d->playerEffectsStringWidth = MeasureTextEx(GetFontDefault(), d->playerEffectString, doorFontSize, 10).x;
     int padding = 75;
     switch (d->location) {
         case TOP:
@@ -82,32 +82,33 @@ void DrawDoor(struct Door *d) {
     int x, y;
     int multiply = 15;
     float alpha = 0.8;
+    float rotation = 3 * sinf(3 * GetTime());
     switch (d->location) {
         case TOP:
             x = d->playerEffectStringPositionX;
             y = d->playerEffectStringPositionY - 3 * doorFontSize * (1 - percentageSlideIn);
             DrawRectangleGradientV(d->finalRect.x, d->finalRect.y, d->finalRect.width * percentageOpen, d->finalRect.height * multiply, ColorAlpha(d->color, alpha), BLANK);
-            DrawText(d->playerEffectString, x, y, doorFontSize, d->color);
+
             break;
         case LEFT:
             x = d->playerEffectStringPositionX - 3 * d->playerEffectsStringWidth * (1 - percentageSlideIn);
             y = d->playerEffectStringPositionY;
             DrawRectangleGradientH(d->finalRect.x, d->finalRect.y, d->finalRect.width * multiply, d->finalRect.height * percentageOpen, ColorAlpha(d->color, alpha), BLANK);
-            DrawText(d->playerEffectString, x, y, doorFontSize, d->color);
             break;
         case RIGHT:
             x = d->playerEffectStringPositionX + 3 * d->playerEffectsStringWidth * (1 - percentageSlideIn);
             y = d->playerEffectStringPositionY;
             DrawRectangleGradientH(d->finalRect.x - d->finalRect.width * multiply, d->finalRect.y, d->finalRect.width * (multiply + 1), d->finalRect.height * percentageOpen, BLANK, ColorAlpha(d->color, alpha));
-            DrawText(d->playerEffectString, x, y, doorFontSize, d->color);
             break;
         case BOTTOM:
             x = d->playerEffectStringPositionX;
             y = d->playerEffectStringPositionY + 3 * doorFontSize * (1 - percentageSlideIn);
             DrawRectangleGradientV(d->finalRect.x, d->finalRect.y - d->finalRect.height * (multiply + 1), d->finalRect.width * percentageOpen, d->finalRect.height * multiply, BLANK, ColorAlpha(d->color, alpha));
-            DrawText(d->playerEffectString, x, y, doorFontSize, d->color);
             break;
         default:
-            break;
+            return;
     }
+    x += d->playerEffectsStringWidth / 2;
+    y += doorFontSize / 2;
+    DrawTextPro(GetFontDefault(), d->playerEffectString, (Vector2){x, y}, (Vector2) {d->playerEffectsStringWidth / 2, doorFontSize / 2}, rotation, doorFontSize, 10, d->color);
 }

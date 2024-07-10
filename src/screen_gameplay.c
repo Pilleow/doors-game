@@ -24,7 +24,7 @@ struct Level levels[levelCount];
 struct Door doors[4];
 float hueRotationSpeed = 40;
 float hueRotationTimer = 0;
-static int currentLevelIndex = 0;
+static int currentLevelIndex = 2;
 static int nextBooletIndex = 0;
 static char fpsString[16];
 static char playersCurrentlyPlaying;
@@ -80,8 +80,9 @@ void InitGameplayScreen(void) {
     if (useGamepads) {
         playersPlaying = 0;
         for (int i = 0; i < playerCount; ++i) players[i].isPlaying = false;
-    } else if (playersPlaying < 3) players[2].isPlaying = false;
-    else if (playersPlaying < 4) players[3].isPlaying = false;
+    }
+    if (playersPlaying < 3) players[2].isPlaying = false;
+    if (playersPlaying < 4) players[3].isPlaying = false;
 
     for (int i = 0; i < maxBooletsOnMap; ++i) boolets[i].enabled = false;
 
@@ -125,11 +126,11 @@ void resetLevel() {
 // this function returns if ANY PART of the rectangle is out of bounds
 // returns -1 if not out of bounds or out of bounds LOCATION if out of bounds
 int isOutOfWindowBounds(Rectangle r) {
-    if (r.y < 0)                        return TOP;
-    if (r.x < 0)                        return LEFT;
-    if (r.x > (float)screenWidth)       return RIGHT;
-    if (r.y > (float)screenHeight)      return BOTTOM;
-                                        return -1;
+    if (r.y + r.height / 2 < 0) return TOP;
+    if (r.x + r.width < 0) return LEFT;
+    if (r.x + r.width > (float) screenWidth) return RIGHT;
+    if (r.y + r.height / 2 > (float) screenHeight) return BOTTOM;
+    return -1;
 }
 
 // this function updates the game when gameState == FIGHT
@@ -165,7 +166,8 @@ void updateGameplayScreenDuringFight() {
         struct Player *p = &players[i];
         ProcessPlayerInput(p, i);
         ApplyPlayerVelocity(p);
-        for (int j = 0; j < maxWallCount; ++j) CheckWallPlayerCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], p);
+        for (int j = 0; j < maxWallCount; ++j)
+            CheckWallPlayerCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], p);
         if (IsPlayerShooting(p)) {
             InitBooletDefaults(
                     &boolets[nextBooletIndex++], p,
@@ -203,8 +205,7 @@ void updateGameplayScreenDuringFight() {
         if (!boolets[i].enabled) continue;
         int oob = isOutOfWindowBounds(boolets[i].rect);
         if (oob != -1) {
-            if (boolets[i].type != BOUNCING) boolets[i].enabled = false;
-            else {
+            if (boolets[i].type == BOUNCING) {
                 switch (oob) {
                     case TOP:
                     case BOTTOM:
@@ -217,26 +218,39 @@ void updateGameplayScreenDuringFight() {
                     default:
                         boolets[i].enabled = false;
                 }
-            }
+            } else if (boolets[i].type == EXPLODING) {
+                MoveBulletBackOneStep(&boolets[i]);
+                ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
+            } else boolets[i].enabled = false;
         }
         ApplyBooletVelocity(&boolets[i]);
-        for (int j = 0; j < maxWallCount; ++j) CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i]);
-        if (boolets[i].type == EXPLODING && boolets[i].speed < 100) {
+        for (int j = 0; j < maxWallCount; ++j)
+            if (CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i])) {
+                if (boolets[i].type == EXPLODING) {
+                    MoveBulletBackOneStep(&boolets[i]);
+                    ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
+                }
+            }
+        if (boolets[i].type == EXPLODING && boolets[i].speed < 300) {
             ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
         }
         for (int j = 0; j < 4; ++j) {
             if (!players[j].isDead && players[j].isPlaying && &players[j] != boolets[i].parent &&
                 CheckCollisionRecs(boolets[i].rect, players[j].rect)) {
-                ApplyDamageToPlayer(&players[j], boolets[i].damage);
-                if (players[j].isDead) {
-                    hueRotationSpeed = defaultHueRotationSpeed * hueRotationSpeedOnDeathMultiplier;
-                    PlaySound(sfxDead[rand() % sfxDeadCount]);
+                if (boolets[i].type == EXPLODING) {
+                    MoveBulletBackOneStep(&boolets[i]);
+                    ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
+                } else {
+                    ApplyDamageToPlayer(&players[j], boolets[i].damage);
+                    if (players[j].isDead) {
+                        hueRotationSpeed = defaultHueRotationSpeed * hueRotationSpeedOnDeathMultiplier;
+                        PlaySound(sfxDead[rand() % sfxDeadCount]);
+                    } else {
+                        hueRotationSpeed = defaultHueRotationSpeed * hueRotationSpeedOnHitMultiplier;
+                        PlaySound(sfxHit[rand() % sfxHitCount]);
+                    }
+                    boolets[i].enabled = false;
                 }
-                else {
-                    hueRotationSpeed = defaultHueRotationSpeed * hueRotationSpeedOnHitMultiplier;
-                    PlaySound(sfxHit[rand() % sfxHitCount]);
-                }
-                boolets[i].enabled = false;
             }
         }
     }
@@ -249,7 +263,13 @@ void updateGameplayScreenDuringChooseDoor() {
         if (players[i].isDead || !players[i].isPlaying) continue;
         ProcessPlayerInput(&players[i], i);
         ApplyPlayerVelocity(&players[i]);
-        for (int j = 0; j < maxWallCount; ++j) CheckWallPlayerCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &players[i]);
+        for (int j = 0; j < maxWallCount; ++j)
+            if (CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i])) {
+                if (boolets[i].type == EXPLODING) {
+                    MoveBulletBackOneStep(&boolets[i]);
+                    ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
+                }
+            }
         for (int j = 0; j < 4; ++j) {
             if (CheckCollisionRecs(doors[j].finalRect, players[i].rect)) {
                 if (doors[j].playerEffect == CLEAR_ALL_EFFECTS)
@@ -275,7 +295,8 @@ void updateGameplayScreenDuringChooseDoor() {
         if (!boolets[i].enabled) continue;
         if (isOutOfWindowBounds(boolets[i].rect)) boolets[i].enabled = false;
         ApplyBooletVelocity(&boolets[i]);
-        for (int j = 0; j < maxWallCount; ++j) CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i]);
+        for (int j = 0; j < maxWallCount; ++j)
+            CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i]);
     }
 }
 
@@ -329,19 +350,20 @@ void DrawGameplayScreen(void) {
         int textWidth = MeasureTextEx(GetFontDefault(), "WAITING FOR PLAYERS", fontSize, 10).x;
         DrawTextPro(GetFontDefault(), "WAITING FOR PLAYERS",
                     (Vector2) {screenWidth / 2, screenHeight / 2},
-                    (Vector2) {textWidth / 2, fontSize / 2}, 0.7 * sinf(GetTime() + 2 * PI / 3), fontSize, 10, ColorFromHSV(180, 0.1, 0.2));
+                    (Vector2) {textWidth / 2, fontSize / 2}, 0.7 * sinf(GetTime() + 2 * PI / 3), fontSize, 10,
+                    ColorFromHSV(180, 0.1, 0.2));
     }
     for (int i = 0; i < 4; ++i) if (players[i].isPlaying && !players[i].isDead) DrawPlayerTail(&players[i]);
     for (int i = 0; i < maxBooletsOnMap; ++i) if (boolets[i].enabled) DrawBoolet(&boolets[i]);
-    if (gameState == CHOOSEDOOR) for (int i = 0; i < 4; ++i) DrawDoor(&doors[i]);
     for (int i = 0; i < 4; ++i) {
         if (!players[i].isPlaying) continue;
         DrawPlayerScore(&players[i]);
         if (!players[i].isDead) DrawPlayer(&players[i]);
     }
-    for (int i = 0; i < maxWallCount; ++i) if (levels[currentLevelIndex].walls[i].enabled) {
-        DrawWall(&levels[currentLevelIndex].walls[i]);
-    }
+    for (int i = 0; i < maxWallCount; ++i)
+        if (levels[currentLevelIndex].walls[i].enabled)
+            DrawWall(&levels[currentLevelIndex].walls[i]);
+    if (gameState == CHOOSEDOOR) for (int i = 0; i < 4; ++i) DrawDoor(&doors[i]);
 
     if (showFPS) {
         sprintf(fpsString, "%d", GetFPS());

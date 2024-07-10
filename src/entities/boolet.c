@@ -11,6 +11,7 @@ InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float 
                    float yVelocity, unsigned char damage, unsigned short speed, BooletType btype, Color color, int amplitude, float decayTimeLeft) {
     if (btype == EXPLODING) {
         size *= 2;
+        speed *= 1.5;
     } else if (btype == BOUNCING) {
         decayTimeLeft *= 2;
     } else if (btype == TIMEBENDING) {
@@ -83,6 +84,14 @@ void ExplodeBoolet(struct Boolet *b, int *nextBooletIndex, struct Boolet boolets
         *nextBooletIndex %= maxBooletsOnMap;
     }
     b->enabled = false;
+}
+
+void MoveBulletBackOneStep(struct Boolet *b) {
+    b->velocity.x *= -1;
+    b->velocity.y *= -1;
+    ApplyBooletVelocity(b);
+    b->velocity.x *= -1;
+    b->velocity.y *= -1;
 }
 
 void DrawBoolet(struct Boolet *b) {

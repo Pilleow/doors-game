@@ -11,7 +11,6 @@
 
 struct Wall {
     Rectangle rect;
-    Color color;
     bool enabled;
 };
 
