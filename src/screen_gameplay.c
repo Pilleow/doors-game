@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include "screens.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -15,7 +16,8 @@
 // local variable declaration below ------------------------------------------------------------------------------------
 
 Texture2D texCrown;
-int playerWinnerIndex = -1;
+int playerGameWinnerIndex = 0;
+int playerRoundWinnerIndex = -1;
 Camera2D camera = {0};
 static Location transitionStartLoc;
 static RenderTexture2D transitionOldScreen;
@@ -31,7 +33,7 @@ float hueRotationSpeed = 40;
 float hueRotationTimer = 0;
 int currentLevelIndex = 0;
 float transitionStartTime = 0;
-float transitionTime = 0;
+float transitionTime = 1;
 static int nextBooletIndex = 0;
 static char fpsString[16];
 static char playersCurrentlyPlaying;
@@ -286,7 +288,7 @@ void UpdateGameplayScreen(void) {
                             players[i].rect.y = py - screenHeight + players[i].rect.height;
                             break;
                     }
-                    playerWinnerIndex = i;
+                    playerRoundWinnerIndex = i;
                     return;
                 }
             }
@@ -542,17 +544,35 @@ void DrawGameplayScreen(bool overrideMode) {
         DrawPlayerScore(&players[i]);
         if (!players[i].isDead) {
             DrawPlayer(&players[i]);
-            if (playerWinnerIndex == i) {
+            if (playerGameWinnerIndex == i) {
                 Vector2 crownPos = {
-                        players[i].rect.x + (players[i].rect.width) / 2,
-                        players[i].rect.y - texCrown.height / 16 -
+                        players[i].rect.x + texCrown.width / 13,
+                        players[i].rect.y + 5 -
                         screenHeight * (1 - (transitionTime <= 1 ? transitionTime : 1))
                 };
                 DrawTexturePro(
                         texCrown,
                         (Rectangle) {0, 0, texCrown.width, texCrown.height},
                         (Rectangle) {crownPos.x, crownPos.y, texCrown.width / 8, texCrown.height / 8},
-                        (Vector2) {texCrown.width / 16, texCrown.height / 16}, 6 * sin(6 * GetTime()), WHITE
+                        (Vector2) {25, 25}, -35 - (players[i].velocity.x * 10), WHITE
+                );
+            }
+            if (playerRoundWinnerIndex == i) {
+                Vector2 crownPos = {
+                        players[i].pastPos[2].x + texCrown.width / 8,
+                        players[i].pastPos[2].y - texCrown.height / 8 -
+                        screenHeight * (1 - (transitionTime <= 1 ? transitionTime : 1))
+                };
+                int rotMod = 0;
+                if (playerGameWinnerIndex == i) {
+                    crownPos.x += players[i].rect.width / 3;
+                    rotMod = 15;
+                }
+                DrawTexturePro(
+                        texCrown,
+                        (Rectangle) {0, 0, texCrown.width, texCrown.height},
+                        (Rectangle) {crownPos.x, crownPos.y, texCrown.width / 8, texCrown.height / 8},
+                        (Vector2) {texCrown.width / 16, texCrown.height / 16}, 6 * sin(6 * GetTime()) + rotMod, WHITE
                 );
             }
         }
