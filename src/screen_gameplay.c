@@ -14,6 +14,8 @@
 
 // local variable declaration below ------------------------------------------------------------------------------------
 
+Texture2D texCrown;
+int playerWinnerIndex = -1;
 Camera2D camera = {0};
 static Location transitionStartLoc;
 static RenderTexture2D transitionOldScreen;
@@ -39,6 +41,8 @@ bool gotoLevelEditor = false;
 
 // this function initializes the gameplay screen
 void InitGameplayScreen(void) {
+    texCrown = LoadTexture("resources/sprites/crown.png");
+
     transitionOldScreen = LoadRenderTexture(screenWidth, screenHeight);
     camera.target = (Vector2) {screenWidth / 2, screenHeight / 2};
     camera.offset = (Vector2) {screenWidth / 2, screenHeight / 2};
@@ -91,12 +95,32 @@ void InitGameplayScreen(void) {
     );
     players[3] = player4;
 
-    if (useGamepads) {
-        playersPlaying = 0;
-        for (int i = 0; i < playerCount; ++i) players[i].isPlaying = false;
+    switch (inputState) {
+        case GAMEPAD_ONLY:
+            playersPlaying = 0;
+            for (int i = 0; i < playerCount; ++i) players[i].isPlaying = false;
+            break;
+        case KEYBOARD_ONLY:
+            if (playersPlaying < 3) players[2].isPlaying = false;
+            if (playersPlaying < 4) players[3].isPlaying = false;
+            break;
+        case MIXED:
+            playersPlaying = 1;
+            for (int i = 1; i < playerCount; ++i) players[i].isPlaying = false;
+            players[0].keyShootUp = KEY_UP;
+            players[0].keyShootDown = KEY_DOWN;
+            players[0].keyShootLeft = KEY_LEFT;
+            players[0].keyShootRight = KEY_RIGHT;
+            players[1].keyShootUp = -1;
+            players[1].keyShootDown = -1;
+            players[1].keyShootLeft= -1;
+            players[1].keyShootRight = -1;
+            players[1].keyMoveUp = -1;
+            players[1].keyMoveDown = -1;
+            players[1].keyMoveLeft= -1;
+            players[1].keyMoveRight = -1;
+            break;
     }
-    if (playersPlaying < 3) players[2].isPlaying = false;
-    if (playersPlaying < 4) players[3].isPlaying = false;
 
     for (int i = 0; i < maxBooletsOnMap; ++i) boolets[i].enabled = false;
 
@@ -185,9 +209,10 @@ void UpdateGameplayScreen(void) {
     }
 
     // look for gamepads -----------------------------------------------------------------------------------------------
-    if (useGamepads && playersPlaying < playerCount) {
-        for (int gamepadId = 0; gamepadId < playerCount; ++gamepadId) {
-            if (!IsGamepadAvailable(gamepadId)) {
+    if (inputState != KEYBOARD_ONLY && playersPlaying < playerCount) {
+        int startId = inputState == MIXED ? 1 : 0;
+        for (int gamepadId = startId; gamepadId < playerCount; ++gamepadId) {
+            if (!IsGamepadAvailable(gamepadId - startId)) {
                 if (players[gamepadId].isPlaying == false) continue;
                 else {
                     players[gamepadId].isPlaying = false;
@@ -213,9 +238,9 @@ void UpdateGameplayScreen(void) {
         if (!players[i].isDead) playersAlive++;
         else continue;
         struct Player *p = &players[i];
-        ProcessPlayerInput(p, i);
+        ProcessPlayerInput(p, i + inputState == MIXED ? 1 : 0);
         if (gameState == CHOOSEDOOR && !players[i].isDead) {
-            for (int j = 0; j < 4; ++j) {
+            if (GetTime() - doors[0].timeSpawned > 1) for (int j = 0; j < 4; ++j) {
                 if (CheckCollisionRecs(doors[j].finalRect, players[i].rect)) {
                     if (doors[j].playerEffect == CLEAR_ALL_EFFECTS)
                         for (int k = 0; k < playerCount; ++k) ClearPlayerOfEffects(&players[k]);
@@ -261,6 +286,7 @@ void UpdateGameplayScreen(void) {
                             players[i].rect.y = py - screenHeight + players[i].rect.height;
                             break;
                     }
+                    playerWinnerIndex = i;
                     return;
                 }
             }
@@ -309,19 +335,23 @@ void UpdateGameplayScreen(void) {
                 int x = p->rect.x + p->rect.width / 2;
                 int y = p->rect.y + p->rect.height / 2;
                 Rectangle r;
-                int delta = 25;
+                int delta = 15 + p->booletSize;
                 x += p->shootingDirection.x * delta;
                 y += p->shootingDirection.y * delta;
                 do {
                     x += p->shootingDirection.x * delta;
                     y += p->shootingDirection.y * delta;
-                    r = (Rectangle) {x, y, 6, 6};
-                    for (int j = 0; j < maxWallCount; ++j) if (currentLevelIndex >= 0 && CheckCollisionRecs(r, levels[currentLevelIndex].walls[j].rect)) r.x = -1000;
-                    for (int j = 0; j < playerCount; ++j) if (&players[j] != p && !players[j].isDead && CheckCollisionRecs(r, players[j].rect)) r.x = -1000;
+                    r = (Rectangle) {x, y, p->booletSize, p->booletSize};
+                    for (int j = 0; j < maxWallCount; ++j)
+                        if (currentLevelIndex >= 0 && CheckCollisionRecs(r, levels[currentLevelIndex].walls[j].rect))
+                            r.x = -1000;
+                    for (int j = 0; j < playerCount; ++j)
+                        if (&players[j] != p && !players[j].isDead && players[j].isPlaying && CheckCollisionRecs(r, players[j].rect))
+                            r.x = -1000;
                     InitBooletDefaults(
                             &boolets[nextBooletIndex++], p,
                             x, y,
-                            6, p->shootingDirection.x, p->shootingDirection.y, 1, 0,
+                            p->booletSize >= 1 ? p->booletSize : 1, p->shootingDirection.x, p->shootingDirection.y, 1, 0,
                             p->booletType, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, 0.3
                     );
                     nextBooletIndex %= maxBooletsOnMap;
@@ -330,7 +360,7 @@ void UpdateGameplayScreen(void) {
                 InitBooletDefaults(
                         &boolets[nextBooletIndex++], p,
                         p->rect.x + p->rect.width / 2, p->rect.y + p->rect.height / 2,
-                        6, p->shootingDirection.x, p->shootingDirection.y, 1, p->bulletSpeed,
+                        p->booletSize >= 1 ? p->booletSize : 1, p->shootingDirection.x, p->shootingDirection.y, 1, p->bulletSpeed,
                         p->booletType, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, p->booletDecayTimeLeft
                 );
                 nextBooletIndex %= maxBooletsOnMap;
@@ -510,7 +540,22 @@ void DrawGameplayScreen(bool overrideMode) {
     for (int i = 0; i < 4; ++i) {
         if (!players[i].isPlaying) continue;
         DrawPlayerScore(&players[i]);
-        if (!players[i].isDead) DrawPlayer(&players[i]);
+        if (!players[i].isDead) {
+            DrawPlayer(&players[i]);
+            if (playerWinnerIndex == i) {
+                Vector2 crownPos = {
+                        players[i].rect.x + (players[i].rect.width) / 2,
+                        players[i].rect.y - texCrown.height / 16 -
+                        screenHeight * (1 - (transitionTime <= 1 ? transitionTime : 1))
+                };
+                DrawTexturePro(
+                        texCrown,
+                        (Rectangle) {0, 0, texCrown.width, texCrown.height},
+                        (Rectangle) {crownPos.x, crownPos.y, texCrown.width / 8, texCrown.height / 8},
+                        (Vector2) {texCrown.width / 16, texCrown.height / 16}, 6 * sin(6 * GetTime()), WHITE
+                );
+            }
+        }
     }
     for (int i = 0; i < maxWallCount; ++i) {
         if ((currentLevelIndex >= 0 || i >= maxWallCount - 4) && levels[currentLevelIndex].walls[i].enabled) {
@@ -534,6 +579,10 @@ void DrawGameplayScreen(bool overrideMode) {
         sprintf(fpsString, "%d", GetFPS());
         DrawText(fpsString, 2, 2, 14, GREEN);
     }
+}
+
+void UnloadGameplayScreen(void) {
+    UnloadTexture(texCrown);
 }
 
 bool GotoLevelEditorScreen(void) {

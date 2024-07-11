@@ -67,10 +67,10 @@ void UpdateLevelEditorScreen(void) {
             }
         }
         clickCount++;
-    } else if (IsKeyReleased(KEY_DELETE)) {
+    } else if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT)) {
         Vector2 mousePos = GetMousePosition();
         for (int i = 0; i < maxWallCount; ++i) {
-            if (CheckCollisionPointRec(mousePos, walls[i].rect)) {
+            if (walls[i].enabled && CheckCollisionPointRec(mousePos, walls[i].rect)) {
                 walls[i].enabled = false;
                 nextWallIndex--;
                 sprintf(nextWallIndexMinus1String, "%d / %d", nextWallIndex, maxWallCount);

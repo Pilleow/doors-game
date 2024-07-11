@@ -151,6 +151,13 @@ int main(void) {
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
+    switch (currentScreen) {
+        case GAMEPLAY:
+            UnloadGameplayScreen();
+            break;
+        default:
+            break;
+    }
 
     // Unload global data loaded
     for (int i = 0; i < bgMusicCount; ++i) UnloadMusicStream(bgMusic[i]);
@@ -203,14 +210,14 @@ static void UpdateTransition(void) {
         if (transAlpha > 1.01f) {
             transAlpha = 1.0f;
 
-//            // Unload current screen
-//            switch (transFromScreen) {
-//                case GAMEPLAY:
-//                    UnloadGameplayScreen();
-//                    break;
-//                default:
-//                    break;
-//            }
+            // Unload current screen
+            switch (transFromScreen) {
+                case GAMEPLAY:
+                    UnloadGameplayScreen();
+                    break;
+                default:
+                    break;
+            }
 
             // Load next screen
             switch (transToScreen) {

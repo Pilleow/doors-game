@@ -47,6 +47,7 @@ void InitPlayerDefaults(
     p->shotCooldownTime = 0.5F;
     p->booletType = HITSCAN;
     p->booletAmplitude = 3;
+    p->booletSize = 6;
     p->friction = 0.91F;
     p->bulletSpeed = 600;
     p->lastDodgeTime = GetTime();
@@ -122,29 +123,31 @@ void MovePlayerBackOneStep(struct Player *b) {
 }
 
 void ProcessPlayerInput(struct Player *p, char gamepadId) {
+    float x, y;
+
     if (p->speed < p->defaultSpeed * 1.1) {
         p->velocity.x *= p->friction;
         p->velocity.y *= p->friction;
     }
-    if (!useGamepads) {
-        if (IsKeyDown(p->keyMoveUp)) p->velocity.y -= 1;
-        if (IsKeyDown(p->keyMoveDown)) p->velocity.y += 1;
-        if (IsKeyDown(p->keyMoveLeft)) p->velocity.x -= 1;
-        if (IsKeyDown(p->keyMoveRight)) p->velocity.x += 1;
-    } else {
-        float x = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_LEFT_X);
-        float y = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_LEFT_Y);
-        p->velocity.x = x == 0 ? p->velocity.x : x;
-        p->velocity.y = y == 0 ? p->velocity.y : y;
-    }
+    if (IsKeyDown(p->keyMoveUp)) p->velocity.y -= 1;
+    if (IsKeyDown(p->keyMoveDown)) p->velocity.y += 1;
+    if (IsKeyDown(p->keyMoveLeft)) p->velocity.x -= 1;
+    if (IsKeyDown(p->keyMoveRight)) p->velocity.x += 1;
+
+    x = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_LEFT_X);
+    y = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_LEFT_Y);
+
+    p->velocity.x = x == 0 ? p->velocity.x : x;
+    p->velocity.y = y == 0 ? p->velocity.y : y;
 
     if (Vector2LengthSqr(p->velocity) > 1)
         p->velocity = Vector2Normalize(p->velocity);
 
-    if (p->speed > p->defaultSpeed) p->speed = p->defaultSpeed + (p->friction < 0.96 ? p->friction : 0.96) * (p->speed - p->defaultSpeed);
+    if (p->speed > p->defaultSpeed) p->speed = p->defaultSpeed +
+                                               (p->friction < 0.96 ? p->friction : 0.96) * (p->speed - p->defaultSpeed);
     if (
-            ((!useGamepads && IsKeyDown(p->keyDodge)) ||
-             (useGamepads && IsGamepadButtonDown(gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_2)))
+            (IsKeyDown(p->keyDodge) ||
+             IsGamepadButtonDown(gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_2))
             && GetTime() - p->lastDodgeTime > p->dodgeCooldownTime
             ) {
         p->lastDodgeTime = GetTime();
@@ -154,15 +157,18 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
 
     p->shootingDirection.x = 0;
     p->shootingDirection.y = 0;
-    if (!useGamepads) {
-        if (IsKeyDown(p->keyShootUp)) p->shootingDirection.y -= 1;
-        if (IsKeyDown(p->keyShootDown)) p->shootingDirection.y += 1;
-        if (IsKeyDown(p->keyShootLeft)) p->shootingDirection.x -= 1;
-        if (IsKeyDown(p->keyShootRight)) p->shootingDirection.x += 1;
-    } else {
-        p->shootingDirection.x = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_RIGHT_X);
-        p->shootingDirection.y = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_RIGHT_Y);
-    }
+
+    if (IsKeyDown(p->keyShootUp)) p->shootingDirection.y -= 1;
+    if (IsKeyDown(p->keyShootDown)) p->shootingDirection.y += 1;
+    if (IsKeyDown(p->keyShootLeft)) p->shootingDirection.x -= 1;
+    if (IsKeyDown(p->keyShootRight)) p->shootingDirection.x += 1;
+
+    x = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_RIGHT_X);
+    y = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_RIGHT_Y);
+
+    p->shootingDirection.x = x == 0 ? p->shootingDirection.x : x;
+    p->shootingDirection.y = y == 0 ? p->shootingDirection.y : y;
+
     p->shootingDirection = Vector2Normalize(p->shootingDirection);
 }
 

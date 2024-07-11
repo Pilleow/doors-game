@@ -70,6 +70,12 @@ void applyEffectToPlayer(PlayerEffect effectToApply, struct Player *p) {
         case LONGER_DASH_COOLDOWN:
             p->dodgeCooldownTime += dodge_cooldown_time_modifier;
             break;
+        case LARGER_BULLET_SIZE:
+            p->booletSize += boolet_size_modifier;
+            break;
+        case SMALLER_BULLET_SIZE:
+            p->booletSize -= boolet_size_modifier;
+            break;
         default:
             break;
     }
@@ -128,6 +134,12 @@ void undoEffectFromPlayer(PlayerEffect effectToUndo, struct Player *p) {
             break;
         case LONGER_DASH_COOLDOWN:
             p->dodgeCooldownTime -= dodge_cooldown_time_modifier;
+            break;
+        case LARGER_BULLET_SIZE:
+            p->booletSize -= boolet_size_modifier;
+            break;
+        case SMALLER_BULLET_SIZE:
+            p->booletSize += boolet_size_modifier;
             break;
         default:
             break;

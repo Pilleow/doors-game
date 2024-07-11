@@ -21,13 +21,12 @@
 #define sfxDashCount 5
 #define playerCount 4
 #define sfxHitCount 1
-#define levelCount 13
+#define levelCount 15
 
-#define hueRotationSpeedOnWinMultiplier 120
-#define hueRotationSpeedOnDeathMultiplier 80
-#define hueRotationSpeedOnHitMultiplier 40
+#define hueRotationSpeedOnWinMultiplier 100
+#define hueRotationSpeedOnDeathMultiplier 70
+#define hueRotationSpeedOnHitMultiplier 30
 
-static bool useGamepads = true;
 static bool showFPS = false;
 
 static int playersPlaying = 2;
@@ -48,6 +47,14 @@ static float sfxShootVolume = 0.5f;
 static float sfxDeadVolume = 0.5f;
 static float sfxDashVolume = 0.5f;
 static float sfxHitVolume = 0.5f;
+
+enum InputState {
+    GAMEPAD_ONLY,
+    MIXED,
+    KEYBOARD_ONLY
+};
+
+static enum InputState inputState = MIXED;
 
 typedef enum {
     TOPLEFT,

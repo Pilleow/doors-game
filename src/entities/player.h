@@ -23,6 +23,7 @@ struct Player {
     int wins;
     int winsStringX;
     int winsStringY;
+    int booletSize;
     int booletAmplitude;
     int sfxShootSoundIndex;
     float lastPastPositionUpdateTime;

@@ -39,6 +39,7 @@ void InitGameplayScreen(void);
 void UpdateGameplayScreen(void);
 void DrawGameplayScreen(bool overrideMode);
 bool GotoGameplayScreen(void);
+void UnloadGameplayScreen(void);
 void resetLevel();
 
 void UpdateLevelEditorScreen(void);

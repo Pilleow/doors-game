@@ -17,7 +17,7 @@
  * etc.
  */
 
-static int playerEffectCount = 17;
+static int playerEffectCount = 19;
 static int specialPlayerEffectCount = 2;
 
 typedef enum {
@@ -37,6 +37,8 @@ typedef enum {
     LONGER_SHOOT_COOLDOWN_TIME,
     SHORTER_DASH_COOLDOWN,
     LONGER_DASH_COOLDOWN,
+    LARGER_BULLET_SIZE,
+    SMALLER_BULLET_SIZE,
     CLEAR_ALL_EFFECTS,                      // do not count this in playerEffectCount as this is a special case
     RANDOM_EFFECT_TO_EVERYONE               // do not count this in playerEffectCount as this is a special case
 } PlayerEffect;
@@ -57,6 +59,8 @@ static const char playerEffectNames[][24] = {
         [LONGER_SHOOT_COOLDOWN_TIME] = "SLOW HANDS",
         [SHORTER_DASH_COOLDOWN] = "NEW BALANCE",
         [LONGER_DASH_COOLDOWN] = "OLD SNEAKERS",
+        [LARGER_BULLET_SIZE] = "BIG GUNZ",
+        [SMALLER_BULLET_SIZE] = "MICRO GUNZ",
         [CLEAR_ALL_EFFECTS] = "RM -RF EFFECTS",
         [RANDOM_EFFECT_TO_EVERYONE] = "???"
 };
@@ -66,6 +70,7 @@ static const int boolet_speed_modifier = 150;
 static const int body_size_modifier = 15;
 static const int boolet_amplitude_modifier = 2;
 static const int max_health_modifier = 1;
+static const int boolet_size_modifier = 3;
 static const float friction_modifier = 0.075;
 static const float shoot_cooldown_time_modifier = 0.15;
 static const float dodge_cooldown_time_modifier = 0.3;
