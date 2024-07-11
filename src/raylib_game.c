@@ -301,10 +301,10 @@ static void UpdateDrawFrame(void) {
     // Draw
     //----------------------------------------------------------------------------------
     BeginTextureMode(screenRenderTexture);
-    ClearBackground(RAYWHITE);
+    ClearBackground(BLACK);
     switch (currentScreen) {
         case GAMEPLAY:
-            DrawGameplayScreen();
+            DrawGameplayScreen(false);
             break;
         case LEVELEDITOR:
             DrawLevelEditorScreen();

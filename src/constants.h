@@ -14,7 +14,7 @@
 #define sfxDoorOpenCount 3
 #define winsFontSize 96
 #define doorFontSize 48
-#define maxWallCount 64
+#define maxWallCount 96
 #define sfxShootCount 7
 #define sfxDeadCount 1
 #define bgMusicCount 8
@@ -27,7 +27,7 @@
 #define hueRotationSpeedOnDeathMultiplier 80
 #define hueRotationSpeedOnHitMultiplier 40
 
-static bool useGamepads = true;
+static bool useGamepads = false;
 static bool showFPS = false;
 
 static int playersPlaying = 2;
@@ -63,7 +63,8 @@ typedef enum {
 
 typedef enum {
     FIGHT,
-    CHOOSEDOOR
+    CHOOSEDOOR,
+    TRANSITION
 } GameState;
 
 typedef enum {

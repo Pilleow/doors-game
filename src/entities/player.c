@@ -17,7 +17,8 @@ void InitPlayerDefaults(
         KeyboardKey leftShoot, KeyboardKey rightShoot,
         KeyboardKey dodge
 ) {
-    SetPlayerLocation(p, atCorner);
+    p->startLocation = atCorner;
+    SetPlayerLocation(p, p->startLocation);
     p->rect.height = 50;
     p->rect.width = 50;
     p->velocity.x = 0;
@@ -39,7 +40,6 @@ void InitPlayerDefaults(
     p->keyDodge = dodge;
     p->isDead = false;
     p->isPlaying = true;
-    p->startLocation = atCorner;
     p->wins = -1;
     AddWinToPlayer(p);
     p->huePhase = (atCorner * 60) % 360;
@@ -182,35 +182,6 @@ void ApplyPlayerVelocity(struct Player *p) {
     p->rect = _getUpdatedRectByVelocity(p->rect, p->velocity, p->speed);
 }
 
-Rectangle GetPlayerRectIfMovedX(struct Player *p) {
-    Rectangle r = _getUpdatedRectByVelocity(
-            (Rectangle) {
-                    p->rect.x,
-                    p->rect.y,
-                    p->rect.width,
-                    p->rect.height
-            },
-            p->velocity,
-            p->speed
-    );
-    r.y = p->rect.y;
-    return r;
-}
-
-Rectangle GetPlayerRectIfMovedY(struct Player *p) {
-    Rectangle r = _getUpdatedRectByVelocity(
-            (Rectangle) {
-                    p->rect.x,
-                    p->rect.y,
-                    p->rect.width,
-                    p->rect.height
-            },
-            p->velocity,
-            p->speed
-    );
-    r.x = p->rect.x;
-    return r;
-}
 void ApplyDamageToPlayer(struct Player *p, unsigned char damage) {
     if (damage >= p->health) {
         p->health = 0;

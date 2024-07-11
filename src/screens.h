@@ -37,8 +37,9 @@ void loadSfxIntoArray(Sound sfxArray[], char filename[], int totalCount, float i
 //----------------------------------------------------------------------------------
 void InitGameplayScreen(void);
 void UpdateGameplayScreen(void);
-void DrawGameplayScreen(void);
+void DrawGameplayScreen(bool overrideMode);
 bool GotoGameplayScreen(void);
+void resetLevel();
 
 void UpdateLevelEditorScreen(void);
 void InitLevelEditorScreen(void);

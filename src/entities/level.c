@@ -588,19 +588,5 @@ void LoadAllLevels(struct Level levels[]) {
             levels[i].walls[j].rect.width *= screenWidth;
             levels[i].walls[j].rect.height *= screenHeight;
         }
-
-        int borderWallThickness = 3;
-        levels[i].walls[maxWallCount - 4] = (struct Wall) {
-                (Rectangle) {0, 0, borderWallThickness, screenHeight}, true
-        };
-        levels[i].walls[maxWallCount - 3] = (struct Wall) {
-                (Rectangle) {0, 0, screenWidth, borderWallThickness}, true
-        };
-        levels[i].walls[maxWallCount - 2] = (struct Wall) {
-                (Rectangle) {screenWidth - borderWallThickness, 0, borderWallThickness, screenHeight}, true
-        };
-        levels[i].walls[maxWallCount - 1] = (struct Wall) {
-                (Rectangle) {0, screenHeight - borderWallThickness, screenWidth, borderWallThickness}, true
-        };
     }
 }

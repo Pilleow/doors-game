@@ -14,6 +14,9 @@
 
 // local variable declaration below ------------------------------------------------------------------------------------
 
+Camera2D camera = {0};
+static Location transitionStartLoc;
+static RenderTexture2D transitionOldScreen;
 static GameState gameState = FIGHT;
 static Rectangle bgRect1;
 static Rectangle bgRect2;
@@ -24,7 +27,9 @@ struct Level levels[levelCount];
 struct Door doors[4];
 float hueRotationSpeed = 40;
 float hueRotationTimer = 0;
-int currentLevelIndex = -1;
+int currentLevelIndex = 0;
+float transitionStartTime = 0;
+float transitionTime = 0;
 static int nextBooletIndex = 0;
 static char fpsString[16];
 static char playersCurrentlyPlaying;
@@ -34,6 +39,12 @@ bool gotoLevelEditor = false;
 
 // this function initializes the gameplay screen
 void InitGameplayScreen(void) {
+    transitionOldScreen = LoadRenderTexture(screenWidth, screenHeight);
+    camera.target = (Vector2) {screenWidth / 2, screenHeight / 2};
+    camera.offset = (Vector2) {screenWidth / 2, screenHeight / 2};
+    camera.rotation = 0.0f;
+    camera.zoom = 1.0f;
+
     HideCursor();
     gotoLevelEditor = false;
     LoadAllLevels(levels);
@@ -94,6 +105,9 @@ void InitGameplayScreen(void) {
     doors[2].location = TOP;
     doors[3].location = BOTTOM;
     for (int i = 0; i < 4; ++i) InitDoorsWithRandomEffect(&doors[i]);
+
+    currentLevelIndex = -2;
+    resetLevel();
 }
 
 // this function resets the players and map for a new round of the game
@@ -124,6 +138,20 @@ void resetLevel() {
     }
     currentLevelIndex++;
     currentLevelIndex %= levelCount;
+
+    int borderWallThickness = 3;
+    levels[currentLevelIndex].walls[maxWallCount - 4] = (struct Wall) {
+            (Rectangle) {0, 0, borderWallThickness, screenHeight}, true
+    };
+    levels[currentLevelIndex].walls[maxWallCount - 3] = (struct Wall) {
+            (Rectangle) {0, 0, screenWidth, borderWallThickness}, true
+    };
+    levels[currentLevelIndex].walls[maxWallCount - 2] = (struct Wall) {
+            (Rectangle) {screenWidth - borderWallThickness, 0, borderWallThickness, screenHeight}, true
+    };
+    levels[currentLevelIndex].walls[maxWallCount - 1] = (struct Wall) {
+            (Rectangle) {0, screenHeight - borderWallThickness, screenWidth, borderWallThickness}, true
+    };
 }
 
 // this function returns if ANY PART of the rectangle is out of bounds
@@ -143,6 +171,18 @@ void UpdateGameplayScreen(void) {
         hueRotationSpeed = defaultHueRotationSpeed + 0.98 * (hueRotationSpeed - defaultHueRotationSpeed);
     }
 
+    // new round transition --------------------------------------------------------------------------------------------
+
+    if (gameState == TRANSITION) {
+        float t = 1.5 * (GetTime() - transitionStartTime);
+        float sqr = t * t;
+        transitionTime = sqr / (2.0f * (sqr - t) + 1.0f);
+
+        if (t >= 1) {
+            gameState = FIGHT;
+            camera.offset = (Vector2) {screenWidth / 2, screenHeight / 2};
+        }
+    }
 
     // look for gamepads -----------------------------------------------------------------------------------------------
     if (useGamepads && playersPlaying < playerCount) {
@@ -174,36 +214,92 @@ void UpdateGameplayScreen(void) {
         else continue;
         struct Player *p = &players[i];
         ProcessPlayerInput(p, i);
-        if (currentLevelIndex >= 0) for (int j = 0; j < maxWallCount; ++j) {
-            if (CheckCollisionRecs(levels[currentLevelIndex].walls[j].rect, players[i].rect)) {
+        if (gameState == CHOOSEDOOR && !players[i].isDead) {
+            for (int j = 0; j < 4; ++j) {
+                if (CheckCollisionRecs(doors[j].finalRect, players[i].rect)) {
+                    if (doors[j].playerEffect == CLEAR_ALL_EFFECTS)
+                        for (int k = 0; k < playerCount; ++k) ClearPlayerOfEffects(&players[k]);
+                    else if (doors[j].playerEffect == RANDOM_EFFECT_TO_EVERYONE)
+                        for (int k = 0; k < playerCount; ++k)
+                            AssignEffectToPlayer(rand() % playerEffectCount, &players[k]);
+                    else if (doors[j].isDebuff) AssignEffectToPlayer(doors[j].playerEffect, &players[i]);
+                    else {
+                        int r = i;
+                        while (r == i) r = rand() % playersPlaying;
+                        AssignEffectToPlayer(doors[j].playerEffect, &players[r]);
+                    }
+                    for (int k = 0; k < maxBooletsOnMap; ++k) boolets[k].enabled = false;
 
-                // Calculation of centers of rectangles
-                const Vector2 center1 = {players[i].rect.x + players[i].rect.width / 2,
-                                         players[i].rect.y + players[i].rect.height / 2};
-                const Vector2 center2 = {
-                        levels[currentLevelIndex].walls[j].rect.x + levels[currentLevelIndex].walls[j].rect.width / 2,
-                        levels[currentLevelIndex].walls[j].rect.y + levels[currentLevelIndex].walls[j].rect.height / 2};
 
-                // Calculation of the distance vector between the centers of the rectangles
-                Vector2 delta = (Vector2) {
-                        center1.x - center2.x,
-                        center1.y - center2.y
-                };
+                    BeginTextureMode(transitionOldScreen);
+                    ClearBackground(RAYWHITE);
+                    DrawGameplayScreen(true);
+                    EndTextureMode();
 
-                // Calculation of half-widths and half-heights of rectangles
-                const Vector2 hs1 = {players[i].rect.width * .5f, players[i].rect.height * .5f};
-                const Vector2 hs2 = {levels[currentLevelIndex].walls[j].rect.width * .5f,
-                                     levels[currentLevelIndex].walls[j].rect.height * .5f};
+                    transitionStartLoc = doors[j].location;
+                    transitionStartTime = GetTime();
+                    transitionTime = 0;
+                    gameState = TRANSITION;
+                    int px = players[i].rect.x;
+                    int py = players[i].rect.y;
+                    resetLevel();
+                    switch (transitionStartLoc) {
+                        case LEFT:
+                            players[i].rect.x = px + screenWidth - players[i].rect.width;
+                            players[i].rect.y = py;
+                            break;
+                        case RIGHT:
+                            players[i].rect.x = px - screenWidth + players[i].rect.width;
+                            players[i].rect.y = py;
+                            break;
+                        case TOP:
+                            players[i].rect.x = px;
+                            players[i].rect.y = py + screenHeight - players[i].rect.height;
+                            break;
+                        case BOTTOM:
+                            players[i].rect.x = px;
+                            players[i].rect.y = py - screenHeight + players[i].rect.height;
+                            break;
+                    }
+                    return;
+                }
+            }
+        }
 
-                // Calculation of the minimum distance at which the two rectangles can be separated
-                const float minDistX = hs1.x + hs2.x - fabsf(delta.x);
-                const float minDistY = hs1.y + hs2.y - fabsf(delta.y);
+        if ((currentLevelIndex >= 0 || i >= maxWallCount - 4)) {
+            for (int j = 0; j < maxWallCount; ++j) {
+                if (CheckCollisionRecs(levels[currentLevelIndex].walls[j].rect, players[i].rect)) {
 
-                // Adjusted object position based on minimum distance
-                if (minDistX < minDistY) {
-                    players[i].rect.x += copysignf(minDistX, delta.x);
-                } else {
-                    players[i].rect.y += copysignf(minDistY, delta.y);
+                    // Calculation of centers of rectangles
+                    const Vector2 center1 = {players[i].rect.x + players[i].rect.width / 2,
+                                             players[i].rect.y + players[i].rect.height / 2};
+                    const Vector2 center2 = {
+                            levels[currentLevelIndex].walls[j].rect.x +
+                            levels[currentLevelIndex].walls[j].rect.width / 2,
+                            levels[currentLevelIndex].walls[j].rect.y +
+                            levels[currentLevelIndex].walls[j].rect.height / 2};
+
+                    // Calculation of the distance vector between the centers of the rectangles
+                    Vector2 delta = (Vector2) {
+                            center1.x - center2.x,
+                            center1.y - center2.y
+                    };
+
+                    // Calculation of half-widths and half-heights of rectangles
+                    const Vector2 hs1 = {players[i].rect.width * .5f, players[i].rect.height * .5f};
+                    const Vector2 hs2 = {levels[currentLevelIndex].walls[j].rect.width * .5f,
+                                         levels[currentLevelIndex].walls[j].rect.height * .5f};
+
+                    // Calculation of the minimum distance at which the two rectangles can be separated
+                    const float minDistX = hs1.x + hs2.x - fabsf(delta.x);
+                    const float minDistY = hs1.y + hs2.y - fabsf(delta.y);
+
+                    // Adjusted object position based on minimum distance
+                    if (minDistX < minDistY) {
+                        players[i].rect.x += copysignf(minDistX, delta.x);
+                    } else {
+                        players[i].rect.y += copysignf(minDistY, delta.y);
+                    }
                 }
             }
         }
@@ -222,7 +318,8 @@ void UpdateGameplayScreen(void) {
     }
 
     // if there is 1 or 0 players alive --------------------------------------------------------------------------------
-    if (playersAlive <= 1 && playersCurrentlyPlaying >= 2) {
+    if (playersCurrentlyPlaying >= 2 && playersAlive == 0) resetLevel();
+    else if (gameState == FIGHT && playersAlive == 1 && playersCurrentlyPlaying >= 2) {
         struct Player *alivePlayer;
         for (int k = 0; k < 4; ++k) {
             if (!players[k].isDead && players[k].isPlaying) {
@@ -230,8 +327,7 @@ void UpdateGameplayScreen(void) {
                 break;
             }
         }
-        if (playersAlive == 0) resetLevel();
-        else if (playersAlive == 1) {
+        if (playersAlive == 1) {
             AddWinToPlayer(alivePlayer);
             gameState = CHOOSEDOOR;
             hueRotationSpeed = defaultHueRotationSpeed * hueRotationSpeedOnWinMultiplier;
@@ -255,8 +351,6 @@ void UpdateGameplayScreen(void) {
                     case RIGHT:
                         boolets[i].velocity.x *= -1;
                         break;
-                    default:
-                        boolets[i].enabled = false;
                 }
             } else if (boolets[i].type == EXPLODING) {
                 MoveBulletBackOneStep(&boolets[i]);
@@ -265,7 +359,8 @@ void UpdateGameplayScreen(void) {
         }
         ApplyBooletVelocity(&boolets[i]);
         for (int j = 0; j < maxWallCount; ++j)
-            if (currentLevelIndex >= 0 && CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i])) {
+            if ((currentLevelIndex >= 0 || i >= maxWallCount - 4) &&
+                CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i])) {
                 if (boolets[i].type == EXPLODING) {
                     MoveBulletBackOneStep(&boolets[i]);
                     ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
@@ -322,11 +417,72 @@ void UpdateGameplayScreen(void) {
 }
 
 // this function handles drawing of all elements on the window
-void DrawGameplayScreen(void) {
+void DrawGameplayScreen(bool overrideMode) {
+    if (gameState == TRANSITION) {
+        switch (transitionStartLoc) {
+            case LEFT:
+                camera.offset.x = -screenWidth * (1 - transitionTime) + screenWidth / 2;
+                break;
+            case RIGHT:
+                camera.offset.x = screenWidth * (1 - transitionTime) + screenWidth / 2;
+                break;
+            case TOP:
+                camera.offset.y = -screenHeight * (1 - transitionTime) + screenHeight / 2;
+                break;
+            case BOTTOM:
+                camera.offset.y = screenHeight * (1 - transitionTime) + screenHeight / 2;
+                break;
+        }
+    }
+
+    if (!overrideMode) BeginMode2D(camera);
+
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), ColorFromHSV(180, 0.1, 0.1));
-    DrawRectanglePro(bgRect1, center, 0.7 * sinf(GetTime()), ColorFromHSV(180, 0.1, 0.12));
-    DrawRectanglePro(bgRect2, center, 0.7 * sinf(GetTime() + PI / 3), ColorFromHSV(180, 0.1, 0.14));
-    if (playersCurrentlyPlaying < 2) {
+//    DrawRectanglePro(bgRect1, center, 0.7 * sinf(GetTime()), ColorFromHSV(180, 0.1, 0.12));
+//    DrawRectanglePro(bgRect2, center, 0.7 * sinf(GetTime() + PI / 3), ColorFromHSV(180, 0.1, 0.14));
+
+    if (gameState == TRANSITION) {
+        switch (transitionStartLoc) {
+            case LEFT:
+                DrawTexturePro(
+                    transitionOldScreen.texture,
+                    (Rectangle) {0, 0, transitionOldScreen.texture.width, -transitionOldScreen.texture.height},
+                    (Rectangle) {screenWidth, 0, screenWidth, screenHeight},
+                    (Vector2) {0, 0},
+                    0, WHITE
+                );
+                break;
+            case RIGHT:
+                DrawTexturePro(
+                        transitionOldScreen.texture,
+                        (Rectangle) {0, 0, transitionOldScreen.texture.width, -transitionOldScreen.texture.height},
+                        (Rectangle) {-screenWidth, 0, screenWidth, screenHeight},
+                        (Vector2) {0, 0},
+                        0, WHITE
+                );
+                break;
+            case TOP:
+                DrawTexturePro(
+                        transitionOldScreen.texture,
+                        (Rectangle) {0, 0, transitionOldScreen.texture.width, -transitionOldScreen.texture.height},
+                        (Rectangle) {0, screenHeight, screenWidth, screenHeight},
+                        (Vector2) {0, 0},
+                        0, WHITE
+                );
+                break;
+            case BOTTOM:
+                DrawTexturePro(
+                        transitionOldScreen.texture,
+                        (Rectangle) {0, 0, transitionOldScreen.texture.width, -transitionOldScreen.texture.height},
+                        (Rectangle) {0, -screenHeight, screenWidth, screenHeight},
+                        (Vector2) {0, 0},
+                        0, WHITE
+                );
+                break;
+        }
+    }
+
+    if (playersCurrentlyPlaying < 2 && gameState == FIGHT) {
         int fontSize = 128;
         int textWidth = MeasureTextEx(GetFontDefault(), "WAITING FOR PLAYERS", fontSize, 10).x;
         DrawTextPro(GetFontDefault(), "WAITING FOR PLAYERS",
@@ -342,11 +498,13 @@ void DrawGameplayScreen(void) {
         if (!players[i].isDead) DrawPlayer(&players[i]);
     }
     for (int i = 0; i < maxWallCount; ++i) {
-        if (currentLevelIndex >= 0 && levels[currentLevelIndex].walls[i].enabled) {
+        if ((currentLevelIndex >= 0 || i >= maxWallCount - 4) && levels[currentLevelIndex].walls[i].enabled) {
             DrawWall(&levels[currentLevelIndex].walls[i]);
         }
     }
     if (gameState == CHOOSEDOOR) for (int i = 0; i < 4; ++i) DrawDoor(&doors[i]);
+
+    if (!overrideMode) EndMode2D();
 
     if (showFPS) {
         sprintf(fpsString, "%d", GetFPS());
