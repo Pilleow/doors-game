@@ -21,6 +21,10 @@ extern Sound sfxDead[sfxDeadCount];
 extern Sound sfxHit[sfxHitCount];
 extern Sound sfxDoorOpen[sfxDoorOpenCount];
 extern Sound sfxDash[sfxDashCount];
+extern Sound sfxWin;
+extern Music startMusic;
+extern Music bgMusic[bgMusicCount];
+extern int currentMusicIndex;
 
 #ifdef __cplusplus
 extern "C" {            // Prevents name mangling of functions

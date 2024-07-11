@@ -66,6 +66,8 @@ void MovePlayerBackOneStep(struct Player *b);
 
 void AddWinToPlayer(struct Player *p);
 
+void SetWinToZeroPlayer(struct Player *p);
+
 void DrawPlayerScore(struct Player *p);
 
 void printDebugMessage(struct Player *p);

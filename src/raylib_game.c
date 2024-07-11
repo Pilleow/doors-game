@@ -37,21 +37,22 @@ Sound sfxShoot[sfxShootCount];
 Sound sfxDash[sfxDashCount];
 Sound sfxDead[sfxDeadCount];
 Sound sfxHit[sfxHitCount];
+Sound sfxWin;
 RenderTexture2D screenRenderTexture;
+Music startMusic;
+Music bgMusic[bgMusicCount];
+int currentMusicIndex = -1;
 
 //----------------------------------------------------------------------------------
 // Local Variables Definition (local to this module)
 //----------------------------------------------------------------------------------
 
 // Required variables to manage screen transitions (fade-in, fade-out)
-static Music startMusic;
-static Music bgMusic[bgMusicCount];
 static float transAlpha = 0.0f;
 static bool onTransition = false;
 static bool transFadeOut = false;
 static int transFromScreen = -1;
 static float bgmPreviousTime = -1;
-static int currentMusicIndex = -1;
 static GameScreen transToScreen = UNKNOWN;
 
 //----------------------------------------------------------------------------------
@@ -111,6 +112,8 @@ int main(void) {
     loadSfxIntoArray(sfxHit, "resources/sfx/hit/hit%d.wav", sfxHitCount, sfxHitVolume);
     loadSfxIntoArray(sfxDoorOpen, "resources/sfx/doorOpen/doorOpen%d.wav", sfxDoorOpenCount, sfxDoorOpenVolume);
     loadSfxIntoArray(sfxDash, "resources/sfx/dash/dash%d.wav", sfxDashCount, sfxDashVolume);
+    sfxWin = LoadSound("resources/sfx/other/sfxWin.mp3");
+    SetSoundVolume(sfxWin, bgMusicVolume);
 
     // Load bg music files here individually
     startMusic = LoadMusicStream("resources/bgm/gnosisHardware.mp3");

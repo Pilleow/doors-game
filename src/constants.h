@@ -30,6 +30,7 @@
 static bool showFPS = false;
 
 static int playersPlaying = 2;
+static int winsNeededToWinGame = 1;
 
 static float defaultHueRotationSpeed = 10;
 extern float hueRotationSpeed;

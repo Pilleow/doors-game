@@ -264,6 +264,11 @@ void AddWinToPlayer(struct Player *p) {
     }
 }
 
+void SetWinToZeroPlayer(struct Player *p) {
+    p->wins = -1;
+    AddWinToPlayer(p);
+}
+
 void DrawPlayerScore(struct Player *p) {
     DrawText(p->winsString, p->winsStringX, p->winsStringY, winsFontSize,
              ColorAlpha(ColorFromHSV(p->huePhase, 0.7, 1), 0.2));
