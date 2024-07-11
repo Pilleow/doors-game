@@ -24,7 +24,7 @@ struct Level levels[levelCount];
 struct Door doors[4];
 float hueRotationSpeed = 40;
 float hueRotationTimer = 0;
-int currentLevelIndex = 0;
+int currentLevelIndex = -1;
 static int nextBooletIndex = 0;
 static char fpsString[16];
 static char playersCurrentlyPlaying;
@@ -174,7 +174,7 @@ void UpdateGameplayScreen(void) {
         else continue;
         struct Player *p = &players[i];
         ProcessPlayerInput(p, i);
-        for (int j = 0; j < maxWallCount; ++j) {
+        if (currentLevelIndex >= 0) for (int j = 0; j < maxWallCount; ++j) {
             if (CheckCollisionRecs(levels[currentLevelIndex].walls[j].rect, players[i].rect)) {
 
                 // Calculation of centers of rectangles
@@ -265,7 +265,7 @@ void UpdateGameplayScreen(void) {
         }
         ApplyBooletVelocity(&boolets[i]);
         for (int j = 0; j < maxWallCount; ++j)
-            if (CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i])) {
+            if (currentLevelIndex >= 0 && CheckWallBooletCollisionAndFixPosition(&levels[currentLevelIndex].walls[j], &boolets[i])) {
                 if (boolets[i].type == EXPLODING) {
                     MoveBulletBackOneStep(&boolets[i]);
                     ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
@@ -342,7 +342,7 @@ void DrawGameplayScreen(void) {
         if (!players[i].isDead) DrawPlayer(&players[i]);
     }
     for (int i = 0; i < maxWallCount; ++i) {
-        if (levels[currentLevelIndex].walls[i].enabled) {
+        if (currentLevelIndex >= 0 && levels[currentLevelIndex].walls[i].enabled) {
             DrawWall(&levels[currentLevelIndex].walls[i]);
         }
     }

@@ -14,14 +14,14 @@
 #define sfxDoorOpenCount 3
 #define winsFontSize 96
 #define doorFontSize 48
-#define maxWallCount 48
+#define maxWallCount 64
 #define sfxShootCount 7
 #define sfxDeadCount 1
 #define bgMusicCount 8
 #define sfxDashCount 5
 #define playerCount 4
 #define sfxHitCount 1
-#define levelCount 9
+#define levelCount 13
 
 #define hueRotationSpeedOnWinMultiplier 120
 #define hueRotationSpeedOnDeathMultiplier 80

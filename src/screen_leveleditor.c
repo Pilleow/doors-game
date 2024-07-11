@@ -20,11 +20,13 @@ int levelIndex = levelCount;
 int nextWallIndex = 0;
 int clickCount = 0;
 struct Wall walls[maxWallCount];
+char nextWallIndexMinus1String[16];
 
 // functions definition below ------------------------------------------------------------------------------------------
 
 // this function initializes the gameplay screen
 void InitLevelEditorScreen(void) {
+    sprintf(nextWallIndexMinus1String, "%d / %d", nextWallIndex, maxWallCount);
     ShowCursor();
     clickCount = 0;
     nextWallIndex = 0;
@@ -61,6 +63,7 @@ void UpdateLevelEditorScreen(void) {
                 walls[nextWallIndex].enabled = true;
                 nextWallIndex++;
                 nextWallIndex %= maxWallCount;
+                sprintf(nextWallIndexMinus1String, "%d / %d", nextWallIndex, maxWallCount);
             }
         }
         clickCount++;
@@ -69,21 +72,27 @@ void UpdateLevelEditorScreen(void) {
         for (int i = 0; i < maxWallCount; ++i) {
             if (CheckCollisionPointRec(mousePos, walls[i].rect)) {
                 walls[i].enabled = false;
+                nextWallIndex--;
+                sprintf(nextWallIndexMinus1String, "%d / %d", nextWallIndex, maxWallCount);
             }
         }
+        int offset = 0;
         for (int i = 0; i < maxWallCount - 1; ++i) {
-            if (!walls[i].enabled) {
-                walls[i].enabled = walls[i + 1].enabled;
-                walls[i + 1].enabled = false;
-                if (!walls[i].enabled) continue;
-                walls[i].rect.x = walls[i + 1].rect.x;
-                walls[i].rect.y = walls[i + 1].rect.y;
-                walls[i].rect.width = walls[i + 1].rect.width;
-                walls[i].rect.height = walls[i + 1].rect.height;
+            if (walls[i].enabled && offset != 0) {
+                walls[i - offset].enabled = walls[i].enabled;
+                walls[i].enabled = false;
+                walls[i - offset].rect.x = walls[i].rect.x;
+                walls[i - offset].rect.y = walls[i].rect.y;
+                walls[i - offset].rect.width = walls[i].rect.width;
+                walls[i - offset].rect.height = walls[i].rect.height;
+            } else if (!walls[i].enabled) {
+                offset++;
             }
         }
-        nextWallIndex--;
-        if (nextWallIndex < 0) nextWallIndex = maxWallCount - 1;
+        if (nextWallIndex < 0) {
+            nextWallIndex = maxWallCount - 1;
+            sprintf(nextWallIndexMinus1String, "%d / %d", nextWallIndex - 1, maxWallCount);
+        }
     }
 
     // print level code to stdout
@@ -113,6 +122,8 @@ void UpdateLevelEditorScreen(void) {
 // this function handles drawing of all elements on the window
 void DrawLevelEditorScreen(void) {
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), ColorFromHSV(180, 0.2, 0.2));
+
+    DrawText(nextWallIndexMinus1String, 15, 15, 32, ColorAlpha(WHITE, 0.5));
 
     DrawRectangle((screenWidth * 0.7) / 2, 0, screenWidth * 0.3, 5, ColorFromHSV((int) (30 * GetTime()) % 360, 1, 1));
     DrawRectangle(0, (screenHeight * 0.7) / 2, 5, screenHeight * 0.3, ColorFromHSV((int) (30 * GetTime()) % 360, 1, 1));
