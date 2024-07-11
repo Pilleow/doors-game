@@ -106,7 +106,7 @@ void InitGameplayScreen(void) {
     doors[3].location = BOTTOM;
     for (int i = 0; i < 4; ++i) InitDoorsWithRandomEffect(&doors[i]);
 
-    currentLevelIndex = -2;
+    currentLevelIndex = -1;
     resetLevel();
 }
 
@@ -305,15 +305,38 @@ void UpdateGameplayScreen(void) {
         }
         ApplyPlayerVelocity(&players[i]);
         if (IsPlayerShooting(p)) {
-            InitBooletDefaults(
-                    &boolets[nextBooletIndex++], p,
-                    p->rect.x + p->rect.width / 2, p->rect.y + p->rect.height / 2,
-                    5, p->shootingDirection.x, p->shootingDirection.y, 1, p->bulletSpeed,
-                    p->booletType, ColorFromHSV(p->huePhase, 1, 1), p->booletAmplitude, p->booletDecayTimeLeft
-            );
-            nextBooletIndex %= maxBooletsOnMap;
-            PlaySound(sfxShoot[p->sfxShootSoundIndex++]);
-            p->sfxShootSoundIndex %= sfxShootCount;
+            if (p->booletType == HITSCAN) {
+                int x = p->rect.x + p->rect.width / 2;
+                int y = p->rect.y + p->rect.height / 2;
+                Rectangle r;
+                int delta = 25;
+                x += p->shootingDirection.x * delta;
+                y += p->shootingDirection.y * delta;
+                do {
+                    x += p->shootingDirection.x * delta;
+                    y += p->shootingDirection.y * delta;
+                    r = (Rectangle) {x, y, 6, 6};
+                    for (int j = 0; j < maxWallCount; ++j) if (currentLevelIndex >= 0 && CheckCollisionRecs(r, levels[currentLevelIndex].walls[j].rect)) r.x = -1000;
+                    for (int j = 0; j < playerCount; ++j) if (&players[j] != p && !players[j].isDead && CheckCollisionRecs(r, players[j].rect)) r.x = -1000;
+                    InitBooletDefaults(
+                            &boolets[nextBooletIndex++], p,
+                            x, y,
+                            6, p->shootingDirection.x, p->shootingDirection.y, 1, 0,
+                            p->booletType, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, 0.3
+                    );
+                    nextBooletIndex %= maxBooletsOnMap;
+                } while (isOutOfWindowBounds(r) == -1);
+            } else {
+                InitBooletDefaults(
+                        &boolets[nextBooletIndex++], p,
+                        p->rect.x + p->rect.width / 2, p->rect.y + p->rect.height / 2,
+                        6, p->shootingDirection.x, p->shootingDirection.y, 1, p->bulletSpeed,
+                        p->booletType, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, p->booletDecayTimeLeft
+                );
+                nextBooletIndex %= maxBooletsOnMap;
+                PlaySound(sfxShoot[p->sfxShootSoundIndex++]);
+                p->sfxShootSoundIndex %= sfxShootCount;
+            }
         }
     }
 
@@ -445,11 +468,11 @@ void DrawGameplayScreen(bool overrideMode) {
         switch (transitionStartLoc) {
             case LEFT:
                 DrawTexturePro(
-                    transitionOldScreen.texture,
-                    (Rectangle) {0, 0, transitionOldScreen.texture.width, -transitionOldScreen.texture.height},
-                    (Rectangle) {screenWidth, 0, screenWidth, screenHeight},
-                    (Vector2) {0, 0},
-                    0, WHITE
+                        transitionOldScreen.texture,
+                        (Rectangle) {0, 0, transitionOldScreen.texture.width, -transitionOldScreen.texture.height},
+                        (Rectangle) {screenWidth, 0, screenWidth, screenHeight},
+                        (Vector2) {0, 0},
+                        0, WHITE
                 );
                 break;
             case RIGHT:
@@ -482,14 +505,6 @@ void DrawGameplayScreen(bool overrideMode) {
         }
     }
 
-    if (playersCurrentlyPlaying < 2 && gameState == FIGHT) {
-        int fontSize = 128;
-        int textWidth = MeasureTextEx(GetFontDefault(), "WAITING FOR PLAYERS", fontSize, 10).x;
-        DrawTextPro(GetFontDefault(), "WAITING FOR PLAYERS",
-                    (Vector2) {screenWidth / 2, screenHeight / 2},
-                    (Vector2) {textWidth / 2, fontSize / 2}, 0.7 * sinf(GetTime() + 2 * PI / 3), fontSize, 10,
-                    ColorFromHSV(180, 0.1, 0.2));
-    }
     for (int i = 0; i < 4; ++i) if (players[i].isPlaying && !players[i].isDead) DrawPlayerTail(&players[i]);
     for (int i = 0; i < maxBooletsOnMap; ++i) if (boolets[i].enabled) DrawBoolet(&boolets[i]);
     for (int i = 0; i < 4; ++i) {
@@ -503,6 +518,15 @@ void DrawGameplayScreen(bool overrideMode) {
         }
     }
     if (gameState == CHOOSEDOOR) for (int i = 0; i < 4; ++i) DrawDoor(&doors[i]);
+
+    if (playersCurrentlyPlaying < 2 && gameState == FIGHT) {
+        int fontSize = 128;
+        int textWidth = MeasureTextEx(GetFontDefault(), "WAITING FOR PLAYERS", fontSize, 10).x;
+        DrawTextPro(GetFontDefault(), "WAITING FOR PLAYERS",
+                    (Vector2) {screenWidth / 2, screenHeight / 2},
+                    (Vector2) {textWidth / 2, fontSize / 2}, 0.7 * sinf(GetTime() + 2 * PI / 3), fontSize, 10,
+                    ColorAlpha(WHITE, 0.7));
+    }
 
     if (!overrideMode) EndMode2D();
 

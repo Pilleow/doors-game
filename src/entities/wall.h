@@ -16,7 +16,6 @@ struct Wall {
 
 bool CheckWallBooletCollisionAndFixPosition(struct Wall *w, struct Boolet *e);
 
-bool CheckWallPlayerCollisionAndFixPosition(struct Wall *w, struct Player *e);
 
 bool FixEntityPosition(struct Wall *w, Rectangle *rect);
 

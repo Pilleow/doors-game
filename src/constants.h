@@ -27,7 +27,7 @@
 #define hueRotationSpeedOnDeathMultiplier 80
 #define hueRotationSpeedOnHitMultiplier 40
 
-static bool useGamepads = false;
+static bool useGamepads = true;
 static bool showFPS = false;
 
 static int playersPlaying = 2;
@@ -73,9 +73,9 @@ typedef enum {
     TIMEBENDING,
     EXPLODING,
     BOUNCING,
-    HITSCAN,                // todo implement, hitscan (too op? maybe lower fire rate?)
+    HITSCAN,
     ROTATING,               // todo implement, bullets rotate outwards in a spiral from the point where they spawned
 } BooletType;
-static const int booletTypeCount = 5;   // this counts only implemented bullet types
+static const int booletTypeCount = 6;   // this counts only implemented bullet types
 
 #endif //RAYLIB_GAME_TEMPLATE_CONSTANTS_H

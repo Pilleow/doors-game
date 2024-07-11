@@ -16,7 +16,9 @@ InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float 
         decayTimeLeft *= 1.3;
     } else if (btype == TIMEBENDING) {
         decayTimeLeft *= 2;
-        speed *= 1.3;
+        speed *= 0.9;
+    } else if (btype == HITSCAN) {
+        speed = 0;
     }
     b->parent = parent;
     b->rect.x = xStart;
@@ -113,14 +115,16 @@ void ApplyBooletVelocity(struct Boolet *b) {
 
     float swayX, swayY;
     switch (b->type) {
+        case HITSCAN:
+            break;
         case EXPLODING:
             b->speed *= 0.97;
             if (b->velocity.x != 0) b->rect.x += b->velocity.x * b->speed * frameTime * 1.25;
             if (b->velocity.y != 0) b->rect.y += b->velocity.y * b->speed * frameTime * 1.25;
             break;
         case SWIRLY:
-            swayX = cosf((GetTime() - b->timeCreated) * (b->amplitude + 1));
-            swayY = sinf((GetTime() - b->timeCreated) * (b->amplitude + 1));
+            swayX = cosf((GetTime() - b->timeCreated) * (b->amplitude + 10));
+            swayY = sinf((GetTime() - b->timeCreated) * (b->amplitude + 10));
             if (b->velocity.x != 0) {
                 b->rect.x += b->velocity.x * b->speed * frameTime;
                 b->rect.y += b->amplitude * swayX * b->velocity.x * 60 * frameTime;
@@ -131,7 +135,7 @@ void ApplyBooletVelocity(struct Boolet *b) {
             }
             break;
         case TIMEBENDING:
-            swayX = sinf((GetTime() - b->timeCreated) * (b->amplitude - 2));
+            swayX = sinf((GetTime() - b->timeCreated) * (b->amplitude + 5));
             swayY = swayX;
             if (b->velocity.x != 0) {
                 b->rect.x += b->velocity.x * b->speed * frameTime;

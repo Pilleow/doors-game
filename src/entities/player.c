@@ -45,8 +45,8 @@ void InitPlayerDefaults(
     p->huePhase = (atCorner * 60) % 360;
     p->lastShotTime = GetTime();
     p->shotCooldownTime = 0.5F;
-    p->booletType = STRAIGHT;
-    p->booletAmplitude = 5;
+    p->booletType = HITSCAN;
+    p->booletAmplitude = 3;
     p->friction = 0.91F;
     p->bulletSpeed = 600;
     p->lastDodgeTime = GetTime();
@@ -268,7 +268,9 @@ bool IsPlayerShooting(struct Player *p) {
         (p->shootingDirection.x != 0 || p->shootingDirection.y != 0)) {
         p->lastShotTime = GetTime();
         if (p->booletType == STRAIGHT) p->lastShotTime -= p->shotCooldownTime * 0.5;
+        if (p->booletType == SWIRLY) p->lastShotTime -= p->shotCooldownTime * 0.25;
         else if (p->booletType == EXPLODING) p->lastShotTime += p->shotCooldownTime * 0.5;
+        else if (p->booletType == HITSCAN) p->lastShotTime += p->shotCooldownTime;
         return true;
     }
     return false;
