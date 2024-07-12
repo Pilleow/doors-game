@@ -18,7 +18,7 @@
  */
 
 static int playerEffectCount = 19;
-static int specialPlayerEffectCount = 2;
+static int specialPlayerEffectCount = 1;
 
 typedef enum {
     MORE_PLAYER_SPEED = 0,
@@ -39,7 +39,6 @@ typedef enum {
     LONGER_DASH_COOLDOWN,
     LARGER_BULLET_SIZE,
     SMALLER_BULLET_SIZE,
-    CLEAR_ALL_EFFECTS,                      // do not count this in playerEffectCount as this is a special case
     RANDOM_EFFECT_TO_EVERYONE               // do not count this in playerEffectCount as this is a special case
 } PlayerEffect;
 static const char playerEffectNames[][24] = {
@@ -61,7 +60,6 @@ static const char playerEffectNames[][24] = {
         [LONGER_DASH_COOLDOWN] = "OLD SNEAKERS",
         [LARGER_BULLET_SIZE] = "BIG GUNZ",
         [SMALLER_BULLET_SIZE] = "MICRO GUNZ",
-        [CLEAR_ALL_EFFECTS] = "RM -RF EFFECTS",
         [RANDOM_EFFECT_TO_EVERYONE] = "???"
 };
 

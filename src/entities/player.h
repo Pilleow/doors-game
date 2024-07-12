@@ -21,11 +21,14 @@ struct Player {
     int activeEffects[playerEffectCapacityAndLifespan];
     int nextEffectToSwapIndex;
     int wins;
+    int totalGameWins;
     int winsStringX;
     int winsStringY;
     int booletSize;
     int booletAmplitude;
     int sfxShootSoundIndex;
+    float lastTimeBlinked;
+    float lastTimeTakenDamage;
     float lastPastPositionUpdateTime;
     float lastDodgeTime;
     float lastShotTime;

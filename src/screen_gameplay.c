@@ -17,7 +17,6 @@
 
 Texture2D texCrown;
 bool playGameCrownAnim = false;
-int winStreak = 0;
 int playerGameWinnerIndex = 1;
 int playerRoundWinnerIndex = -1;
 float sfxWinPlayStartTime = -1000;
@@ -160,14 +159,14 @@ void resetLevel() {
     };
     for (int i = 0; i < playerCount; ++i) {
         if (players[i].wins >= winsNeededToWinGame) {
-            if (playerGameWinnerIndex == i) winStreak++;
-            else winStreak = 1;
-            sprintf(winString, "THE DUDE WITH THIS COLOR WINS (this round) :)");
+            players[i].totalGameWins++;
+            sprintf(winString, "THE DUDE WITH THIS COLOR WINS (this game) :)");
             playerGameWinnerIndex = i;
             playGameCrownAnim = true;
             playerRoundWinnerIndex = -1;
             for (int j = 0; j < playerCount; ++j) {
-                SetWinToZeroPlayer(&players[i]);
+                ClearPlayerOfEffects(&players[j]);
+                SetWinToZeroPlayer(&players[j]);
             }
         }
         SetPlayerLocation(&players[i], possibleSpawnLocations[(i + atCornerPhase) % 4]);
@@ -281,9 +280,7 @@ void UpdateGameplayScreen(void) {
             if (GetTime() - doors[0].timeSpawned > 1)
                 for (int j = 0; j < 4; ++j) {
                     if (CheckCollisionRecs(doors[j].finalRect, players[i].rect)) {
-                        if (doors[j].playerEffect == CLEAR_ALL_EFFECTS)
-                            for (int k = 0; k < playerCount; ++k) ClearPlayerOfEffects(&players[k]);
-                        else if (doors[j].playerEffect == RANDOM_EFFECT_TO_EVERYONE)
+                        if (doors[j].playerEffect == RANDOM_EFFECT_TO_EVERYONE)
                             for (int k = 0; k < playerCount; ++k)
                                 AssignEffectToPlayer(rand() % playerEffectCount, &players[k]);
                         else if (doors[j].isDebuff) AssignEffectToPlayer(doors[j].playerEffect, &players[i]);
@@ -370,7 +367,7 @@ void UpdateGameplayScreen(void) {
             }
         }
         ApplyPlayerVelocity(&players[i]);
-        if (IsPlayerShooting(p)) {
+        if (IsPlayerShooting(p) && !playGameCrownAnim) {
             if (p->booletType == HITSCAN) {
                 int x = p->rect.x + p->rect.width / 2;
                 int y = p->rect.y + p->rect.height / 2;
@@ -512,7 +509,7 @@ void UpdateGameplayScreen(void) {
     if (IsKeyPressed(KEY_F5)) gotoLevelEditor = true;
 
     // read the code
-    if (IsKeyPressed(KEY_F6)) currentMusicIndex = (currentMusicIndex + 1) % bgMusicCount;
+    if (IsKeyPressed(KEY_F6)) for (int i = 0; i < playerCount; ++i) players[i].totalGameWins++;
 }
 
 // this function handles drawing of all elements on the window
@@ -602,7 +599,7 @@ void DrawGameplayScreen(bool overrideMode) {
                     screenHeight * (1 - (transitionTime <= 1 ? transitionTime : 1))
             };
             int rotMod = 0;
-            if (playerGameWinnerIndex == i) {
+            if (players[i].totalGameWins > 0) {
                 crownPos.x += texCrown.width / 12;
                 rotMod = 15;
             }
@@ -613,103 +610,100 @@ void DrawGameplayScreen(bool overrideMode) {
                     (Vector2) {texCrown.width / 16, texCrown.height / 16}, 6 * sin(6 * GetTime()) + rotMod, WHITE
             );
         }
-        if (playerGameWinnerIndex == i) {
-            for (int j = 0; j < winStreak; ++j) {
+        for (int j = 0; j < players[i].totalGameWins; ++j) {
 
-                float rotation;
-                Vector2 crownPos;
-                Rectangle dest = {-1, -1, 1, 1};
+            float rotation;
+            Vector2 crownPos;
+            Rectangle dest = {-1, -1, 1, 1};
+            printf("%d, %d\n", j, players[i].totalGameWins - 1);
 
-                if (playGameCrownAnim && j == winStreak - 1) {
-                    if (!overrideMode) EndMode2D();
+            if (playGameCrownAnim && i == playerGameWinnerIndex && j == players[i].totalGameWins - 1) {
+                if (!overrideMode) EndMode2D();
 
-                    rotation = 0;
-                    crownPos.x = -10;
-                    crownPos.y = -10;
+                rotation = 0;
+                crownPos.x = -10;
+                crownPos.y = -10;
 
-                    float t = (GetTime() - transitionStartTime) - 0.1 * j - 0.8;
-                    char tStr[16];
-                    DrawText(tStr, 10, 10, 32, WHITE);
-                    float animationDuration = 5;
+                float t = (GetTime() - transitionStartTime) - 0.8;
+                char tStr[16];
+                DrawText(tStr, 10, 10, 32, WHITE);
+                float animationDuration = 5;
 
-                    if (t < 0) continue;
-                    else if (t < 0.2 * animationDuration) {
-                        if (!IsSoundPlaying(sfxWin)) {
-                            PlaySound(sfxWin);
-                            sfxWinPlayStartTime = GetTime();
-                        }
+                if (t < 0) continue;
+                else if (t < 0.2 * animationDuration) {
+                    if (!IsSoundPlaying(sfxWin)) {
+                        PlaySound(sfxWin);
+                        sfxWinPlayStartTime = GetTime();
+                    }
 
-                        float tranT = calculateTransitionTime(
-                                (0.2 * animationDuration - t)
-                        );
-                        dest = (Rectangle) {
-                                (screenWidth - texCrown.width) / 2,
-                                (screenHeight - 2 * texCrown.height) / 2 + screenHeight * tranT,
-                                texCrown.width, texCrown.height
-                        };
-                        rotation = 0;
-                        DrawRectangle(0, 0, screenWidth, screenHeight, ColorAlpha(BLACK, 0.85 * (1 - tranT)));
-                        int tW = MeasureText(winString, 64);
-                        DrawText(winString, (screenWidth - tW) / 2, screenHeight / 2 + screenHeight * tranT, 64,
-                                 ColorFromHSV(players[i].huePhase, 1, 1));
-                    } else if (t < 0.6 * animationDuration) {
-                        dest = (Rectangle) {
-                                (screenWidth - texCrown.width) / 2,
-                                (screenHeight - 2 * texCrown.height) / 2,
-                                texCrown.width, texCrown.height
-                        };
-                        DrawRectangle(0, 0, screenWidth, screenHeight, ColorAlpha(BLACK, 0.85));
-                        int tW = MeasureText(winString, 64);
-                        DrawText(winString, (screenWidth - tW) / 2, screenHeight / 2, 64,
-                                 ColorFromHSV(players[i].huePhase, 1, 1));
-                    } else if (t < 0.8 * animationDuration) {
-                        float tranT = calculateTransitionTime(
-                                0.8 * animationDuration - t
-                        );
-                        dest = (Rectangle) {
-                                (screenWidth - texCrown.width) / 2,
-                                (screenHeight - 2 * texCrown.height) / 2 - screenHeight * (1 - tranT),
-                                texCrown.width, texCrown.height
-                        };
-                        rotation = 0;
-                        DrawRectangle(0, 0, screenWidth, screenHeight, ColorAlpha(BLACK, 0.85 * tranT));
-                        int tW = MeasureText(winString, 64);
-                        DrawText(winString, (screenWidth - tW) / 2, screenHeight / 2 - screenHeight * (1 - tranT),
-                                 64,
-                                 ColorFromHSV(players[i].huePhase, 1, 1));
-                    } else playGameCrownAnim = false;
-
-                    if (!overrideMode) BeginMode2D(camera);
-                } // playCrownAnimation code
-
-                else {
-                    float t = (GetTime() - transitionStartTime) - 0.1 * j - 4.8;
-                    float tranT = 1;
-                    if (t >= 0 && t <= 1) tranT = calculateTransitionTime(t);
-                    else if (t < 0) tranT = 0;
-
-
-                    crownPos = (Vector2) {
-                            players[i].rect.x + texCrown.width / 8,
-                            players[i].rect.y + 5 - j * texCrown.height / 13 -
-                            screenHeight * (1 - (tranT <= 1 ? tranT : 1))
-                    };
-                    dest = (Rectangle) {crownPos.x, crownPos.y, texCrown.width / 8, texCrown.height / 8};
-                    rotation = -35 - 0.1 * (players[i].rect.x -
-                                            players[i].pastPos[pastPlayerPositionsCount > 12 ? 12 :
-                                                               pastPlayerPositionsCount - 1].x);
-                }
-
-                if (dest.x != -1 && dest.y != -1)
-                    DrawTexturePro(
-                            texCrown,
-                            (Rectangle) {0, 0, texCrown.width, texCrown.height},
-                            dest,
-                            (Vector2) {25 + texCrown.width / 24, 25 + texCrown.height / 32 * j},
-                            rotation,
-                            WHITE
+                    float tranT = calculateTransitionTime(
+                            (0.2 * animationDuration - t)
                     );
+                    dest = (Rectangle) {
+                            (screenWidth - texCrown.width) / 2,
+                            (screenHeight - 2 * texCrown.height) / 2 + screenHeight * tranT,
+                            texCrown.width, texCrown.height
+                    };
+                    rotation = 0;
+                    DrawRectangle(0, 0, screenWidth, screenHeight, ColorAlpha(BLACK, 0.85 * (1 - tranT)));
+                    int tW = MeasureText(winString, 64);
+                    DrawText(winString, (screenWidth - tW) / 2, screenHeight / 2 + screenHeight * tranT, 64,
+                             ColorFromHSV(players[i].huePhase, 1, 1));
+                } else if (t < 0.6 * animationDuration) {
+                    dest = (Rectangle) {
+                            (screenWidth - texCrown.width) / 2,
+                            (screenHeight - 2 * texCrown.height) / 2,
+                            texCrown.width, texCrown.height
+                    };
+                    DrawRectangle(0, 0, screenWidth, screenHeight, ColorAlpha(BLACK, 0.85));
+                    int tW = MeasureText(winString, 64);
+                    DrawText(winString, (screenWidth - tW) / 2, screenHeight / 2, 64,
+                             ColorFromHSV(players[i].huePhase, 1, 1));
+                } else if (t < 0.8 * animationDuration) {
+                    float tranT = calculateTransitionTime(
+                            0.8 * animationDuration - t
+                    );
+                    dest = (Rectangle) {
+                            (screenWidth - texCrown.width) / 2,
+                            (screenHeight - 2 * texCrown.height) / 2 - screenHeight * (1 - tranT),
+                            texCrown.width, texCrown.height
+                    };
+                    rotation = 0;
+                    DrawRectangle(0, 0, screenWidth, screenHeight, ColorAlpha(BLACK, 0.85 * tranT));
+                    int tW = MeasureText(winString, 64);
+                    DrawText(winString, (screenWidth - tW) / 2, screenHeight / 2 - screenHeight * (1 - tranT),
+                             64,
+                             ColorFromHSV(players[i].huePhase, 1, 1));
+                } else playGameCrownAnim = false;
+
+                if (!overrideMode) BeginMode2D(camera);
+            } // playCrownAnimation code
+            else {
+                float t = (GetTime() - transitionStartTime) - 0.1 * j - 4.8;
+                if (players[playerRoundWinnerIndex].wins != 0) t = 1;
+                float tranT = 1;
+                if (t >= 0 && t < 1) tranT = calculateTransitionTime(t);
+                else if (t < 0) tranT = 0;
+
+
+                crownPos = (Vector2) {
+                        players[i].rect.x + 20 - texCrown.width / 8,
+                        players[i].rect.y + 25 - j * texCrown.height / 14 -
+                        screenHeight * (1 - (tranT <= 1 ? tranT : 1))
+                };
+                dest = (Rectangle) {crownPos.x, crownPos.y, texCrown.width / 8, texCrown.height / 8};
+                rotation = -35 - sinf(GetTime() + players[i].huePhase) * j;
             }
+
+            if (dest.x != -1 && dest.y != -1)
+                DrawTexturePro(
+                        texCrown,
+                        (Rectangle) {0, 0, texCrown.width, texCrown.height},
+                        dest,
+                        (Vector2) {-texCrown.width / 16, 25 + texCrown.height / 32 * j},
+                        rotation,
+                        WHITE
+                );
         }
     }
     if (gameState == CHOOSEDOOR) for (int i = 0; i < 4; ++i) DrawDoor(&doors[i]);
@@ -719,7 +713,7 @@ void DrawGameplayScreen(bool overrideMode) {
         int textWidth = MeasureTextEx(GetFontDefault(), "WAITING FOR PLAYERS", fontSize, 10).x;
         DrawTextPro(GetFontDefault(), "WAITING FOR PLAYERS",
                     (Vector2) {screenWidth / 2, screenHeight / 2},
-                    (Vector2) {textWidth / 2, fontSize / 2}, 0.7 * sinf(GetTime() + 2 * PI / 3), fontSize, 10,
+                    (Vector2) {textWidth / 2, fontSize / 2}, sinf(GetTime() + 2 * PI / 3), fontSize, 10,
                     ColorAlpha(WHITE, 0.7));
     }
 

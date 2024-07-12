@@ -28,6 +28,7 @@ void InitPlayerDefaults(
     p->maxHealth = 2;
     p->health = p->maxHealth;
     p->defaultSpeed = 400;
+    p->totalGameWins = 0;
     p->speed = p->defaultSpeed;
     p->keyMoveUp = up;
     p->keyMoveDown = down;
@@ -40,6 +41,8 @@ void InitPlayerDefaults(
     p->keyDodge = dodge;
     p->isDead = false;
     p->isPlaying = true;
+    p->lastTimeBlinked = rand() % playerCount;
+    p->lastTimeTakenDamage = -100;
     p->wins = -1;
     AddWinToPlayer(p);
     p->huePhase = (atCorner * 60) % 360;
@@ -143,8 +146,9 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
     if (Vector2LengthSqr(p->velocity) > 1)
         p->velocity = Vector2Normalize(p->velocity);
 
-    if (p->speed > p->defaultSpeed) p->speed = p->defaultSpeed +
-                                               (p->friction < 0.96 ? p->friction : 0.96) * (p->speed - p->defaultSpeed);
+    if (p->speed > p->defaultSpeed)
+        p->speed = p->defaultSpeed +
+                   (p->friction < 0.96 ? p->friction : 0.96) * (p->speed - p->defaultSpeed);
     if (
             (IsKeyDown(p->keyDodge) ||
              IsGamepadButtonDown(gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_2))
@@ -189,6 +193,7 @@ void ApplyPlayerVelocity(struct Player *p) {
 }
 
 void ApplyDamageToPlayer(struct Player *p, unsigned char damage) {
+    p->lastTimeTakenDamage = GetTime();
     if (damage >= p->health) {
         p->health = 0;
         p->isDead = true;
@@ -227,12 +232,80 @@ void DrawPlayer(struct Player *p) {
         );
     }
     int pd = 3;
+    float s = (float) p->health / (float) p->maxHealth;
+    Color c = ColorFromHSV(p->huePhase, s, 1);
     DrawRectangle(p->rect.x, p->rect.y, p->rect.width, p->rect.height, ColorFromHSV(p->huePhase, 1, 0.7));
     DrawRectangle(p->rect.x + pd, p->rect.y + pd, p->rect.width - 2 * pd, p->rect.height - 2 * pd,
-                  ColorFromHSV(p->huePhase, 1, 1));
-    float s = 1 - (float) p->health / (float) p->maxHealth;
-    DrawRectangle(p->rect.x + p->rect.width / 2 * (1 - s), p->rect.y + p->rect.height / 2 * (1 - s), p->rect.width * s,
-                  p->rect.height * s, ColorFromHSV(180, 0.1, 0.1));
+                  c);
+
+    int eyeSpacing = p->rect.width / 5;
+    int eyeHeight = p->rect.height / 2.5;
+    int eyeWidth = p->rect.width / 8;
+    float eyeMovementFactor = 4;
+    Vector2 eyeMovement = {
+            (p->rect.x - p->pastPos[8].x) / 10,
+            (p->rect.y - p->pastPos[8].y) / 10
+    };
+    if (Vector2LengthSqr(eyeMovement) > 1)
+        eyeMovement = Vector2Normalize(eyeMovement);
+
+    if (GetTime() - p->lastTimeTakenDamage > 1 && p->speed < 1.25 * p->defaultSpeed) {
+        if (GetTime() - p->lastTimeBlinked < 0.1) {
+            eyeHeight = eyeWidth;
+            eyeWidth *= 1.7;
+        } else if (rand() % 100 < GetTime() - p->lastTimeBlinked - 3) {
+            eyeHeight = eyeWidth;
+            eyeWidth *= 1.5;
+            p->lastTimeBlinked = GetTime();
+        }
+        Rectangle leftEye = {
+                p->rect.x + (p->rect.width - eyeSpacing) / 2 - eyeWidth + eyeMovementFactor * eyeMovement.x,
+                p->rect.y + (p->rect.height - eyeHeight) / 2 + eyeMovementFactor * eyeMovement.y,
+                eyeWidth, eyeHeight
+        };
+        Rectangle rightEye = {
+                p->rect.x + (p->rect.width + eyeSpacing) / 2 + eyeMovementFactor * eyeMovement.x,
+                p->rect.y + (p->rect.height - eyeHeight) / 2 + eyeMovementFactor * eyeMovement.y,
+                eyeWidth, eyeHeight
+        };
+        DrawRectangleRec(leftEye, ColorFromHSV(p->huePhase, 1, 0.7));
+        DrawRectangleRec(rightEye, ColorFromHSV(p->huePhase, 1, 0.7));
+    }
+    else {
+        DrawLineEx(
+                (Vector2) {
+                    p->rect.x + (p->rect.width - 2 * eyeSpacing) / 2 - eyeWidth + eyeMovementFactor * eyeMovement.x,
+                    p->rect.y + (p->rect.height - eyeHeight) / 2 + eyeMovementFactor * eyeMovement.y
+                },
+                (Vector2) {
+                        p->rect.x + (p->rect.width + 2 * eyeSpacing) / 2 + eyeWidth + eyeMovementFactor * eyeMovement.x,
+                        p->rect.y + (p->rect.height - eyeHeight) / 2 + eyeMovementFactor * eyeMovement.y + eyeHeight
+                },
+                eyeWidth,
+                ColorFromHSV(p->huePhase, 1, 0.7)
+        );
+        DrawLineEx(
+                (Vector2) {
+                        p->rect.x + (p->rect.width + 2 * eyeSpacing) / 2 + eyeWidth + eyeMovementFactor * eyeMovement.x,
+                        p->rect.y + (p->rect.height - eyeHeight) / 2 + eyeMovementFactor * eyeMovement.y
+                },
+                (Vector2) {
+                        p->rect.x + (p->rect.width - 2 * eyeSpacing) / 2 - eyeWidth + eyeMovementFactor * eyeMovement.x,
+                        p->rect.y + (p->rect.height - eyeHeight) / 2 + eyeMovementFactor * eyeMovement.y + eyeHeight
+                },
+                eyeWidth,
+                ColorFromHSV(p->huePhase, 1, 0.7)
+        );
+        DrawRectangleRec(
+                (Rectangle) {
+                        p->rect.x + (p->rect.width - 0.5 * eyeSpacing) / 2 + eyeMovementFactor * eyeMovement.x,
+                        p->rect.y + pd,
+                        0.5 * eyeSpacing,
+                        p->rect.height - 2 * pd
+                },
+                c
+        );
+    }
 }
 
 void AddWinToPlayer(struct Player *p) {

@@ -30,7 +30,7 @@
 static bool showFPS = false;
 
 static int playersPlaying = 2;
-static int winsNeededToWinGame = 1;
+static int winsNeededToWinGame = 2;
 
 static float defaultHueRotationSpeed = 10;
 extern float hueRotationSpeed;
@@ -55,7 +55,7 @@ enum InputState {
     KEYBOARD_ONLY
 };
 
-static enum InputState inputState = MIXED;
+static enum InputState inputState = KEYBOARD_ONLY;
 
 typedef enum {
     TOPLEFT,
