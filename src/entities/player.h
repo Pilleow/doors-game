@@ -63,6 +63,7 @@ void InitPlayerDefaults(
 );
 
 Rectangle GetPlayerRectIfMovedX(struct Player *p);
+
 Rectangle GetPlayerRectIfMovedY(struct Player *p);
 
 void MovePlayerBackOneStep(struct Player *b);

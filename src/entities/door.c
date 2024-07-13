@@ -87,27 +87,34 @@ void DrawDoor(struct Door *d) {
         case TOP:
             x = d->playerEffectStringPositionX;
             y = d->playerEffectStringPositionY - 3 * doorFontSize * (1 - percentageSlideIn);
-            DrawRectangleGradientV(d->finalRect.x, d->finalRect.y, d->finalRect.width * percentageOpen, d->finalRect.height * multiply, ColorAlpha(d->color, alpha), BLANK);
+            DrawRectangleGradientV(d->finalRect.x, d->finalRect.y, d->finalRect.width * percentageOpen,
+                                   d->finalRect.height * multiply, ColorAlpha(d->color, alpha), BLANK);
             break;
         case LEFT:
             x = d->playerEffectStringPositionX - 3 * d->playerEffectsStringWidth * (1 - percentageSlideIn);
             y = d->playerEffectStringPositionY;
-            DrawRectangleGradientH(d->finalRect.x, d->finalRect.y, d->finalRect.width * multiply, d->finalRect.height * percentageOpen, ColorAlpha(d->color, alpha), BLANK);
+            DrawRectangleGradientH(d->finalRect.x, d->finalRect.y, d->finalRect.width * multiply,
+                                   d->finalRect.height * percentageOpen, ColorAlpha(d->color, alpha), BLANK);
             break;
         case RIGHT:
             x = d->playerEffectStringPositionX + 3 * d->playerEffectsStringWidth * (1 - percentageSlideIn);
             y = d->playerEffectStringPositionY;
-            DrawRectangleGradientH(d->finalRect.x - d->finalRect.width * multiply, d->finalRect.y, d->finalRect.width * (multiply + 1), d->finalRect.height * percentageOpen, BLANK, ColorAlpha(d->color, alpha));
+            DrawRectangleGradientH(d->finalRect.x - d->finalRect.width * multiply, d->finalRect.y,
+                                   d->finalRect.width * (multiply + 1), d->finalRect.height * percentageOpen, BLANK,
+                                   ColorAlpha(d->color, alpha));
             break;
         case BOTTOM:
             x = d->playerEffectStringPositionX;
             y = d->playerEffectStringPositionY + 3 * doorFontSize * (1 - percentageSlideIn);
-            DrawRectangleGradientV(d->finalRect.x, d->finalRect.y - d->finalRect.height * (multiply - 1), d->finalRect.width * percentageOpen, d->finalRect.height * multiply, BLANK, ColorAlpha(d->color, alpha));
+            DrawRectangleGradientV(d->finalRect.x, d->finalRect.y - d->finalRect.height * (multiply - 1),
+                                   d->finalRect.width * percentageOpen, d->finalRect.height * multiply, BLANK,
+                                   ColorAlpha(d->color, alpha));
             break;
         default:
             return;
     }
     x += d->playerEffectsStringWidth / 2;
     y += doorFontSize / 2;
-    DrawTextPro(GetFontDefault(), d->playerEffectString, (Vector2){x, y}, (Vector2) {d->playerEffectsStringWidth / 2, doorFontSize / 2}, rotation, doorFontSize, 10, d->color);
+    DrawTextPro(GetFontDefault(), d->playerEffectString, (Vector2) {x, y},
+                (Vector2) {d->playerEffectsStringWidth / 2, doorFontSize / 2}, rotation, doorFontSize, 10, d->color);
 }

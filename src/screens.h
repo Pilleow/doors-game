@@ -10,7 +10,7 @@
 typedef enum GameScreen {
     UNKNOWN = -1,
     GAMEPLAY = 0,
-    LEVELEDITOR,
+    LEVELEDITOR
 } GameScreen;
 
 //----------------------------------------------------------------------------------
@@ -35,21 +35,30 @@ extern "C" {            // Prevents name mangling of functions
 // Util Functions Declaration
 //----------------------------------------------------------------------------------
 void shuffleArray(Music arr[], int n);
+
 void loadSfxIntoArray(Sound sfxArray[], char filename[], int totalCount, float initVolume);
 
 //----------------------------------------------------------------------------------
 // Gameplay Screen Functions Declaration
 //----------------------------------------------------------------------------------
 void InitGameplayScreen(void);
+
 void UpdateGameplayScreen(void);
+
 void DrawGameplayScreen(bool overrideMode);
+
 bool GotoGameplayScreen(void);
+
 void UnloadGameplayScreen(void);
+
 void resetLevel();
 
 void UpdateLevelEditorScreen(void);
+
 void InitLevelEditorScreen(void);
+
 void DrawLevelEditorScreen(void);
+
 bool GotoLevelEditorScreen(void);
 
 #ifdef __cplusplus

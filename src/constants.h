@@ -8,7 +8,7 @@
 #ifndef RAYLIB_GAME_TEMPLATE_CONSTANTS_H
 #define RAYLIB_GAME_TEMPLATE_CONSTANTS_H
 
-#define playerEffectCapacityAndLifespan 3
+#define playerEffectCapacityAndLifespan 2
 #define pastPlayerPositionsCount 16
 #define maxBooletsOnMap 128
 #define sfxDoorOpenCount 3
@@ -29,9 +29,10 @@
 
 static bool showFPS = false;
 
-static int playersPlaying = 1;
-static int winsNeededToWinGame = 2;
+static int playersPlaying = 2;
+static int winsNeededToWinGame = 10;
 
+static float playerEffectMultiplier = 1.5;
 static float defaultHueRotationSpeed = 10;
 extern float hueRotationSpeed;
 extern float hueRotationTimer;
@@ -55,7 +56,7 @@ enum InputState {
     KEYBOARD_ONLY
 };
 
-static enum InputState inputState = KEYBOARD_ONLY;
+static enum InputState inputState = MIXED;
 
 typedef enum {
     TOPLEFT,

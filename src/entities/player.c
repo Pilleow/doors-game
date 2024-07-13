@@ -130,8 +130,8 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
     float x, y;
 
     if (p->speed < p->defaultSpeed * 1.1) {
-        p->velocity.x *= p->friction;
-        p->velocity.y *= p->friction;
+        p->velocity.x *= (p->friction < 0.97 ? p->friction : 0.97);
+        p->velocity.y *= (p->friction < 0.97 ? p->friction : 0.97);
     }
     if (IsKeyDown(p->keyMoveUp)) p->velocity.y -= 1;
     if (IsKeyDown(p->keyMoveDown)) p->velocity.y += 1;
@@ -144,13 +144,14 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
     p->velocity.x = x == 0 ? p->velocity.x : x;
     p->velocity.y = y == 0 ? p->velocity.y : y;
 
-    if (Vector2LengthSqr(p->velocity) > 1)
+    if (Vector2LengthSqr(p->velocity) > 1) {
         p->velocity = Vector2Normalize(p->velocity);
+    }
 
-    if (p->speed > p->defaultSpeed)
-        p->speed = p->defaultSpeed +
-                   (p->friction < 0.96 ? p->friction : 0.96) * (p->speed - p->defaultSpeed);
-    if (
+    if (p->speed > p->defaultSpeed) {
+        p->speed = p->defaultSpeed + (p->friction < 0.97 ? p->friction : 0.97) * (p->speed - p->defaultSpeed);
+    }
+        if (
             (IsKeyDown(p->keyDodge) ||
              IsGamepadButtonDown(gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_2))
             && GetTime() - p->lastDodgeTime > p->dodgeCooldownTime
@@ -271,12 +272,11 @@ void DrawPlayer(struct Player *p) {
         };
         DrawRectangleRec(leftEye, ColorFromHSV(p->huePhase, 1, 0.7));
         DrawRectangleRec(rightEye, ColorFromHSV(p->huePhase, 1, 0.7));
-    }
-    else {
+    } else {
         DrawLineEx(
                 (Vector2) {
-                    p->rect.x + (p->rect.width - 2 * eyeSpacing) / 2 - eyeWidth + eyeMovementFactor * eyeMovement.x,
-                    p->rect.y + (p->rect.height - eyeHeight) / 2 + eyeMovementFactor * eyeMovement.y
+                        p->rect.x + (p->rect.width - 2 * eyeSpacing) / 2 - eyeWidth + eyeMovementFactor * eyeMovement.x,
+                        p->rect.y + (p->rect.height - eyeHeight) / 2 + eyeMovementFactor * eyeMovement.y
                 },
                 (Vector2) {
                         p->rect.x + (p->rect.width + 2 * eyeSpacing) / 2 + eyeWidth + eyeMovementFactor * eyeMovement.x,

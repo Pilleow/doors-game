@@ -391,7 +391,7 @@ void UpdateGameplayScreen(void) {
                     InitBooletDefaults(
                             &boolets[nextBooletIndex++], p,
                             x, y,
-                            p->booletSize >= 1 ? p->booletSize : 1, p->shootingDirection.x, p->shootingDirection.y, 1,
+                            p->booletSize >= 2 ? p->booletSize : 2, p->shootingDirection.x, p->shootingDirection.y, 1,
                             0,
                             p->booletType, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, 0.3
                     );
@@ -401,7 +401,7 @@ void UpdateGameplayScreen(void) {
                 InitBooletDefaults(
                         &boolets[nextBooletIndex++], p,
                         p->rect.x + p->rect.width / 2, p->rect.y + p->rect.height / 2,
-                        p->booletSize >= 1 ? p->booletSize : 1, p->shootingDirection.x, p->shootingDirection.y, 1,
+                        p->booletSize >= 2 ? p->booletSize : 2, p->shootingDirection.x, p->shootingDirection.y, 1,
                         p->bulletSpeed,
                         p->booletType, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, p->booletDecayTimeLeft
                 );
@@ -711,8 +711,8 @@ void DrawGameplayScreen(bool overrideMode) {
 
     if (playersCurrentlyPlaying < 2 && gameState == FIGHT) {
         int fontSize = 128;
-        int textWidth = MeasureTextEx(GetFontDefault(), "F5 - GOTO EDITOR", fontSize, 10).x;
-        DrawTextPro(GetFontDefault(), "F5 - GOTO EDITOR",
+        int textWidth = MeasureTextEx(GetFontDefault(), "WAITING FOR PLAYERS", fontSize, 10).x;
+        DrawTextPro(GetFontDefault(), "WAITING FOR PLAYERS",
                     (Vector2) {screenWidth / 2, screenHeight / 2},
                     (Vector2) {textWidth / 2, fontSize / 2}, sinf(GetTime() + 2 * PI / 3), fontSize, 10,
                     ColorAlpha(WHITE, 0.7));
