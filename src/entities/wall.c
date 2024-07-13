@@ -71,7 +71,6 @@ bool FixEntityPosition(struct Wall *w, Rectangle *rect) {
         }
 
         if (dx > dy) {
-            printf("%d > %d, %d\n", dx, dy, cornerIndex);
             switch (cornerIndex) {
                 case 0: // top left
                     rect->y = w->rect.y - rect->height;
@@ -87,7 +86,6 @@ bool FixEntityPosition(struct Wall *w, Rectangle *rect) {
                     break;
             }
         } else if (dx < dy) {
-            printf("%d < %d\n", dx, dy);
             switch (cornerIndex) {
                 case 0: // top left
                     rect->x = w->rect.x - rect->width;
@@ -102,7 +100,7 @@ bool FixEntityPosition(struct Wall *w, Rectangle *rect) {
                     rect->x = w->rect.x + w->rect.width;
                     break;
             }
-        } else printf("equal");
+        }
     } else {
         if (eCenter.x > w->rect.x && eCenter.x < w->rect.x + w->rect.width) {
             if (eCenter.y < w->rect.y + w->rect.height / 2) rect->y = w->rect.y - rect->height;

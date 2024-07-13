@@ -45,7 +45,7 @@ int currentLevelIndex = 0;
 static int nextBooletIndex = 0;
 static char playersCurrentlyPlaying;
 
-bool gotoLevelEditor = false;
+bool gotoLevelEditor = true;
 
 // functions definition below ------------------------------------------------------------------------------------------
 
@@ -116,6 +116,7 @@ void InitGameplayScreen(void) {
             for (int i = 0; i < playerCount; ++i) players[i].isPlaying = false;
             break;
         case KEYBOARD_ONLY:
+            if (playersPlaying < 2) players[1].isPlaying = false;
             if (playersPlaying < 3) players[2].isPlaying = false;
             if (playersPlaying < 4) players[3].isPlaying = false;
             break;
@@ -147,6 +148,7 @@ void InitGameplayScreen(void) {
 
     currentLevelIndex = -1;
     resetLevel();
+
 }
 
 // this function resets the players and map for a new round of the game
@@ -275,7 +277,7 @@ void UpdateGameplayScreen(void) {
         if (!players[i].isDead) playersAlive++;
         else continue;
         struct Player *p = &players[i];
-        if (!playGameCrownAnim) ProcessPlayerInput(p, i + inputState == MIXED ? 1 : 0);
+        if (!playGameCrownAnim) ProcessPlayerInput(p, i + (inputState == MIXED ? -1 : 0) - (inputState == KEYBOARD_ONLY ? playerCount : 0));
         if (gameState == CHOOSEDOOR && !players[i].isDead) {
             if (GetTime() - doors[0].timeSpawned > 1)
                 for (int j = 0; j < 4; ++j) {
@@ -615,7 +617,6 @@ void DrawGameplayScreen(bool overrideMode) {
             float rotation;
             Vector2 crownPos;
             Rectangle dest = {-1, -1, 1, 1};
-            printf("%d, %d\n", j, players[i].totalGameWins - 1);
 
             if (playGameCrownAnim && i == playerGameWinnerIndex && j == players[i].totalGameWins - 1) {
                 if (!overrideMode) EndMode2D();
@@ -688,7 +689,7 @@ void DrawGameplayScreen(bool overrideMode) {
 
                 crownPos = (Vector2) {
                         players[i].rect.x + 20 - texCrown.width / 8,
-                        players[i].rect.y + 25 - j * texCrown.height / 14 -
+                        players[i].rect.y + 28 - j * texCrown.height / 14 -
                         screenHeight * (1 - (tranT <= 1 ? tranT : 1))
                 };
                 dest = (Rectangle) {crownPos.x, crownPos.y, texCrown.width / 8, texCrown.height / 8};
@@ -710,8 +711,8 @@ void DrawGameplayScreen(bool overrideMode) {
 
     if (playersCurrentlyPlaying < 2 && gameState == FIGHT) {
         int fontSize = 128;
-        int textWidth = MeasureTextEx(GetFontDefault(), "WAITING FOR PLAYERS", fontSize, 10).x;
-        DrawTextPro(GetFontDefault(), "WAITING FOR PLAYERS",
+        int textWidth = MeasureTextEx(GetFontDefault(), "F5 - GOTO EDITOR", fontSize, 10).x;
+        DrawTextPro(GetFontDefault(), "F5 - GOTO EDITOR",
                     (Vector2) {screenWidth / 2, screenHeight / 2},
                     (Vector2) {textWidth / 2, fontSize / 2}, sinf(GetTime() + 2 * PI / 3), fontSize, 10,
                     ColorAlpha(WHITE, 0.7));

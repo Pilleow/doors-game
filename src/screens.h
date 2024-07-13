@@ -2,6 +2,7 @@
 #define SCREENS_H
 
 #include "constants.h"
+#include "entities/player.h"
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition

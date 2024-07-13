@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 
 #include "constants.h"
 #include "entities/wall.h"
@@ -21,6 +22,7 @@ int nextWallIndex = 0;
 int clickCount = 0;
 struct Wall walls[maxWallCount];
 char nextWallIndexMinus1String[16];
+extern struct Player players[playerCount];
 
 // functions definition below ------------------------------------------------------------------------------------------
 
@@ -33,6 +35,33 @@ void InitLevelEditorScreen(void) {
     gotoGameplayScreen = false;
     snapSize = screenWidth / screenHeight * 30;
     for (int i = 0; i < maxWallCount; ++i) walls[i].enabled = false;
+
+    struct Player player1, player2, player3, player4;
+    InitPlayerDefaults(&player1,
+                       TOPLEFT, KEY_NULL, KEY_NULL, KEY_NULL, KEY_NULL,
+                       KEY_NULL, KEY_NULL, KEY_NULL, KEY_NULL,
+                       KEY_NULL
+    );
+    players[0] = player1;
+    InitPlayerDefaults(&player2,
+                       BOTTOMRIGHT, KEY_NULL, KEY_NULL, KEY_NULL, KEY_NULL,
+                       KEY_NULL, KEY_NULL, KEY_NULL, KEY_NULL,
+                       KEY_NULL
+    );
+    players[1] = player2;
+    InitPlayerDefaults(&player3,
+                       BOTTOMLEFT, KEY_NULL, KEY_NULL, KEY_NULL, KEY_NULL,
+                       KEY_NULL, KEY_NULL, KEY_NULL, KEY_NULL,
+                       KEY_NULL
+    );
+    players[2] = player3;
+    InitPlayerDefaults(&player4,
+                       TOPRIGHT,
+                       KEY_NULL, KEY_NULL, KEY_NULL, KEY_NULL,
+                       KEY_NULL, KEY_NULL, KEY_NULL, KEY_NULL,
+                       KEY_NULL
+    );
+    players[3] = player4;
 }
 
 // this function updates the game regardless of current gameState
@@ -42,6 +71,7 @@ void UpdateLevelEditorScreen(void) {
         mousePos.x = ((int) (mousePos.x / snapSize)) * snapSize;
         mousePos.y = ((int) (mousePos.y / snapSize)) * snapSize;
         if (clickCount % 2 == 0) {
+            walls[nextWallIndex].enabled = false;
             walls[nextWallIndex].rect.x = mousePos.x;
             walls[nextWallIndex].rect.y = mousePos.y;
         } else {
@@ -97,16 +127,26 @@ void UpdateLevelEditorScreen(void) {
 
     // print level code to stdout
     if (IsKeyPressed(KEY_F1)) {
-        printf("\n\nlevels[%d].enabled = true;\n", levelIndex);
+        char filename[64];
+
+        time_t t = time(NULL);
+        struct tm tm = *localtime(&t);
+        sprintf(filename, "./%d-%02d-%02d_%02d:%02d:%02d.level", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+        FILE *fp = fopen(filename, "w");
+
+        fprintf(fp, "\n\nlevels[%d].enabled = true;\n", levelIndex);
         for (int i = 0; i < maxWallCount; ++i) {
             if (!walls[i].enabled) continue;
-            printf(
+            fprintf(
+                    fp,
                     "levels[%d].walls[%d] = (struct Wall) {(Rectangle) {%f, %f, %f, %f}, true};\n", levelIndex, i,
                     walls[i].rect.x / screenWidth, walls[i].rect.y / screenHeight,
                     walls[i].rect.width / screenWidth, walls[i].rect.height / screenHeight
             );
         }
-        printf("\n");
+        fprintf(fp, "\n");
+        fclose(fp);
     }
 
     // goto gameplay screen
@@ -150,6 +190,10 @@ void DrawLevelEditorScreen(void) {
         if (walls[i].enabled) {
             DrawRectangleRec(walls[i].rect, WHITE);
         }
+    }
+    for (int i = 0; i < playerCount; ++i) {
+        DrawPlayerScore(&players[i]);
+        DrawPlayer(&players[i]);
     }
 }
 

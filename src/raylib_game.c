@@ -39,7 +39,7 @@ Sound sfxDead[sfxDeadCount];
 Sound sfxHit[sfxHitCount];
 Sound sfxWin;
 RenderTexture2D screenRenderTexture;
-Music startMusic;
+Music startMusic = {0};
 Music bgMusic[bgMusicCount];
 int currentMusicIndex = -1;
 

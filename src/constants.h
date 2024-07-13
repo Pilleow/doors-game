@@ -14,7 +14,7 @@
 #define sfxDoorOpenCount 3
 #define winsFontSize 96
 #define doorFontSize 48
-#define maxWallCount 96
+#define maxWallCount 128
 #define sfxShootCount 7
 #define sfxDeadCount 1
 #define bgMusicCount 8
@@ -29,7 +29,7 @@
 
 static bool showFPS = false;
 
-static int playersPlaying = 2;
+static int playersPlaying = 1;
 static int winsNeededToWinGame = 2;
 
 static float defaultHueRotationSpeed = 10;
@@ -41,7 +41,7 @@ static int finalHeight = 1080;
 static int screenWidth = 1920;
 static int screenHeight = 1080;
 
-static float masterVolume = 1.0f;
+static float masterVolume = 0.0f;
 static float bgMusicVolume = 0.5f;
 static float sfxDoorOpenVolume = 0.5f;
 static float sfxShootVolume = 0.5f;

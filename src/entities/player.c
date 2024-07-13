@@ -17,12 +17,12 @@ void InitPlayerDefaults(
         KeyboardKey leftShoot, KeyboardKey rightShoot,
         KeyboardKey dodge
 ) {
-    p->startLocation = atCorner;
-    SetPlayerLocation(p, p->startLocation);
     p->rect.height = 50;
     p->rect.width = 50;
     p->velocity.x = 0;
     p->velocity.y = 0;
+    p->startLocation = atCorner;
+    SetPlayerLocation(p, p->startLocation);
     p->shootingDirection.x = 0;
     p->shootingDirection.y = 0;
     p->maxHealth = 2;
@@ -41,11 +41,24 @@ void InitPlayerDefaults(
     p->keyDodge = dodge;
     p->isDead = false;
     p->isPlaying = true;
-    p->lastTimeBlinked = rand() % playerCount;
+    p->lastTimeBlinked = -100;
     p->lastTimeTakenDamage = -100;
     p->wins = -1;
     AddWinToPlayer(p);
-    p->huePhase = (atCorner * 60) % 360;
+    switch (atCorner) {
+        case TOPLEFT:
+            p->huePhase = 0;
+            break;
+        case TOPRIGHT:
+            p->huePhase = 120;
+            break;
+        case BOTTOMLEFT:
+            p->huePhase = 60;
+            break;
+        case BOTTOMRIGHT:
+            p->huePhase = 240;
+            break;
+    }
     p->lastShotTime = GetTime();
     p->shotCooldownTime = 0.5F;
     p->booletType = HITSCAN;
@@ -82,38 +95,26 @@ void printDebugMessage(struct Player *p) {
 
 
 void SetPlayerLocation(struct Player *p, Location atCorner) {
-    int textWidth = MeasureText(p->winsString, winsFontSize);
-    int padding = 15;
     switch (atCorner) {
         case TOPLEFT:
             p->rect.x = 0.1F * screenWidth - p->rect.width / 2;
             p->rect.y = 0.1F * screenHeight - p->rect.height / 2;
-            p->winsStringX = padding;
-            p->winsStringY = padding;
             break;
         case TOPRIGHT:
             p->rect.x = 0.9F * screenWidth - p->rect.width / 2;
             p->rect.y = 0.1F * screenHeight - p->rect.height / 2;
-            p->winsStringX = screenWidth - padding - textWidth;
-            p->winsStringY = padding;
             break;
         case BOTTOMLEFT:
             p->rect.x = 0.1F * screenWidth - p->rect.width / 2;
             p->rect.y = 0.9F * screenHeight - p->rect.height / 2;
-            p->winsStringX = padding;
-            p->winsStringY = screenHeight - padding - winsFontSize;
             break;
         case BOTTOMRIGHT:
             p->rect.x = 0.9F * screenWidth - p->rect.width / 2;
             p->rect.y = 0.9F * screenHeight - p->rect.height / 2;
-            p->winsStringX = screenWidth - padding - textWidth;
-            p->winsStringY = screenHeight - padding - winsFontSize;
             break;
         default:
             p->rect.x = screenWidth / 2 - p->rect.width / 2;
             p->rect.y = screenHeight / 2 - p->rect.height / 2;
-            p->winsStringX = screenWidth / 2;
-            p->winsStringY = screenHeight / 2;
     }
 }
 
@@ -249,7 +250,7 @@ void DrawPlayer(struct Player *p) {
     if (Vector2LengthSqr(eyeMovement) > 1)
         eyeMovement = Vector2Normalize(eyeMovement);
 
-    if (GetTime() - p->lastTimeTakenDamage > 1 && p->speed < 1.25 * p->defaultSpeed) {
+    if (GetTime() - p->lastTimeTakenDamage > 0.5 && p->speed < 2 * p->defaultSpeed) {
         if (GetTime() - p->lastTimeBlinked < 0.1) {
             eyeHeight = eyeWidth;
             eyeWidth *= 1.7;
@@ -344,7 +345,7 @@ void SetWinToZeroPlayer(struct Player *p) {
 
 void DrawPlayerScore(struct Player *p) {
     DrawText(p->winsString, p->winsStringX, p->winsStringY, winsFontSize,
-             ColorAlpha(ColorFromHSV(p->huePhase, 0.7, 1), 0.2));
+             ColorAlpha(ColorFromHSV(p->huePhase, 0.7, 1), 0.6));
 }
 
 bool IsPlayerShooting(struct Player *p) {
