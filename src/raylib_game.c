@@ -65,11 +65,19 @@ static void DrawTransition(void);           // Draw transition effect (full-scre
 static void UpdateDrawFrame(void);          // Update and draw one frame
 
 
-// A function to generate a random permutation of arr[]
-void shuffleArray(Music arr[], int n) {
+void shuffleMusicArray(Music arr[], int n) {
     for (int i = n - 1; i > 0; i--) {
         int j = rand() % (i + 1);
         Music temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
+    }
+}
+
+void shuffleLevelArray(struct Level arr[], int n) {
+    for (int i = n - 1; i > 0; i--) {
+        int j = rand() % (i + 1);
+        struct Level temp = arr[i];
         arr[i] = arr[j];
         arr[j] = temp;
     }
@@ -127,7 +135,7 @@ int main(void) {
     bgMusic[7] = LoadMusicStream("resources/bgm/passportsTwo.mp3");
     SetMusicVolume(startMusic, bgMusicVolume);
     for (int i = 0; i < bgMusicCount; ++i) SetMusicVolume(bgMusic[i], bgMusicVolume);
-    shuffleArray(bgMusic, bgMusicCount);
+    shuffleMusicArray(bgMusic, bgMusicCount);
 
     PlayMusicStream(startMusic);
 
@@ -282,7 +290,7 @@ static void UpdateDrawFrame(void) {
             bgmPreviousTime = -1;
             if (currentMusicIndex >= bgMusicCount) {
                 currentMusicIndex = 0;
-                shuffleArray(bgMusic, bgMusicCount);
+                shuffleMusicArray(bgMusic, bgMusicCount);
             }
             PlayMusicStream(bgMusic[currentMusicIndex]);
         }

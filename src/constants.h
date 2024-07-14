@@ -21,10 +21,10 @@
 #define sfxDashCount 5
 #define playerCount 4
 #define sfxHitCount 1
-#define levelCount 15
+#define levelCount 17
 
-#define hueRotationSpeedOnWinMultiplier 100
-#define hueRotationSpeedOnDeathMultiplier 70
+#define hueRotationSpeedOnWinMultiplier 90
+#define hueRotationSpeedOnDeathMultiplier 60
 #define hueRotationSpeedOnHitMultiplier 30
 
 static bool showFPS = false;
@@ -56,7 +56,7 @@ enum InputState {
     KEYBOARD_ONLY
 };
 
-static enum InputState inputState = MIXED;
+static enum InputState inputState = KEYBOARD_ONLY;
 
 typedef enum {
     TOPLEFT,

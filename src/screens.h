@@ -3,6 +3,7 @@
 
 #include "constants.h"
 #include "entities/player.h"
+#include "entities/level.h"
 
 //----------------------------------------------------------------------------------
 // Types and Structures Definition
@@ -34,7 +35,9 @@ extern "C" {            // Prevents name mangling of functions
 //----------------------------------------------------------------------------------
 // Util Functions Declaration
 //----------------------------------------------------------------------------------
-void shuffleArray(Music arr[], int n);
+void shuffleMusicArray(Music arr[], int n);
+
+void shuffleLevelArray(struct Level arr[], int n);
 
 void loadSfxIntoArray(Sound sfxArray[], char filename[], int totalCount, float initVolume);
 

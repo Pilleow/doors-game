@@ -15,6 +15,8 @@
 
 // local variable declaration below ------------------------------------------------------------------------------------
 
+Texture2D texBackground;
+
 Texture2D texCrown;
 bool playGameCrownAnim = false;
 int playerGameWinnerIndex = 1;
@@ -56,6 +58,7 @@ float calculateTransitionTime(float t) {
 
 // this function initializes the gameplay screen
 void InitGameplayScreen(void) {
+    texBackground = LoadTexture("resources/sprites/bg.png");
     texCrown = LoadTexture("resources/sprites/crown.png");
 
     transitionOldScreen = LoadRenderTexture(screenWidth, screenHeight);
@@ -146,6 +149,7 @@ void InitGameplayScreen(void) {
     doors[3].location = BOTTOM;
     for (int i = 0; i < 4; ++i) InitDoorsWithRandomEffect(&doors[i]);
 
+    shuffleLevelArray(levels, levelCount);
     currentLevelIndex = -1;
     resetLevel();
 
@@ -153,7 +157,9 @@ void InitGameplayScreen(void) {
 
 // this function resets the players and map for a new round of the game
 void resetLevel() {
-
+    if (currentLevelIndex >= levelCount - 1) {
+        shuffleLevelArray(levels, levelCount);
+    }
     char atCornerPhase = rand() % 4;
     Location possibleSpawnLocations[] = {
             TOPLEFT, TOPRIGHT,
@@ -217,14 +223,13 @@ int isOutOfWindowBounds(Rectangle r) {
     return -1;
 }
 
-
 // this function updates the game regardless of current gameState
 void UpdateGameplayScreen(void) {
 
     // handle hue rotation and animation stuff -------------------------------------------------------------------------
     hueRotationTimer += GetFrameTime() * hueRotationSpeed;
     if (hueRotationSpeed > defaultHueRotationSpeed) {
-        hueRotationSpeed = defaultHueRotationSpeed + 0.98 * (hueRotationSpeed - defaultHueRotationSpeed);
+        hueRotationSpeed = defaultHueRotationSpeed + 0.96 * (hueRotationSpeed - defaultHueRotationSpeed);
     }
 
     if (GetTime() - sfxWinPlayStartTime < 5.1 &&
@@ -413,7 +418,10 @@ void UpdateGameplayScreen(void) {
     }
 
     // if there is 1 or 0 players alive --------------------------------------------------------------------------------
-    if (playersCurrentlyPlaying >= 2 && playersAlive == 0) resetLevel();
+    if (playersCurrentlyPlaying >= 2 && playersAlive == 0) {
+        gameState = FIGHT;
+        resetLevel();
+    }
     else if (gameState == FIGHT && playersAlive == 1 && playersCurrentlyPlaying >= 2) {
         struct Player *alivePlayer;
         for (int k = 0; k < 4; ++k) {
@@ -535,9 +543,7 @@ void DrawGameplayScreen(bool overrideMode) {
 
     if (!overrideMode) BeginMode2D(camera);
 
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), ColorFromHSV(180, 0.1, 0.1));
-//    DrawRectanglePro(bgRect1, center, 0.7 * sinf(GetTime()), ColorFromHSV(180, 0.1, 0.12));
-//    DrawRectanglePro(bgRect2, center, 0.7 * sinf(GetTime() + PI / 3), ColorFromHSV(180, 0.1, 0.14));
+    DrawTexture(texBackground, 0, 0, ColorFromHSV((int) hueRotationTimer % 360, 0.7, 1));
 
     if (gameState == TRANSITION) {
         switch (transitionStartLoc) {
