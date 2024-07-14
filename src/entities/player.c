@@ -364,9 +364,10 @@ bool IsPlayerShooting(struct Player *p) {
     if (GetTime() - p->lastShotTime > p->shotCooldownTime &&
         (p->shootingDirection.x != 0 || p->shootingDirection.y != 0)) {
         p->lastShotTime = GetTime();
-        if (p->booletType == STRAIGHT) p->lastShotTime -= p->shotCooldownTime * 0.5;
         if (p->booletType == SWIRLY) p->lastShotTime -= p->shotCooldownTime * 0.25;
-        else if (p->booletType == EXPLODING) p->lastShotTime += p->shotCooldownTime * 0.5;
+        else if (p->booletType == STRAIGHT) p->lastShotTime -= p->shotCooldownTime * 0.5;
+        else if (p->booletType == EXPLODING) p->lastShotTime += p->shotCooldownTime * 0.75;
+        else if (p->booletType == SHOTGUN) p->lastShotTime += p->shotCooldownTime;
         else if (p->booletType == HITSCAN) p->lastShotTime += p->shotCooldownTime;
         p->recoilSpeed = p->speed * GetBooletRecoilModifier(p->booletType);
         p->recoilVelocity.x = -p->shootingDirection.x;

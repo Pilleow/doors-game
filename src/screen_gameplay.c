@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include "raymath.h"
 #include "screens.h"
 
 #include <stdlib.h>
@@ -184,7 +185,8 @@ void resetLevel() {
         players[i].lastDodgeTime = GetTime();
         players[i].lastShotTime = GetTime();
         players[i].health = players[i].maxHealth;
-        players[i].booletType = rand() % booletTypeCount;
+        players[i].booletType = SHOTGUN;
+//        players[i].booletType = rand() % booletTypeCount;
         for (int j = 0; j < pastPlayerPositionsCount; ++j) {
             players[i].pastPos[j].x = players[i].rect.x;
             players[i].pastPos[j].y = players[i].rect.y;
@@ -394,20 +396,35 @@ void UpdateGameplayScreen(void) {
                             CheckCollisionRecs(r, players[j].rect))
                             r.x = -1000;
                     InitBooletDefaults(
-                            &boolets[nextBooletIndex++], p,
-                            x, y,
-                            p->booletSize >= 2 ? p->booletSize : 2, p->shootingDirection.x, p->shootingDirection.y, 1,
-                            0,
-                            p->booletType, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, 0.3
+                            &boolets[nextBooletIndex++], p, x, y,
+                            p->booletSize >= 2 ? p->booletSize : 2, p->shootingDirection.x, p->shootingDirection.y,
+                            1, 0, p->booletType, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, 0.3
                     );
                     nextBooletIndex %= maxBooletsOnMap;
                 } while (isOutOfWindowBounds(r) == -1);
+            } else if (p->booletType == SHOTGUN) {
+                for (float q = -3.0f / 2.0f; q < 2; ++q) {
+                    Vector2 outDir = (Vector2) {
+                            p->shootingDirection.x,
+                            p->shootingDirection.y
+                    };
+                    outDir = Vector2Rotate(outDir, q / (p->booletAmplitude > 2 ? p->booletAmplitude : 2) / 3 * 2);
+                    InitBooletDefaults(
+                            &boolets[nextBooletIndex++], p,
+                            p->rect.x + p->rect.width / 2, p->rect.y + p->rect.height / 2,
+                            p->booletSize >= 2 ? p->booletSize : 2, outDir.x, outDir.y, 1, p->bulletSpeed,
+                            p->booletType, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, p->booletDecayTimeLeft
+                    );
+                    nextBooletIndex %= maxBooletsOnMap;
+                    PlaySound(sfxShoot[p->sfxShootSoundIndex++]);
+                    p->sfxShootSoundIndex %= sfxShootCount;
+                }
             } else {
                 InitBooletDefaults(
                         &boolets[nextBooletIndex++], p,
                         p->rect.x + p->rect.width / 2, p->rect.y + p->rect.height / 2,
-                        p->booletSize >= 2 ? p->booletSize : 2, p->shootingDirection.x, p->shootingDirection.y, 1,
-                        p->bulletSpeed,
+                        p->booletSize >= 2 ? p->booletSize : 2, p->shootingDirection.x,
+                        p->shootingDirection.y, 1, p->bulletSpeed,
                         p->booletType, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, p->booletDecayTimeLeft
                 );
                 nextBooletIndex %= maxBooletsOnMap;
@@ -421,8 +438,7 @@ void UpdateGameplayScreen(void) {
     if (playersCurrentlyPlaying >= 2 && playersAlive == 0) {
         gameState = FIGHT;
         resetLevel();
-    }
-    else if (gameState == FIGHT && playersAlive == 1 && playersCurrentlyPlaying >= 2) {
+    } else if (gameState == FIGHT && playersAlive == 1 && playersCurrentlyPlaying >= 2) {
         struct Player *alivePlayer;
         for (int k = 0; k < 4; ++k) {
             if (!players[k].isDead && players[k].isPlaying) {

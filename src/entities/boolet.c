@@ -3,12 +3,13 @@
 //
 
 #include "boolet.h"
+#include "raymath.h"
 
 #include <math.h>
 
-void
-InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float yStart, float size, float xVelocity,
-                   float yVelocity, unsigned char damage, unsigned short speed, BooletType btype, Color color, int amplitude, float decayTimeLeft) {
+void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float yStart, float size,
+                        float xVelocity, float yVelocity, unsigned char damage, unsigned short speed, BooletType btype,
+                        Color color, int amplitude, float decayTimeLeft) {
     if (btype == EXPLODING) {
         size *= 2;
         speed *= 1.5;
@@ -19,6 +20,8 @@ InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float 
         speed *= 0.9;
     } else if (btype == HITSCAN) {
         speed = 0;
+    } else if (btype == SHOTGUN) {
+        decayTimeLeft *= 0.4;
     }
     b->parent = parent;
     b->rect.x = xStart;
@@ -113,6 +116,8 @@ void ApplyBooletVelocity(struct Boolet *b) {
         b->rect.height *= 0.9;
     }
 
+    Vector2Normalize(b->velocity);
+
     float swayX, swayY;
     switch (b->type) {
         case HITSCAN:
@@ -156,23 +161,26 @@ float GetBooletRecoilModifier(BooletType bT) {
     float mult = 1;
 
     switch (bT) {
+        case TIMEBENDING:
+            mult = 0.75;
+            break;
+        case SWIRLY:
+            mult = 0.75;
+            break;
         case STRAIGHT:
             mult = 1;
             break;
-        case SWIRLY:
-            mult = 0.7;
+        case BOUNCING:
+            mult = 1.5;
             break;
-        case EXPLODING:
-            mult = 2;
+        case SHOTGUN:
+            mult = 1.75;
             break;
         case HITSCAN:
             mult = 2;
             break;
-        case TIMEBENDING:
-            mult = 0.7;
-            break;
-        case BOUNCING:
-            mult = 1.5;
+        case EXPLODING:
+            mult = 2;
             break;
     }
 

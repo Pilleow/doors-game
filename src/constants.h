@@ -86,7 +86,8 @@ typedef enum {
     EXPLODING,
     BOUNCING,
     HITSCAN,
+    SHOTGUN,
 } BooletType;
-static const int booletTypeCount = 6;   // this counts only implemented bullet types
+static const int booletTypeCount = 7;   // this counts only implemented bullet types
 
 #endif //RAYLIB_GAME_TEMPLATE_CONSTANTS_H
