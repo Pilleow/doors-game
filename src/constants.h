@@ -9,6 +9,7 @@
 #define RAYLIB_GAME_TEMPLATE_CONSTANTS_H
 
 #define playerEffectCapacityAndLifespan 2
+#define recoilDodgeDivisionLimit 30
 #define pastPlayerPositionsCount 16
 #define maxBooletsOnMap 128
 #define sfxDoorOpenCount 3
@@ -32,6 +33,8 @@ static bool showFPS = false;
 static int playersPlaying = 2;
 static int winsNeededToWinGame = 10;
 
+static const float recoilScale = 0.7;
+static const float dodgeSpeedMultiplier = 4;
 static float playerEffectMultiplier = 1.5;
 static float defaultHueRotationSpeed = 10;
 extern float hueRotationSpeed;
@@ -56,7 +59,7 @@ enum InputState {
     KEYBOARD_ONLY
 };
 
-static enum InputState inputState = KEYBOARD_ONLY;
+static enum InputState inputState = MIXED;
 
 typedef enum {
     TOPLEFT,
@@ -83,7 +86,6 @@ typedef enum {
     EXPLODING,
     BOUNCING,
     HITSCAN,
-    ROTATING,               // todo implement, bullets rotate outwards in a spiral from the point where they spawned
 } BooletType;
 static const int booletTypeCount = 6;   // this counts only implemented bullet types
 

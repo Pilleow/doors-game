@@ -151,3 +151,30 @@ void ApplyBooletVelocity(struct Boolet *b) {
             if (b->velocity.y != 0) b->rect.y += b->velocity.y * b->speed * frameTime * 1.25;
     }
 }
+
+float GetBooletRecoilModifier(BooletType bT) {
+    float mult = 1;
+
+    switch (bT) {
+        case STRAIGHT:
+            mult = 1;
+            break;
+        case SWIRLY:
+            mult = 0.7;
+            break;
+        case EXPLODING:
+            mult = 2;
+            break;
+        case HITSCAN:
+            mult = 2;
+            break;
+        case TIMEBENDING:
+            mult = 0.7;
+            break;
+        case BOUNCING:
+            mult = 1.5;
+            break;
+    }
+
+    return mult * recoilScale;
+}

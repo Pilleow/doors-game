@@ -15,6 +15,7 @@ struct Player {
     unsigned char health;
     unsigned char maxHealth;
     unsigned short speed;
+    unsigned short recoilSpeed;
     unsigned short defaultSpeed;
     unsigned short bulletSpeed;
     unsigned short huePhase;
@@ -48,6 +49,7 @@ struct Player {
     KeyboardKey keyShootRight;
     KeyboardKey keyDodge;
     Vector2 velocity;
+    Vector2 recoilVelocity;
     Vector2 shootingDirection;
     Vector2 pastPos[pastPlayerPositionsCount];
     Rectangle rect;

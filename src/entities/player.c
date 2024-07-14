@@ -3,6 +3,7 @@
 #include "../screens.h"
 
 #include "player.h"
+#include "boolet.h"
 #include "../constants.h"
 
 #include <stdio.h>
@@ -30,6 +31,7 @@ void InitPlayerDefaults(
     p->defaultSpeed = 400;
     p->totalGameWins = 0;
     p->speed = p->defaultSpeed;
+    p->recoilSpeed = 0;
     p->keyMoveUp = up;
     p->keyMoveDown = down;
     p->keyMoveLeft = left;
@@ -70,6 +72,7 @@ void InitPlayerDefaults(
     p->dodgeCooldownTime = 1.5F;
     p->nextEffectToSwapIndex = 0;
     p->booletDecayTimeLeft = 1.3;
+    p->recoilVelocity = (Vector2) {0, 0};
     for (int i = 0; i < playerEffectCapacityAndLifespan; ++i) p->activeEffects[i] = -1;
     p->lastPastPositionUpdateTime = GetTime();
     for (int i = 0; i < pastPlayerPositionsCount; ++i) {
@@ -80,7 +83,7 @@ void InitPlayerDefaults(
 }
 
 void printDebugMessage(struct Player *p) {
-    printf("Player Info: hue:%d, rect[%.2f, %.2f, %.2f, %.2f], vel[%.2f, %.2f], HP:%d/%d, spd:%d/%d, bulSpd:%d, isDead:%d, shot:%.2f/%.2f, dodge:%.2f/%.2f, fric:%.2f, sLoc:%d, eff[%d, %d, %d]\n",
+    printf("Player Info: hue:%d, rect[%.2f, %.2f, %.2f, %.2f], vel[%.2f, %.2f], HP:%d/%d, spd:%d/%d, bulSpd:%d, isDead:%d, shot:%.2f/%.2f, dodge:%.2f/%.2f, fric:%.2f, sLoc:%d\n",
            p->huePhase,
            p->rect.x, p->rect.y, p->rect.width, p->rect.height,
            p->velocity.x, p->velocity.y,
@@ -89,8 +92,7 @@ void printDebugMessage(struct Player *p) {
            p->bulletSpeed, p->isDead,
            p->lastShotTime, p->shotCooldownTime,
            p->lastDodgeTime, p->dodgeCooldownTime,
-           p->friction, p->startLocation,
-           p->activeEffects[0], p->activeEffects[1], p->activeEffects[2]);
+           p->friction, p->startLocation);
 }
 
 
@@ -155,9 +157,10 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
             (IsKeyDown(p->keyDodge) ||
              IsGamepadButtonDown(gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_2))
             && GetTime() - p->lastDodgeTime > p->dodgeCooldownTime
+            && p->recoilSpeed < p->defaultSpeed / recoilDodgeDivisionLimit
             ) {
         p->lastDodgeTime = GetTime();
-        p->speed *= 4;
+        p->speed *= dodgeSpeedMultiplier;
         PlaySound(sfxDash[rand() % sfxDashCount]);
     }
 
@@ -178,10 +181,15 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
     p->shootingDirection = Vector2Normalize(p->shootingDirection);
 }
 
-Rectangle _getUpdatedRectByVelocity(Rectangle rect, Vector2 velocity, float speed) {
+Rectangle _getUpdatedRectByVelocity(Rectangle rect, Vector2 velocity, float speed, Vector2 recoilVelocity, float recoilSpeed) {
     float frameTime = GetFrameTime();
-    if (velocity.x != 0) rect.x += velocity.x * speed * frameTime;
-    if (velocity.y != 0) rect.y += velocity.y * speed * frameTime;
+    Vector2 finalVelocity;
+
+    finalVelocity.x = (velocity.x * speed + recoilVelocity.x * recoilSpeed) * frameTime;
+    finalVelocity.y = (velocity.y * speed + recoilVelocity.y * recoilSpeed) * frameTime;
+
+    rect.x += finalVelocity.x;
+    rect.y += finalVelocity.y;
 
     if (rect.x < 0) rect.x = 0;
     else if (rect.x + rect.width > screenWidth) rect.x = screenWidth - rect.width;
@@ -191,7 +199,10 @@ Rectangle _getUpdatedRectByVelocity(Rectangle rect, Vector2 velocity, float spee
 }
 
 void ApplyPlayerVelocity(struct Player *p) {
-    p->rect = _getUpdatedRectByVelocity(p->rect, p->velocity, p->speed);
+    p->rect = _getUpdatedRectByVelocity(p->rect, p->velocity, p->speed, p->recoilVelocity, p->recoilSpeed);
+    if (p->recoilSpeed > 0) {
+        p->recoilSpeed = (p->friction < 0.97 ? p->friction : 0.97) * p->recoilSpeed;
+    }
 }
 
 void ApplyDamageToPlayer(struct Player *p, unsigned char damage) {
@@ -349,6 +360,7 @@ void DrawPlayerScore(struct Player *p) {
 }
 
 bool IsPlayerShooting(struct Player *p) {
+    if (p->speed > 2 * p->defaultSpeed) return false;
     if (GetTime() - p->lastShotTime > p->shotCooldownTime &&
         (p->shootingDirection.x != 0 || p->shootingDirection.y != 0)) {
         p->lastShotTime = GetTime();
@@ -356,6 +368,11 @@ bool IsPlayerShooting(struct Player *p) {
         if (p->booletType == SWIRLY) p->lastShotTime -= p->shotCooldownTime * 0.25;
         else if (p->booletType == EXPLODING) p->lastShotTime += p->shotCooldownTime * 0.5;
         else if (p->booletType == HITSCAN) p->lastShotTime += p->shotCooldownTime;
+        p->recoilSpeed = p->speed * GetBooletRecoilModifier(p->booletType);
+        p->recoilVelocity.x = -p->shootingDirection.x;
+        p->recoilVelocity.y = -p->shootingDirection.y;
+        Vector2Normalize(p->recoilVelocity);
+        p->lastDodgeTime = GetTime() - p->dodgeCooldownTime * 0.4;
         return true;
     }
     return false;

@@ -283,6 +283,7 @@ void UpdateGameplayScreen(void) {
         else continue;
         struct Player *p = &players[i];
         if (!playGameCrownAnim) ProcessPlayerInput(p, i + (inputState == MIXED ? -1 : 0) - (inputState == KEYBOARD_ONLY ? playerCount : 0));
+        ApplyPlayerVelocity(&players[i]);
         if (gameState == CHOOSEDOOR && !players[i].isDead) {
             if (GetTime() - doors[0].timeSpawned > 1)
                 for (int j = 0; j < 4; ++j) {
@@ -373,7 +374,6 @@ void UpdateGameplayScreen(void) {
                 }
             }
         }
-        ApplyPlayerVelocity(&players[i]);
         if (IsPlayerShooting(p) && !playGameCrownAnim) {
             if (p->booletType == HITSCAN) {
                 int x = p->rect.x + p->rect.width / 2;

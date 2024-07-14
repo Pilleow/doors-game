@@ -8,7 +8,6 @@
 #include <stdlib.h>
 
 void AssignEffectToPlayer(PlayerEffect playerEffect, struct Player *p) {
-
     undoEffectFromPlayer(p->activeEffects[p->nextEffectToSwapIndex], p);
     p->activeEffects[p->nextEffectToSwapIndex] = playerEffect;
     applyEffectToPlayer(p->activeEffects[p->nextEffectToSwapIndex], p);

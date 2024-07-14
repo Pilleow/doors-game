@@ -28,6 +28,8 @@ void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, f
 
 void ExplodeBoolet(struct Boolet *b, int *nextBooletIndex, struct Boolet boolets[], BooletType type);
 
+float GetBooletRecoilModifier(BooletType bT);
+
 void MoveBulletBackOneStep(struct Boolet *b);
 
 void DrawBoolet(struct Boolet *b);
