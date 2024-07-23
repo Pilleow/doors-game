@@ -13,7 +13,8 @@ struct Boolet {
     Rectangle rect;
     Vector2 velocity;
     unsigned char damage;
-    unsigned short speed;
+    int speed;
+    int startingSpeed;
     bool enabled;
     BooletType type;
     struct Player* parent;

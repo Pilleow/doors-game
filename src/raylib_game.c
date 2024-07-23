@@ -31,17 +31,35 @@
 // Shared Variables Definition (global)
 // NOTE: Those variables are shared between modules through screens.h
 //----------------------------------------------------------------------------------
-GameScreen currentScreen = GAMEPLAY;
+GameScreen currentScreen = MAINMENU;
+
 Sound sfxDoorOpen[sfxDoorOpenCount];
 Sound sfxShoot[sfxShootCount];
 Sound sfxDash[sfxDashCount];
 Sound sfxDead[sfxDeadCount];
 Sound sfxHit[sfxHitCount];
 Sound sfxWin;
-RenderTexture2D screenRenderTexture;
 Music startMusic = {0};
 Music bgMusic[bgMusicCount];
 int currentMusicIndex = -1;
+float masterVolume = 0.0f;
+float bgMusicVolume = 0.5f;
+float sfxDoorOpenVolume = 0.5f;
+float sfxShootVolume = 0.5f;
+float sfxDeadVolume = 0.5f;
+float sfxDashVolume = 0.5f;
+float sfxHitVolume = 0.5f;
+
+struct Level levels[levelCount];
+
+RenderTexture2D screenRenderTexture;
+Texture2D texBackground;
+
+float recoilScale = 0.8f;
+float playerEffectMultiplier = 1.5;
+int winsNeededToWinGame = 10;
+bool showFPS = false;
+enum InputState inputState = MIXED;
 
 //----------------------------------------------------------------------------------
 // Local Variables Definition (local to this module)
@@ -54,6 +72,7 @@ static bool transFadeOut = false;
 static int transFromScreen = -1;
 static float bgmPreviousTime = -1;
 static GameScreen transToScreen = UNKNOWN;
+bool playersUseTheSameWeapon = false;
 
 //----------------------------------------------------------------------------------
 // Local Functions Declaration
@@ -108,6 +127,7 @@ int main(void) {
     InitWindow(finalWidth, finalHeight, "Door Game");
     ToggleFullscreen();
 
+    texBackground = LoadTexture("resources/sprites/bg.png");
     screenRenderTexture = LoadRenderTexture(screenWidth, screenHeight);
 
     srand(time(NULL));      // Initialize random module
@@ -144,8 +164,10 @@ int main(void) {
 //    fxCoin = LoadSound("resources/coin.wav");
 
     // Setup and init first screen
-    currentScreen = GAMEPLAY;
-    InitGameplayScreen();
+    SetExitKey(KEY_NULL);
+    currentScreen = MAINMENU;
+    LoadAllLevels(levels);
+    InitMainMenuScreen();
 
 #if defined(PLATFORM_WEB)
     emscripten_set_main_loop(UpdateDrawFrame, 60, 1);
@@ -173,9 +195,9 @@ int main(void) {
     // Unload global data loaded
     for (int i = 0; i < bgMusicCount; ++i) UnloadMusicStream(bgMusic[i]);
     for (int i = 0; i < sfxShootCount; ++i) UnloadSound(sfxShoot[i]);
-
+    UnloadTexture(texBackground);
+    UnloadRenderTexture(screenRenderTexture);
     CloseAudioDevice();     // Close audio context
-
     CloseWindow();          // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
@@ -195,6 +217,10 @@ static void ChangeToScreen(GameScreen screen) {
             break;
         case LEVELEDITOR:
             InitLevelEditorScreen();
+            break;
+        case MAINMENU:
+            InitMainMenuScreen();
+            break;
         default:
             break;
     }
@@ -214,7 +240,7 @@ static void TransitionToScreen(GameScreen screen) {
 // Update transition effect (fade-in, fade-out)
 static void UpdateTransition(void) {
     if (!transFadeOut) {
-        transAlpha += 0.05f;
+        transAlpha += 0.1f;
 
         // NOTE: Due to float internal representation, condition jumps on 1.0f instead of 1.05f
         // For that reason we compare against 1.01f, to avoid last frame loading stop
@@ -237,6 +263,10 @@ static void UpdateTransition(void) {
                     break;
                 case LEVELEDITOR:
                     InitLevelEditorScreen();
+                    break;
+                case MAINMENU:
+                    InitMainMenuScreen();
+                    break;
                 default:
                     break;
             }
@@ -248,7 +278,7 @@ static void UpdateTransition(void) {
         }
     } else  // Transition fade out logic
     {
-        transAlpha -= 0.02f;
+        transAlpha -= 0.05f;
 
         if (transAlpha < -0.01f) {
             transAlpha = 0.0f;
@@ -307,10 +337,16 @@ static void UpdateDrawFrame(void) {
             case GAMEPLAY:
                 UpdateGameplayScreen();
                 if (GotoLevelEditorScreen()) TransitionToScreen(LEVELEDITOR);
+                if (GotoMainMenuScreen()) TransitionToScreen(MAINMENU);
                 break;
             case LEVELEDITOR:
                 UpdateLevelEditorScreen();
-                if (GotoGameplayScreen()) TransitionToScreen(GAMEPLAY);
+                if (GotoGameplayScreenFromLevelEditor()) TransitionToScreen(GAMEPLAY);
+                break;
+            case MAINMENU:
+                UpdateMainMenuScreen();
+                if (GotoGameplayScreenFromMainMenu()) TransitionToScreen(GAMEPLAY);
+                break;
             default:
                 break;
         }
@@ -326,6 +362,10 @@ static void UpdateDrawFrame(void) {
             break;
         case LEVELEDITOR:
             DrawLevelEditorScreen();
+            break;
+        case MAINMENU:
+            DrawMainMenuScreen();
+            break;
         default:
             break;
     }

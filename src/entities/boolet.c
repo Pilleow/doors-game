@@ -6,11 +6,14 @@
 #include "raymath.h"
 
 #include <math.h>
+#include <limits.h>
 
 void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float yStart, float size,
                         float xVelocity, float yVelocity, unsigned char damage, unsigned short speed, BooletType btype,
                         Color color, int amplitude, float decayTimeLeft) {
-    if (btype == EXPLODING) {
+    if (btype == SWIRLY) {
+        size *= 1.5;
+    } else if (btype == EXPLODING) {
         size *= 2;
         speed *= 1.5;
     } else if (btype == BOUNCING) {
@@ -22,6 +25,15 @@ void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, f
         speed = 0;
     } else if (btype == SHOTGUN) {
         decayTimeLeft *= 0.4;
+    } else if (btype == COPYMOVE) {
+        decayTimeLeft *= 3;
+        speed *= 0.9;
+        size *= 2;
+    } else if (btype == INVERTED) {
+        size *= 1.5;
+    } else if (btype == BOOMERANG) {
+        decayTimeLeft = (float)LONG_MAX;
+        speed *= 1.5;
     }
     b->parent = parent;
     b->rect.x = xStart;
@@ -32,6 +44,7 @@ void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, f
     b->velocity.x = xVelocity;
     b->velocity.y = yVelocity;
     b->speed = speed;
+    b->startingSpeed = speed;
     b->enabled = true;
     b->type = btype;
     b->color = color;
@@ -122,6 +135,13 @@ void ApplyBooletVelocity(struct Boolet *b) {
     switch (b->type) {
         case HITSCAN:
             break;
+        case COPYMOVE:
+            b->velocity.x += b->parent->velocity.x * frameTime * b->parent->booletAmplitude * 2;
+            b->velocity.y += b->parent->velocity.y * frameTime * b->parent->booletAmplitude * 2;
+            b->velocity = Vector2Normalize(b->velocity);
+            if (b->velocity.x != 0) b->rect.x += b->velocity.x * b->speed * frameTime * 1.25;
+            if (b->velocity.y != 0) b->rect.y += b->velocity.y * b->speed * frameTime * 1.25;
+            break;
         case EXPLODING:
             b->speed *= 0.97;
             if (b->velocity.x != 0) b->rect.x += b->velocity.x * b->speed * frameTime * 1.25;
@@ -151,6 +171,16 @@ void ApplyBooletVelocity(struct Boolet *b) {
                 b->rect.y += (b->amplitude + 2) * swayY * b->velocity.y * 60 * frameTime;
             }
             break;
+        case BOOMERANG:
+            if (b->speed >= -b->startingSpeed) b->speed -= b->parent->booletAmplitude * 5;
+            if (b->speed < -b->startingSpeed * 0.7 && b->decayTimeLeft > 0.3) b->decayTimeLeft = 0.3;
+            if (b->velocity.x != 0) b->rect.x += b->velocity.x * b->speed * frameTime * 1.25;
+            if (b->velocity.y != 0) b->rect.y += b->velocity.y * b->speed * frameTime * 1.25;
+            break;
+        case INVERTED:
+            if (b->velocity.x != 0) b->rect.x -= b->velocity.x * b->speed * frameTime * 1.25;
+            if (b->velocity.y != 0) b->rect.y -= b->velocity.y * b->speed * frameTime * 1.25;
+            break;
         default: // default == STRAIGHT
             if (b->velocity.x != 0) b->rect.x += b->velocity.x * b->speed * frameTime * 1.25;
             if (b->velocity.y != 0) b->rect.y += b->velocity.y * b->speed * frameTime * 1.25;
@@ -161,14 +191,23 @@ float GetBooletRecoilModifier(BooletType bT) {
     float mult = 1;
 
     switch (bT) {
+        case INVERTED:
+            mult = -1;
+            break;
         case TIMEBENDING:
             mult = 0.75;
             break;
         case SWIRLY:
             mult = 0.75;
             break;
+        case BOOMERANG:
+            mult = 0.75;
+            break;
         case STRAIGHT:
             mult = 1;
+            break;
+        case COPYMOVE:
+            mult = 1.5;
             break;
         case BOUNCING:
             mult = 1.5;
@@ -182,6 +221,8 @@ float GetBooletRecoilModifier(BooletType bT) {
         case EXPLODING:
             mult = 2;
             break;
+        default:
+            mult = 1;
     }
 
     return mult * recoilScale;

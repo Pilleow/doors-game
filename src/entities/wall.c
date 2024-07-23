@@ -10,7 +10,7 @@
 
 bool CheckWallBooletCollisionAndFixPosition(struct Wall *w, struct Boolet *e) {
     if (!CheckCollisionRecs(w->rect, e->rect)) return false;
-    if (e->type == BOUNCING) {
+    if (e->type == BOUNCING && e->type == INVERTED) {
         struct Vector2 eCenter = (Vector2) {
                 e->rect.x + e->rect.width / 2,
                 e->rect.y + e->rect.height / 2,

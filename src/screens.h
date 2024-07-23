@@ -11,12 +11,14 @@
 typedef enum GameScreen {
     UNKNOWN = -1,
     GAMEPLAY = 0,
-    LEVELEDITOR
+    LEVELEDITOR,
+    MAINMENU
 } GameScreen;
 
 //----------------------------------------------------------------------------------
 // Global Variables Declaration (shared by several modules)
 //----------------------------------------------------------------------------------
+extern Texture2D texBackground;
 extern GameScreen currentScreen;
 extern Sound sfxShoot[sfxShootCount];
 extern Sound sfxDead[sfxDeadCount];
@@ -27,6 +29,7 @@ extern Sound sfxWin;
 extern Music startMusic;
 extern Music bgMusic[bgMusicCount];
 extern int currentMusicIndex;
+extern struct Level levels[levelCount];
 
 #ifdef __cplusplus
 extern "C" {            // Prevents name mangling of functions
@@ -50,7 +53,9 @@ void UpdateGameplayScreen(void);
 
 void DrawGameplayScreen(bool overrideMode);
 
-bool GotoGameplayScreen(void);
+bool GotoMainMenuScreen(void);
+
+bool GotoGameplayScreenFromLevelEditor(void);
 
 void UnloadGameplayScreen(void);
 
@@ -63,6 +68,15 @@ void InitLevelEditorScreen(void);
 void DrawLevelEditorScreen(void);
 
 bool GotoLevelEditorScreen(void);
+
+
+void UpdateMainMenuScreen(void);
+
+void InitMainMenuScreen(void);
+
+void DrawMainMenuScreen(void);
+
+bool GotoGameplayScreenFromMainMenu(void);
 
 #ifdef __cplusplus
 }

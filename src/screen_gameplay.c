@@ -16,11 +16,9 @@
 
 // local variable declaration below ------------------------------------------------------------------------------------
 
-Texture2D texBackground;
-
 Texture2D texCrown;
 bool playGameCrownAnim = false;
-int playerGameWinnerIndex = 1;
+int playerGameWinnerIndex = -1;
 int playerRoundWinnerIndex = -1;
 float sfxWinPlayStartTime = -1000;
 char winString[64];
@@ -38,7 +36,6 @@ static Vector2 center;
 
 struct Player players[playerCount];
 struct Boolet boolets[maxBooletsOnMap];
-struct Level levels[levelCount];
 struct Door doors[4];
 
 float hueRotationSpeed = 40;
@@ -48,7 +45,8 @@ int currentLevelIndex = 0;
 static int nextBooletIndex = 0;
 static char playersCurrentlyPlaying;
 
-bool gotoLevelEditor = true;
+bool gotoLevelEditor = false;
+bool gotoMainMenu = false;
 
 // functions definition below ------------------------------------------------------------------------------------------
 
@@ -59,8 +57,9 @@ float calculateTransitionTime(float t) {
 
 // this function initializes the gameplay screen
 void InitGameplayScreen(void) {
-    texBackground = LoadTexture("resources/sprites/bg.png");
     texCrown = LoadTexture("resources/sprites/crown.png");
+    playerGameWinnerIndex = -1;
+    playerRoundWinnerIndex = -1;
 
     transitionOldScreen = LoadRenderTexture(screenWidth, screenHeight);
     camera.target = (Vector2) {screenWidth / 2, screenHeight / 2};
@@ -70,7 +69,8 @@ void InitGameplayScreen(void) {
 
     HideCursor();
     gotoLevelEditor = false;
-    LoadAllLevels(levels);
+
+    gotoMainMenu = false;
 
     bgRect1.x = screenWidth / 2 + screenWidth * 0.03;
     bgRect1.y = screenHeight / 2 + screenHeight * 0.03;
@@ -85,6 +85,9 @@ void InitGameplayScreen(void) {
     center.x = screenWidth / 2;
     center.y = screenHeight / 2;
 
+    for (int i = 0; i < playerCount; ++i) {
+        players[i].isPlaying = false;
+    }
     struct Player player1, player2, player3, player4;
     InitPlayerDefaults(&player1,
                        TOPLEFT,
@@ -120,9 +123,9 @@ void InitGameplayScreen(void) {
             for (int i = 0; i < playerCount; ++i) players[i].isPlaying = false;
             break;
         case KEYBOARD_ONLY:
-            if (playersPlaying < 2) players[1].isPlaying = false;
-            if (playersPlaying < 3) players[2].isPlaying = false;
-            if (playersPlaying < 4) players[3].isPlaying = false;
+            playersPlaying = 2;
+            players[2].isPlaying = false;
+            players[3].isPlaying = false;
             break;
         case MIXED:
             playersPlaying = 1;
@@ -153,7 +156,6 @@ void InitGameplayScreen(void) {
     shuffleLevelArray(levels, levelCount);
     currentLevelIndex = -1;
     resetLevel();
-
 }
 
 // this function resets the players and map for a new round of the game
@@ -166,6 +168,8 @@ void resetLevel() {
             TOPLEFT, TOPRIGHT,
             BOTTOMLEFT, BOTTOMRIGHT
     };
+
+    BooletType bType = (BooletType) (rand() % booletTypeCount);
     for (int i = 0; i < playerCount; ++i) {
         if (players[i].wins >= winsNeededToWinGame) {
             players[i].totalGameWins++;
@@ -185,8 +189,12 @@ void resetLevel() {
         players[i].lastDodgeTime = GetTime();
         players[i].lastShotTime = GetTime();
         players[i].health = players[i].maxHealth;
-        players[i].booletType = SHOTGUN;
-//        players[i].booletType = rand() % booletTypeCount;
+
+        players[i].booletType = bType;
+        if (!playersUseTheSameWeapon) {
+            bType = (BooletType) (rand() % booletTypeCount);
+        }
+
         for (int j = 0; j < pastPlayerPositionsCount; ++j) {
             players[i].pastPos[j].x = players[i].rect.x;
             players[i].pastPos[j].y = players[i].rect.y;
@@ -377,13 +385,16 @@ void UpdateGameplayScreen(void) {
             }
         }
         if (IsPlayerShooting(p) && !playGameCrownAnim) {
-            if (p->booletType == HITSCAN) {
+            BooletType btype = p->booletType;
+            if (btype == RANDOM) {
+                do btype = rand() % booletTypeCount;
+                while (btype == RANDOM);
+            }
+            if (btype == HITSCAN) {
                 int x = p->rect.x + p->rect.width / 2;
                 int y = p->rect.y + p->rect.height / 2;
                 Rectangle r;
                 int delta = 15 + p->booletSize;
-                x += p->shootingDirection.x * delta;
-                y += p->shootingDirection.y * delta;
                 do {
                     x += p->shootingDirection.x * delta;
                     y += p->shootingDirection.y * delta;
@@ -398,11 +409,11 @@ void UpdateGameplayScreen(void) {
                     InitBooletDefaults(
                             &boolets[nextBooletIndex++], p, x, y,
                             p->booletSize >= 2 ? p->booletSize : 2, p->shootingDirection.x, p->shootingDirection.y,
-                            1, 0, p->booletType, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, 0.3
+                            1, 0, btype, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, 0.3
                     );
                     nextBooletIndex %= maxBooletsOnMap;
                 } while (isOutOfWindowBounds(r) == -1);
-            } else if (p->booletType == SHOTGUN) {
+            } else if (btype == SHOTGUN) {
                 for (float q = -3.0f / 2.0f; q < 2; ++q) {
                     Vector2 outDir = (Vector2) {
                             p->shootingDirection.x,
@@ -413,19 +424,48 @@ void UpdateGameplayScreen(void) {
                             &boolets[nextBooletIndex++], p,
                             p->rect.x + p->rect.width / 2, p->rect.y + p->rect.height / 2,
                             p->booletSize >= 2 ? p->booletSize : 2, outDir.x, outDir.y, 1, p->bulletSpeed,
-                            p->booletType, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, p->booletDecayTimeLeft
+                            btype, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, p->booletDecayTimeLeft
                     );
                     nextBooletIndex %= maxBooletsOnMap;
                     PlaySound(sfxShoot[p->sfxShootSoundIndex++]);
                     p->sfxShootSoundIndex %= sfxShootCount;
                 }
+            } else if (btype == INVERTED) {
+                int x = p->rect.x + p->rect.width / 2;
+                int y = p->rect.y + p->rect.height / 2;
+                int delta = p->booletSize;
+                Rectangle r = (Rectangle) {x, y, p->booletSize, p->booletSize};
+                Rectangle rNext = (Rectangle) {x, y, p->booletSize, p->booletSize};
+                rNext.x += p->shootingDirection.x * delta;
+                rNext.y += p->shootingDirection.y * delta;
+                while (isOutOfWindowBounds(rNext) == -1) {
+                    bool isCollidingWall = false;
+                    for (int j = 0; j < maxWallCount; ++j) {
+                        if (currentLevelIndex >= 0 && CheckCollisionRecs(rNext, levels[currentLevelIndex].walls[j].rect)) {
+                            isCollidingWall = true;
+                            break;
+                        }
+                    }
+                    if (isCollidingWall) break;
+                    r = rNext;
+                    rNext.x += p->shootingDirection.x * delta;
+                    rNext.y += p->shootingDirection.y * delta;
+                }
+                printf("%f, %f\n", r.x, r.y);
+                InitBooletDefaults(
+                        &boolets[nextBooletIndex++], p,
+                        r.x, r.y,
+                        p->booletSize >= 2 ? p->booletSize : 2, p->shootingDirection.x,
+                        p->shootingDirection.y, 1, p->bulletSpeed,
+                        btype, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, p->booletDecayTimeLeft
+                );
             } else {
                 InitBooletDefaults(
                         &boolets[nextBooletIndex++], p,
                         p->rect.x + p->rect.width / 2, p->rect.y + p->rect.height / 2,
                         p->booletSize >= 2 ? p->booletSize : 2, p->shootingDirection.x,
                         p->shootingDirection.y, 1, p->bulletSpeed,
-                        p->booletType, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, p->booletDecayTimeLeft
+                        btype, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, p->booletDecayTimeLeft
                 );
                 nextBooletIndex %= maxBooletsOnMap;
                 PlaySound(sfxShoot[p->sfxShootSoundIndex++]);
@@ -507,6 +547,11 @@ void UpdateGameplayScreen(void) {
                 }
             }
         }
+    }
+
+    // go to main menu
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        gotoMainMenu = true;
     }
 
     // print debug message on button press
@@ -609,7 +654,10 @@ void DrawGameplayScreen(bool overrideMode) {
             DrawWall(&levels[currentLevelIndex].walls[i]);
         }
     }
+
+    playersCurrentlyPlaying = 0;
     for (int i = 0; i < playerCount; ++i) {
+        if (players[i].isPlaying) playersCurrentlyPlaying++;
         if (!players[i].isPlaying) continue;
         DrawPlayerScore(&players[i]);
         if (!players[i].isDead) DrawPlayer(&players[i]);
@@ -753,4 +801,8 @@ void UnloadGameplayScreen(void) {
 
 bool GotoLevelEditorScreen(void) {
     return gotoLevelEditor;
+}
+
+bool GotoMainMenuScreen(void) {
+    return gotoMainMenu;
 }

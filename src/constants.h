@@ -11,6 +11,7 @@
 #define playerEffectCapacityAndLifespan 2
 #define recoilDodgeDivisionLimit 30
 #define pastPlayerPositionsCount 16
+#define mainMenuButtonCount 24
 #define maxBooletsOnMap 128
 #define sfxDoorOpenCount 3
 #define winsFontSize 96
@@ -28,15 +29,17 @@
 #define hueRotationSpeedOnDeathMultiplier 60
 #define hueRotationSpeedOnHitMultiplier 30
 
-static bool showFPS = false;
+extern bool showFPS;
+extern bool playersUseTheSameWeapon;
 
-static int playersPlaying = 2;
-static int winsNeededToWinGame = 10;
+static int playersPlaying = 4;
+extern int winsNeededToWinGame;
 
-static const float recoilScale = 0.7;
 static const float dodgeSpeedMultiplier = 4;
-static float playerEffectMultiplier = 1.5;
 static float defaultHueRotationSpeed = 10;
+
+extern float playerEffectMultiplier;
+extern float recoilScale;
 extern float hueRotationSpeed;
 extern float hueRotationTimer;
 
@@ -45,13 +48,13 @@ static int finalHeight = 1080;
 static int screenWidth = 1920;
 static int screenHeight = 1080;
 
-static float masterVolume = 0.0f;
-static float bgMusicVolume = 0.5f;
-static float sfxDoorOpenVolume = 0.5f;
-static float sfxShootVolume = 0.5f;
-static float sfxDeadVolume = 0.5f;
-static float sfxDashVolume = 0.5f;
-static float sfxHitVolume = 0.5f;
+extern float masterVolume;
+extern float bgMusicVolume;
+extern float sfxDoorOpenVolume;
+extern float sfxShootVolume;
+extern float sfxDeadVolume;
+extern float sfxDashVolume;
+extern float sfxHitVolume;
 
 enum InputState {
     GAMEPAD_ONLY,
@@ -59,7 +62,7 @@ enum InputState {
     KEYBOARD_ONLY
 };
 
-static enum InputState inputState = MIXED;
+extern enum InputState inputState;
 
 typedef enum {
     TOPLEFT,
@@ -87,7 +90,11 @@ typedef enum {
     BOUNCING,
     HITSCAN,
     SHOTGUN,
+    COPYMOVE,
+    INVERTED,
+    BOOMERANG,
+    RANDOM
 } BooletType;
-static const int booletTypeCount = 7;   // this counts only implemented bullet types
+static const int booletTypeCount = 11;   // this counts only implemented bullet types
 
 #endif //RAYLIB_GAME_TEMPLATE_CONSTANTS_H

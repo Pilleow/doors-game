@@ -63,7 +63,7 @@ void InitPlayerDefaults(
     }
     p->lastShotTime = GetTime();
     p->shotCooldownTime = 0.5F;
-    p->booletType = HITSCAN;
+    p->booletType = STRAIGHT;
     p->booletAmplitude = 3;
     p->booletSize = 6;
     p->friction = 0.91F;
@@ -164,6 +164,11 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
         PlaySound(sfxDash[rand() % sfxDashCount]);
     }
 
+    bool notAiming = true;
+    if (p->shootingDirection.x != 0 || p->shootingDirection.y != 0) {
+        notAiming = false;
+    }
+
     p->shootingDirection.x = 0;
     p->shootingDirection.y = 0;
 
@@ -179,6 +184,9 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
     p->shootingDirection.y = y == 0 ? p->shootingDirection.y : y;
 
     p->shootingDirection = Vector2Normalize(p->shootingDirection);
+    if ((p->shootingDirection.x != 0 || p->shootingDirection.y != 0) && notAiming) {
+        p->timeSinceStartedAiming = GetTime();
+    }
 }
 
 Rectangle _getUpdatedRectByVelocity(Rectangle rect, Vector2 velocity, float speed, Vector2 recoilVelocity, float recoilSpeed) {
@@ -200,7 +208,7 @@ Rectangle _getUpdatedRectByVelocity(Rectangle rect, Vector2 velocity, float spee
 
 void ApplyPlayerVelocity(struct Player *p) {
     p->rect = _getUpdatedRectByVelocity(p->rect, p->velocity, p->speed, p->recoilVelocity, p->recoilSpeed);
-    if (p->recoilSpeed > 0) {
+    if (p->recoilSpeed != 0) {
         p->recoilSpeed = (p->friction < 0.97 ? p->friction : 0.97) * p->recoilSpeed;
     }
 }
@@ -361,6 +369,7 @@ void DrawPlayerScore(struct Player *p) {
 
 bool IsPlayerShooting(struct Player *p) {
     if (p->speed > 2 * p->defaultSpeed) return false;
+    if (p->booletType == HITSCAN && GetTime() - p->timeSinceStartedAiming < 0.2f) return false;
     if (GetTime() - p->lastShotTime > p->shotCooldownTime &&
         (p->shootingDirection.x != 0 || p->shootingDirection.y != 0)) {
         p->lastShotTime = GetTime();
@@ -369,7 +378,9 @@ bool IsPlayerShooting(struct Player *p) {
         else if (p->booletType == EXPLODING) p->lastShotTime += p->shotCooldownTime * 0.75;
         else if (p->booletType == SHOTGUN) p->lastShotTime += p->shotCooldownTime;
         else if (p->booletType == HITSCAN) p->lastShotTime += p->shotCooldownTime;
-        p->recoilSpeed = p->speed * GetBooletRecoilModifier(p->booletType);
+        if (inputState != KEYBOARD_ONLY) {
+            p->recoilSpeed = p->speed * GetBooletRecoilModifier(p->booletType);
+        }
         p->recoilVelocity.x = -p->shootingDirection.x;
         p->recoilVelocity.y = -p->shootingDirection.y;
         Vector2Normalize(p->recoilVelocity);

@@ -15,7 +15,7 @@
 
 // local variable declaration below ------------------------------------------------------------------------------------
 
-static bool gotoGameplayScreen = false;
+bool gotoGameplayScreenLE = false;
 int snapSize = 1;
 int levelIndex = levelCount;
 int nextWallIndex = 0;
@@ -32,7 +32,7 @@ void InitLevelEditorScreen(void) {
     ShowCursor();
     clickCount = 0;
     nextWallIndex = 0;
-    gotoGameplayScreen = false;
+    gotoGameplayScreenLE = false;
     snapSize = screenWidth / screenHeight * 30;
     for (int i = 0; i < maxWallCount; ++i) walls[i].enabled = false;
 
@@ -150,7 +150,7 @@ void UpdateLevelEditorScreen(void) {
     }
 
     // goto gameplay screen
-    if (IsKeyPressed(KEY_F5)) gotoGameplayScreen = true;
+    if (IsKeyPressed(KEY_F5)) gotoGameplayScreenLE = true;
 
     // reset level editor
     if (IsKeyPressed((KEY_F4))) {
@@ -197,6 +197,6 @@ void DrawLevelEditorScreen(void) {
     }
 }
 
-bool GotoGameplayScreen() {
-    return gotoGameplayScreen;
+bool GotoGameplayScreenFromLevelEditor() {
+    return gotoGameplayScreenLE;
 }
