@@ -39,10 +39,11 @@ bool IsMouseOverButton(struct Button *b, Vector2 mousePos) {
     return CheckCollisionPointRec(mousePos, b->collideRect);
 }
 
-void ChangeValueAndClamp(float* value, float delta, float min, float max) {
+void ChangeValueAndClamp(float* value, float delta, float min, float max, short roundDecimalPlaces) {
     *value += delta;
     if (*value < min) *value = min;
     if (*value > max) *value = max;
+    *value = (float)((int) (*value * (10.1 * roundDecimalPlaces))) / (10 * roundDecimalPlaces);
 }
 
 void UpdateSfxVolume() {
@@ -83,38 +84,38 @@ void InvokeButtonAction(struct Button *b) {
         // VOLUME CONTROL
 
         case INCREASE_MASTER_VOLUME:
-            ChangeValueAndClamp(&masterVolume, 0.1f, 0, 1);
+            ChangeValueAndClamp(&masterVolume, 0.1f, 0, 1, 1);
             SetMasterVolume(masterVolume);
             break;
         case DECREASE_MASTER_VOLUME:
-            ChangeValueAndClamp(&masterVolume, -0.1f, 0, 1);
+            ChangeValueAndClamp(&masterVolume, -0.1f, 0, 1, 1);
             SetMasterVolume(masterVolume);
             break;
         case INCREASE_SFX_VOLUME:
             t = 0.1f;
-            ChangeValueAndClamp(&sfxShootVolume, t, 0, 1);
-            ChangeValueAndClamp(&sfxDashVolume, t, 0, 1);
-            ChangeValueAndClamp(&sfxDeadVolume, t, 0, 1);
-            ChangeValueAndClamp(&sfxDoorOpenVolume, t, 0, 1);
-            ChangeValueAndClamp(&sfxHitVolume, t, 0, 1);
+            ChangeValueAndClamp(&sfxShootVolume, t, 0, 1, 1);
+            ChangeValueAndClamp(&sfxDashVolume, t, 0, 1, 1);
+            ChangeValueAndClamp(&sfxDeadVolume, t, 0, 1, 1);
+            ChangeValueAndClamp(&sfxDoorOpenVolume, t, 0, 1, 1);
+            ChangeValueAndClamp(&sfxHitVolume, t, 0, 1, 1);
             UpdateSfxVolume();
             PlaySound(sfxDash[0]);
             break;
         case DECREASE_SFX_VOLUME:
             t = -0.1f;
-            ChangeValueAndClamp(&sfxShootVolume, t, 0, 1);
-            ChangeValueAndClamp(&sfxDashVolume, t, 0, 1);
-            ChangeValueAndClamp(&sfxDeadVolume, t, 0, 1);
-            ChangeValueAndClamp(&sfxDoorOpenVolume, t, 0, 1);
-            ChangeValueAndClamp(&sfxHitVolume, t, 0, 1);
+            ChangeValueAndClamp(&sfxShootVolume, t, 0, 1, 1);
+            ChangeValueAndClamp(&sfxDashVolume, t, 0, 1, 1);
+            ChangeValueAndClamp(&sfxDeadVolume, t, 0, 1, 1);
+            ChangeValueAndClamp(&sfxDoorOpenVolume, t, 0, 1, 1);
+            ChangeValueAndClamp(&sfxHitVolume, t, 0, 1, 1);
             UpdateSfxVolume();
             break;
         case INCREASE_BGM_VOLUME:
-            ChangeValueAndClamp(&bgMusicVolume, 0.1f, 0, 1);
+            ChangeValueAndClamp(&bgMusicVolume, 0.1f, 0, 1, 1);
             UpdateBgmVolume();
             break;
         case DECREASE_BGM_VOLUME:
-            ChangeValueAndClamp(&bgMusicVolume, -0.1f, 0, 1);
+            ChangeValueAndClamp(&bgMusicVolume, -0.1f, 0, 1, 1);
             UpdateBgmVolume();
             break;
 
@@ -140,22 +141,26 @@ void InvokeButtonAction(struct Button *b) {
             playersUseTheSameWeapon = !playersUseTheSameWeapon;
             break;
         case INCREASE_PLAYER_EFFECT_MULTIPLIER:
-            ChangeValueAndClamp(&playerEffectMultiplier, 0.1f, 0, 2);
+            ChangeValueAndClamp(&playerEffectMultiplier, 0.1f, 0, 2, 1);
             break;
         case DECREASE_PLAYER_EFFECT_MULTIPLIER:
-            ChangeValueAndClamp(&playerEffectMultiplier, -0.1f, 0, 2);
+            ChangeValueAndClamp(&playerEffectMultiplier, -0.1f, 0, 2, 1);
             break;
         case INCREASE_WINS_NEEDED_TO_WIN_GAME:
-            ChangeValueAndClamp(&playerEffectMultiplier, 1, 2, 25);
+            t = (float)winsNeededToWinGame;
+            ChangeValueAndClamp(&t, 1, 2, 25, 1);
+            winsNeededToWinGame = (int)t;
             break;
         case DECREASE_WINS_NEEDED_TO_WIN_GAME:
-            ChangeValueAndClamp(&playerEffectMultiplier, -1, 2, 25);
+            t = (float)winsNeededToWinGame;
+            ChangeValueAndClamp(&t, -1, 2, 25, 1);
+            winsNeededToWinGame = (int)t;
             break;
         case INCREASE_RECOIL_SCALE:
-            ChangeValueAndClamp(&recoilScale, 0.1f, 0, 2);
+            ChangeValueAndClamp(&recoilScale, 0.1f, 0, 2, 1);
             break;
         case DECREASE_RECOIL_SCALE:
-            ChangeValueAndClamp(&recoilScale, -0.1f, 0, 2);
+            ChangeValueAndClamp(&recoilScale, -0.1f, 0, 2, 1);
             break;
         default:
             perror("Invalid button action.");

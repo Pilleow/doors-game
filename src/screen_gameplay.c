@@ -427,9 +427,9 @@ void UpdateGameplayScreen(void) {
                             btype, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, p->booletDecayTimeLeft
                     );
                     nextBooletIndex %= maxBooletsOnMap;
-                    PlaySound(sfxShoot[p->sfxShootSoundIndex++]);
                     p->sfxShootSoundIndex %= sfxShootCount;
                 }
+                PlaySound(sfxShoot[p->sfxShootSoundIndex++]);
             } else if (btype == INVERTED) {
                 int x = p->rect.x + p->rect.width / 2;
                 int y = p->rect.y + p->rect.height / 2;
@@ -451,7 +451,6 @@ void UpdateGameplayScreen(void) {
                     rNext.x += p->shootingDirection.x * delta;
                     rNext.y += p->shootingDirection.y * delta;
                 }
-                printf("%f, %f\n", r.x, r.y);
                 InitBooletDefaults(
                         &boolets[nextBooletIndex++], p,
                         r.x, r.y,
@@ -459,6 +458,9 @@ void UpdateGameplayScreen(void) {
                         p->shootingDirection.y, 1, p->bulletSpeed,
                         btype, ColorFromHSV(p->huePhase, .8, 1), p->booletAmplitude, p->booletDecayTimeLeft
                 );
+                nextBooletIndex %= maxBooletsOnMap;
+                PlaySound(sfxShoot[p->sfxShootSoundIndex++]);
+                p->sfxShootSoundIndex %= sfxShootCount;
             } else {
                 InitBooletDefaults(
                         &boolets[nextBooletIndex++], p,

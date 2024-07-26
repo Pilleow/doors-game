@@ -10,8 +10,22 @@
 
 bool gotoGameplayScreenMM = false;
 struct Button buttons[mainMenuButtonCount];
+char masterVolumeText[8];
+int masterVolumeTextX = 0;
+char bgVolumeText[8];
+int bgVolumeTextX = 0;
+char sfxVolumeText[8];
+int sfxVolumeTextX = 0;
+char pEffText[8];
+int pEffTextX = 0;
+char recoilText[8];
+int recoilTextX = 0;
+char winsText[8];
+int winsTextX = 0;
 
 // functions definition below ------------------------------------------------------------------------------------------
+
+void _UpdateText(void);
 
 void InitMainMenuScreen(void) {
     ShowCursor();
@@ -109,6 +123,25 @@ void InitMainMenuScreen(void) {
         };
         InvokeButtonUpdate(&buttons[i]);
     }
+    _UpdateText();
+}
+
+void _UpdateText(void) {
+    char format[] = "%d%%";
+
+    sprintf(masterVolumeText, format, (int)(masterVolume * 100));
+    masterVolumeTextX = 300 - MeasureText(masterVolumeText, 40) / 2;
+    sprintf(bgVolumeText, format, (int)(bgMusicVolume * 100));
+    bgVolumeTextX = 300 - MeasureText(bgVolumeText, 40) / 2;
+    sprintf(sfxVolumeText, format, (int)(sfxShootVolume * 100));
+    sfxVolumeTextX = 300 - MeasureText(sfxVolumeText, 40) / 2;
+
+    sprintf(pEffText, format, (int)(playerEffectMultiplier * 100));
+    pEffTextX = screenWidth - 300 - MeasureText(pEffText, 40) / 2;
+    sprintf(recoilText, format, (int)(recoilScale * 100));
+    recoilTextX = screenWidth - 300 - MeasureText(recoilText, 40) / 2;
+    sprintf(winsText, "%d", (int)(winsNeededToWinGame * 100));
+    winsTextX = screenWidth - 300 - MeasureText(winsText, 40) / 2;
 }
 
 void UpdateMainMenuScreen(void) {
@@ -133,6 +166,7 @@ void UpdateMainMenuScreen(void) {
         for (int i = 0; i < mainMenuButtonCount; ++i) {
             InvokeButtonUpdate(&buttons[i]);
         }
+        _UpdateText();
     }
 
     if (IsKeyPressed(KEY_SPACE)) {
@@ -145,6 +179,12 @@ void DrawMainMenuScreen(void) {
     for (int i = 0; i < mainMenuButtonCount; ++i) {
         DrawButton(&buttons[i]);
     }
+    DrawText(masterVolumeText, masterVolumeTextX, screenHeight/2 - 170, 40, WHITE);
+    DrawText(bgVolumeText, bgVolumeTextX, screenHeight/2 - 20, 40, WHITE);
+    DrawText(sfxVolumeText, sfxVolumeTextX, screenHeight/2 + 130, 40, WHITE);
+    DrawText(pEffText, pEffTextX, screenHeight/2 - 170, 40, WHITE);
+    DrawText(recoilText, recoilTextX, screenHeight/2 - 20, 40, WHITE);
+    DrawText(winsText, winsTextX, screenHeight/2 + 130, 40, WHITE);
 }
 
 bool GotoGameplayScreenFromMainMenu() {
