@@ -54,6 +54,8 @@ struct Level levels[levelCount];
 
 RenderTexture2D screenRenderTexture;
 Texture2D texBackground;
+Texture2D texMainMenu;
+Texture2D texGoofyWarning;
 
 float recoilScale = 0.8f;
 float playerEffectMultiplier = 1.5;
@@ -128,6 +130,9 @@ int main(void) {
     ToggleFullscreen();
 
     texBackground = LoadTexture("resources/sprites/bg.png");
+    texMainMenu = LoadTexture("resources/sprites/mainmenu.png");
+    texGoofyWarning = LoadTexture("resources/sprites/goofy_warning.png");
+
     screenRenderTexture = LoadRenderTexture(screenWidth, screenHeight);
 
     srand(time(NULL));      // Initialize random module
@@ -196,6 +201,8 @@ int main(void) {
     for (int i = 0; i < bgMusicCount; ++i) UnloadMusicStream(bgMusic[i]);
     for (int i = 0; i < sfxShootCount; ++i) UnloadSound(sfxShoot[i]);
     UnloadTexture(texBackground);
+    UnloadTexture(texMainMenu);
+    UnloadTexture(texGoofyWarning);
     UnloadRenderTexture(screenRenderTexture);
     CloseAudioDevice();     // Close audio context
     CloseWindow();          // Close window and OpenGL context
