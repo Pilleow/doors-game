@@ -51,7 +51,7 @@ void applyEffectToPlayer(PlayerEffect effectToApply, struct Player *p) {
             p->maxHealth += max_health_modifier * playerEffectMultiplier;
             break;
         case LESS_MAX_HEALTH:
-            if (p->maxHealth > 1) p->maxHealth -= max_health_modifier * playerEffectMultiplier;
+            if (p->maxHealth > max_health_modifier * playerEffectMultiplier) p->maxHealth -= max_health_modifier * playerEffectMultiplier;
             else p->activeEffects[p->nextEffectToSwapIndex] = -1;
             break;
         case LESS_FRICTION:
@@ -114,7 +114,7 @@ void undoEffectFromPlayer(PlayerEffect effectToUndo, struct Player *p) {
             p->booletAmplitude += boolet_amplitude_modifier * playerEffectMultiplier;
             break;
         case MORE_MAX_HEALTH:
-            if (p->maxHealth > 1) p->maxHealth -= max_health_modifier * playerEffectMultiplier;
+            if (p->maxHealth > max_health_modifier * playerEffectMultiplier) p->maxHealth -= max_health_modifier * playerEffectMultiplier;
             break;
         case LESS_MAX_HEALTH:
             p->maxHealth += max_health_modifier * playerEffectMultiplier;

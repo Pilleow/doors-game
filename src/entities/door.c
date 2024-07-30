@@ -23,6 +23,8 @@ void InitDoorsWithRandomEffect(struct Door *d) {
         d->isDebuff = false;
         d->playerEffect = getRandomSpecialEffect();
     }
+    d->playerEffect = LESS_MAX_HEALTH;
+    d->isDebuff = true;
 
     d->color = ColorFromHSV((360 / playerEffectCount * d->playerEffect) % 360, .9, .9);
 

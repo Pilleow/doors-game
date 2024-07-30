@@ -30,87 +30,36 @@ bool CheckWallBooletCollisionAndFixPosition(struct Wall *w, struct Boolet *e) {
     return true;
 }
 
-bool FixEntityPosition(struct Wall *w, Rectangle *rect) {
-    struct Vector2 eCenter = (Vector2) {
-            rect->x + rect->width / 2,
-            rect->y + rect->height / 2,
+void FixPlayerPositionAgainstWall(struct Wall *w, struct Player *p) {// Calculation of centers of rectangles
+    const Vector2 center1 = {p->rect.x + p->rect.width / 2,
+                             p->rect.y + p->rect.height / 2};
+    const Vector2 center2 = {
+            w->rect.x +
+            w->rect.width / 2,
+            w->rect.y +
+            w->rect.height / 2};
+
+    // Calculation of the distance vector between the centers of the rectangles
+    Vector2 delta = (Vector2) {
+            center1.x - center2.x,
+            center1.y - center2.y
     };
 
-    bool isOnlyOneCornerTouching = false;
-    struct Vector2 corner;
-    int cornerIndex;
+    // Calculation of half-widths and half-heights of rectangles
+    const Vector2 hs1 = {p->rect.width * .5f, p->rect.height * .5f};
+    const Vector2 hs2 = {w->rect.width * .5f,
+                         w->rect.height * .5f};
 
-    for (int i = 0; i < 4; ++i) {
-        struct Vector2 tempCorner = (Vector2) {
-                w->rect.x + w->rect.width * (i / 2),
-                w->rect.y + w->rect.height * (i % 2)
-        };
-        if (!CheckCollisionPointRec(tempCorner, *rect)) continue;
-        if (isOnlyOneCornerTouching == true) {
-            isOnlyOneCornerTouching = false;
-            break;
-        }
-        isOnlyOneCornerTouching = true;
-        corner = tempCorner;
-        cornerIndex = i;
-    }
+    // Calculation of the minimum distance at which the two rectangles can be separated
+    const float minDistX = hs1.x + hs2.x - fabsf(delta.x);
+    const float minDistY = hs1.y + hs2.y - fabsf(delta.y);
 
-    if (isOnlyOneCornerTouching) {
-        int dx = 0, dy = 0;
-        struct Vector2 eCorner;
-
-        for (int j = 0; j < 4; ++j) {
-            eCorner = (Vector2) {
-                    rect->x + rect->width * (j / 2),
-                    rect->y + rect->height * (j % 2)
-            };
-            if (!CheckCollisionPointRec(eCorner, w->rect)) continue;
-            dx = fabsf(eCorner.x - corner.x);
-            dy = fabsf(eCorner.y - corner.y);
-            break;
-        }
-
-        if (dx > dy) {
-            switch (cornerIndex) {
-                case 0: // top left
-                    rect->y = w->rect.y - rect->height;
-                    break;
-                case 1: // bottom left
-                    rect->y = w->rect.y + w->rect.height;
-                    break;
-                case 2: // top right
-                    rect->y = w->rect.y - rect->height;
-                    break;
-                case 3: // bottom right
-                    rect->y = w->rect.y + w->rect.height;
-                    break;
-            }
-        } else if (dx < dy) {
-            switch (cornerIndex) {
-                case 0: // top left
-                    rect->x = w->rect.x - rect->width;
-                    break;
-                case 1: // bottom left
-                    rect->x = w->rect.x - rect->width;
-                    break;
-                case 2: // top right
-                    rect->x = w->rect.x + w->rect.width;
-                    break;
-                case 3: // bottom right
-                    rect->x = w->rect.x + w->rect.width;
-                    break;
-            }
-        }
+    // Adjusted object position based on minimum distance
+    if (minDistX < minDistY) {
+        p->rect.x += copysignf(minDistX, delta.x);
     } else {
-        if (eCenter.x > w->rect.x && eCenter.x < w->rect.x + w->rect.width) {
-            if (eCenter.y < w->rect.y + w->rect.height / 2) rect->y = w->rect.y - rect->height;
-            else rect->y = w->rect.y + w->rect.height;
-        } else {
-            if (eCenter.x < w->rect.x + w->rect.width / 2) rect->x = w->rect.x - rect->width;
-            else rect->x = w->rect.x + w->rect.width;
-        }
+        p->rect.y += copysignf(minDistY, delta.y);
     }
-    return true;
 }
 
 void DrawWall(struct Wall *w) {

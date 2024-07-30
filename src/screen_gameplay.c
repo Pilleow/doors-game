@@ -41,7 +41,7 @@ struct Door doors[4];
 float hueRotationSpeed = 40;
 float hueRotationTimer = 0;
 
-int currentLevelIndex = 0;
+int currentLevelIndex = -1;
 static int nextBooletIndex = 0;
 static char playersCurrentlyPlaying;
 
@@ -156,6 +156,7 @@ void InitGameplayScreen(void) {
     shuffleLevelArray(levels, levelCount);
     currentLevelIndex = -1;
     resetLevel();
+    currentLevelIndex = -1;
 }
 
 // this function resets the players and map for a new round of the game
@@ -289,11 +290,18 @@ void UpdateGameplayScreen(void) {
     for (int i = 0; i < 4; ++i) {
         if (players[i].isPlaying) playersCurrentlyPlaying++;
         else continue;
-        if (!players[i].isDead) playersAlive++;
-        else continue;
         struct Player *p = &players[i];
         if (!playGameCrownAnim) ProcessPlayerInput(p, i + (inputState == MIXED ? -1 : 0) - (inputState == KEYBOARD_ONLY ? playerCount : 0));
         ApplyPlayerVelocity(&players[i]);
+        if ((currentLevelIndex >= 0 || i >= maxWallCount - 4)) {
+            for (int j = 0; j < maxWallCount; ++j) {
+                if (CheckCollisionRecs(levels[currentLevelIndex].walls[j].rect, players[i].rect)) {
+                    FixPlayerPositionAgainstWall(&levels[currentLevelIndex].walls[j], &players[i]);
+                }
+            }
+        }
+        if (!players[i].isDead) playersAlive++;
+        else continue;
         if (gameState == CHOOSEDOOR && !players[i].isDead) {
             if (GetTime() - doors[0].timeSpawned > 1)
                 for (int j = 0; j < 4; ++j) {
@@ -347,43 +355,6 @@ void UpdateGameplayScreen(void) {
                 }
         }
 
-        if ((currentLevelIndex >= 0 || i >= maxWallCount - 4)) {
-            for (int j = 0; j < maxWallCount; ++j) {
-                if (CheckCollisionRecs(levels[currentLevelIndex].walls[j].rect, players[i].rect)) {
-
-                    // Calculation of centers of rectangles
-                    const Vector2 center1 = {players[i].rect.x + players[i].rect.width / 2,
-                                             players[i].rect.y + players[i].rect.height / 2};
-                    const Vector2 center2 = {
-                            levels[currentLevelIndex].walls[j].rect.x +
-                            levels[currentLevelIndex].walls[j].rect.width / 2,
-                            levels[currentLevelIndex].walls[j].rect.y +
-                            levels[currentLevelIndex].walls[j].rect.height / 2};
-
-                    // Calculation of the distance vector between the centers of the rectangles
-                    Vector2 delta = (Vector2) {
-                            center1.x - center2.x,
-                            center1.y - center2.y
-                    };
-
-                    // Calculation of half-widths and half-heights of rectangles
-                    const Vector2 hs1 = {players[i].rect.width * .5f, players[i].rect.height * .5f};
-                    const Vector2 hs2 = {levels[currentLevelIndex].walls[j].rect.width * .5f,
-                                         levels[currentLevelIndex].walls[j].rect.height * .5f};
-
-                    // Calculation of the minimum distance at which the two rectangles can be separated
-                    const float minDistX = hs1.x + hs2.x - fabsf(delta.x);
-                    const float minDistY = hs1.y + hs2.y - fabsf(delta.y);
-
-                    // Adjusted object position based on minimum distance
-                    if (minDistX < minDistY) {
-                        players[i].rect.x += copysignf(minDistX, delta.x);
-                    } else {
-                        players[i].rect.y += copysignf(minDistY, delta.y);
-                    }
-                }
-            }
-        }
         if (IsPlayerShooting(p) && !playGameCrownAnim) {
             BooletType btype = p->booletType;
             if (btype == RANDOM) {
@@ -582,7 +553,7 @@ void UpdateGameplayScreen(void) {
     if (IsKeyPressed(KEY_F5)) gotoLevelEditor = true;
 
     // read the code
-    if (IsKeyPressed(KEY_F6)) for (int i = 0; i < playerCount; ++i) players[i].totalGameWins++;
+    if (IsKeyPressed(KEY_F6)) currentMusicIndex = (currentMusicIndex + 1) % bgMusicCount;
 }
 
 // this function handles drawing of all elements on the window
@@ -649,7 +620,15 @@ void DrawGameplayScreen(bool overrideMode) {
         }
     }
 
-    for (int i = 0; i < 4; ++i) if (players[i].isPlaying && !players[i].isDead) DrawPlayerTail(&players[i]);
+    playersCurrentlyPlaying = 0;
+    for (int i = 0; i < playerCount; ++i) {
+        if (players[i].isPlaying) {
+            playersCurrentlyPlaying++;
+            DrawPlayerTail(&players[i]);
+        }
+        if (!players[i].isPlaying || !players[i].isDead) continue;
+        DrawPlayer(&players[i]);
+    }
     for (int i = 0; i < maxBooletsOnMap; ++i) if (boolets[i].enabled) DrawBoolet(&boolets[i]);
     for (int i = 0; i < maxWallCount; ++i) {
         if ((currentLevelIndex >= 0 || i >= maxWallCount - 4) && levels[currentLevelIndex].walls[i].enabled) {
@@ -657,12 +636,10 @@ void DrawGameplayScreen(bool overrideMode) {
         }
     }
 
-    playersCurrentlyPlaying = 0;
     for (int i = 0; i < playerCount; ++i) {
-        if (players[i].isPlaying) playersCurrentlyPlaying++;
-        if (!players[i].isPlaying) continue;
+        if (!players[i].isPlaying || players[i].isDead) continue;
         DrawPlayerScore(&players[i]);
-        if (!players[i].isDead) DrawPlayer(&players[i]);
+        DrawPlayer(&players[i]);
     }
     for (int i = 0; i < playerCount; ++i) {
         if (players[i].isDead || !players[i].isPlaying) continue;
@@ -782,11 +759,25 @@ void DrawGameplayScreen(bool overrideMode) {
     if (gameState == CHOOSEDOOR) for (int i = 0; i < 4; ++i) DrawDoor(&doors[i]);
 
     if (playersCurrentlyPlaying < 2 && gameState == FIGHT) {
-        int fontSize = 128;
+        int fontSize = 140;
         int textWidth = MeasureTextEx(GetFontDefault(), "WAITING FOR PLAYERS", fontSize, 10).x;
         DrawTextPro(GetFontDefault(), "WAITING FOR PLAYERS",
                     (Vector2) {screenWidth / 2, screenHeight / 2},
-                    (Vector2) {textWidth / 2, fontSize / 2}, sinf(GetTime() + 2 * PI / 3), fontSize, 10,
+                    (Vector2) {textWidth / 2, fontSize / 2}, 2 * sinf(GetTime() + 2 * PI / 3), fontSize, 10,
+                    ColorAlpha(WHITE, 0.7));
+    } else if (currentLevelIndex < 0 && gameState == FIGHT) {
+        int fontSize = 140;
+        int textWidth = MeasureTextEx(GetFontDefault(), "KILL YOUR FRIENDS", fontSize, 10).x;
+        DrawTextPro(GetFontDefault(), "KILL YOUR FRIENDS",
+                    (Vector2) {screenWidth / 2, screenHeight / 2},
+                    (Vector2) {textWidth / 2, fontSize / 2}, 2 * sinf(GetTime() + 2 * PI / 3), fontSize, 10,
+                    ColorAlpha(WHITE, 0.7));
+    } else if (currentLevelIndex < 0 && gameState == CHOOSEDOOR) {
+        int fontSize = 140;
+        int textWidth = MeasureTextEx(GetFontDefault(), "CHOOSE A DOOR", fontSize, 10).x;
+        DrawTextPro(GetFontDefault(), "CHOOSE A DOOR",
+                    (Vector2) {screenWidth / 2, screenHeight / 2},
+                    (Vector2) {textWidth / 2, fontSize / 2}, 2 * sinf(GetTime() + 2 * PI / 3), fontSize, 10,
                     ColorAlpha(WHITE, 0.7));
     }
 

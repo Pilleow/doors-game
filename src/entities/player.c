@@ -129,19 +129,24 @@ void MovePlayerBackOneStep(struct Player *b) {
 }
 
 void ProcessPlayerInput(struct Player *p, char gamepadId) {
-    float x, y;
+    float x = 0.0f, y = 0.0f;
+
+    float f = (p->friction < 0.97 ? p->friction : 0.97);
+    if (p->isDead) f = 1.0f - 1.0f / 32.0f;
 
     if (p->speed < p->defaultSpeed * 1.1) {
-        p->velocity.x *= (p->friction < 0.97 ? p->friction : 0.97);
-        p->velocity.y *= (p->friction < 0.97 ? p->friction : 0.97);
+        p->velocity.x *= f;
+        p->velocity.y *= f;
     }
-    if (IsKeyDown(p->keyMoveUp)) p->velocity.y -= 1;
-    if (IsKeyDown(p->keyMoveDown)) p->velocity.y += 1;
-    if (IsKeyDown(p->keyMoveLeft)) p->velocity.x -= 1;
-    if (IsKeyDown(p->keyMoveRight)) p->velocity.x += 1;
 
-    x = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_LEFT_X);
-    y = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_LEFT_Y);
+    if (!p->isDead) {
+        if (IsKeyDown(p->keyMoveUp)) p->velocity.y -= 1;
+        if (IsKeyDown(p->keyMoveDown)) p->velocity.y += 1;
+        if (IsKeyDown(p->keyMoveLeft)) p->velocity.x -= 1;
+        if (IsKeyDown(p->keyMoveRight)) p->velocity.x += 1;
+        x = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_LEFT_X);
+        y = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_LEFT_Y);
+    }
 
     p->velocity.x = x == 0 ? p->velocity.x : x;
     p->velocity.y = y == 0 ? p->velocity.y : y;
@@ -151,11 +156,11 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
     }
 
     if (p->speed > p->defaultSpeed) {
-        p->speed = p->defaultSpeed + (p->friction < 0.97 ? p->friction : 0.97) * (p->speed - p->defaultSpeed);
+        p->speed = p->defaultSpeed + f * (p->speed - p->defaultSpeed);
     }
         if (
-            (IsKeyDown(p->keyDodge) ||
-             IsGamepadButtonDown(gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_2))
+            (IsKeyDown(p->keyDodge) || IsGamepadButtonDown(gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_2))
+            && !p->isDead
             && GetTime() - p->lastDodgeTime > p->dodgeCooldownTime
             && p->recoilSpeed < p->defaultSpeed / recoilDodgeDivisionLimit
             ) {
@@ -172,13 +177,14 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
     p->shootingDirection.x = 0;
     p->shootingDirection.y = 0;
 
-    if (IsKeyDown(p->keyShootUp)) p->shootingDirection.y -= 1;
-    if (IsKeyDown(p->keyShootDown)) p->shootingDirection.y += 1;
-    if (IsKeyDown(p->keyShootLeft)) p->shootingDirection.x -= 1;
-    if (IsKeyDown(p->keyShootRight)) p->shootingDirection.x += 1;
-
-    x = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_RIGHT_X);
-    y = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_RIGHT_Y);
+    if (!p->isDead) {
+        if (IsKeyDown(p->keyShootUp)) p->shootingDirection.y -= 1;
+        if (IsKeyDown(p->keyShootDown)) p->shootingDirection.y += 1;
+        if (IsKeyDown(p->keyShootLeft)) p->shootingDirection.x -= 1;
+        if (IsKeyDown(p->keyShootRight)) p->shootingDirection.x += 1;
+        x = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_RIGHT_X);
+        y = GetGamepadAxisMovement(gamepadId, GAMEPAD_AXIS_RIGHT_Y);
+    }
 
     p->shootingDirection.x = x == 0 ? p->shootingDirection.x : x;
     p->shootingDirection.y = y == 0 ? p->shootingDirection.y : y;
@@ -209,7 +215,9 @@ Rectangle _getUpdatedRectByVelocity(Rectangle rect, Vector2 velocity, float spee
 void ApplyPlayerVelocity(struct Player *p) {
     p->rect = _getUpdatedRectByVelocity(p->rect, p->velocity, p->speed, p->recoilVelocity, p->recoilSpeed);
     if (p->recoilSpeed != 0) {
-        p->recoilSpeed = (p->friction < 0.97 ? p->friction : 0.97) * p->recoilSpeed;
+        float f = (p->friction < 0.97 ? p->friction : 0.97);
+        if (p->isDead) f = 1.0f - 1.0f / 32.0f;
+        p->recoilSpeed = f * p->recoilSpeed;
     }
 }
 
@@ -233,10 +241,13 @@ void DrawPlayerTail(struct Player *p) {
     }
     for (int i = pastPlayerPositionsCount - 1; i >= 0; --i) {
         if (i != 0 && p->pastPos[i - 1].x == p->pastPos[i].x && p->pastPos[i - 1].y == p->pastPos[i].y) continue;
+        Color c;
+        if (!p->isDead) c = ColorFromHSV(p->huePhase, 1, 0.7);
+        else c = ColorFromHSV(p->huePhase, 0.2, 0.3);
         DrawRectangle(
                 p->pastPos[i].x, p->pastPos[i].y,
                 p->rect.width, p->rect.height,
-                ColorAlpha(ColorFromHSV(p->huePhase, 1, 0.7), 1 - (float) i / (float) pastPlayerPositionsCount)
+                ColorAlpha(c, 1 - (float) i / (float) pastPlayerPositionsCount)
         );
     }
 }
@@ -248,16 +259,26 @@ void DrawPlayer(struct Player *p) {
         int len = p->rect.width * 2;
         DrawRectangleV(
                 (Vector2) {centerX + len * p->shootingDirection.x, centerY + len * p->shootingDirection.y},
-                (Vector2) {10, 10},
-                ColorFromHSV(p->huePhase, 1, 0.7)
+                (Vector2) {10, 10}, ColorFromHSV(p->huePhase, 1, 0.7)
         );
     }
     int pd = 3;
-    float s = (float) p->health / (float) p->maxHealth;
-    Color c = ColorFromHSV(p->huePhase, s, 1);
-    DrawRectangle(p->rect.x, p->rect.y, p->rect.width, p->rect.height, ColorFromHSV(p->huePhase, 1, 0.7));
-    DrawRectangle(p->rect.x + pd, p->rect.y + pd, p->rect.width - 2 * pd, p->rect.height - 2 * pd,
-                  c);
+    float maxHealthInv = 1 / (float) (p->maxHealth == 0 ? 1 : p->maxHealth);
+    float s = (float) p->health * maxHealthInv;
+    if (s > 1.0f) s = 1.0f;
+    else if (s < maxHealthInv) s = maxHealthInv;
+    float value = 1.0f;
+    if (p->isDead) {
+        float x = 3 * (GetTime() - p->lastTimeTakenDamage);
+        value = 1.6 / (1 + x) - 0.6;
+        s = value;
+        if (value < 0.3) value = 0.3;
+        if (s < 0.2) s = 0.2;
+    }
+    Color c = ColorFromHSV(p->huePhase, s, value);
+    Color cBorder = ColorFromHSV(p->huePhase, s / 2 + 0.5f, value * 0.7);
+    DrawRectangle(p->rect.x, p->rect.y, p->rect.width, p->rect.height, cBorder);
+    DrawRectangle(p->rect.x + pd, p->rect.y + pd, p->rect.width - 2 * pd, p->rect.height - 2 * pd, c);
 
     int eyeSpacing = p->rect.width / 5;
     int eyeHeight = p->rect.height / 2.5;
@@ -270,7 +291,7 @@ void DrawPlayer(struct Player *p) {
     if (Vector2LengthSqr(eyeMovement) > 1)
         eyeMovement = Vector2Normalize(eyeMovement);
 
-    if (GetTime() - p->lastTimeTakenDamage > 0.5 && p->speed < 2 * p->defaultSpeed) {
+    if (GetTime() - p->lastTimeTakenDamage > 0.5 && p->speed < 2 * p->defaultSpeed && !p->isDead) {
         if (GetTime() - p->lastTimeBlinked < 0.1) {
             eyeHeight = eyeWidth;
             eyeWidth *= 1.7;
@@ -289,8 +310,8 @@ void DrawPlayer(struct Player *p) {
                 p->rect.y + (p->rect.height - eyeHeight) / 2 + eyeMovementFactor * eyeMovement.y,
                 eyeWidth, eyeHeight
         };
-        DrawRectangleRec(leftEye, ColorFromHSV(p->huePhase, 1, 0.7));
-        DrawRectangleRec(rightEye, ColorFromHSV(p->huePhase, 1, 0.7));
+        DrawRectangleRec(leftEye, cBorder);
+        DrawRectangleRec(rightEye, cBorder);
     } else {
         DrawLineEx(
                 (Vector2) {
@@ -301,8 +322,7 @@ void DrawPlayer(struct Player *p) {
                         p->rect.x + (p->rect.width + 2 * eyeSpacing) / 2 + eyeWidth + eyeMovementFactor * eyeMovement.x,
                         p->rect.y + (p->rect.height - eyeHeight) / 2 + eyeMovementFactor * eyeMovement.y + eyeHeight
                 },
-                eyeWidth,
-                ColorFromHSV(p->huePhase, 1, 0.7)
+                eyeWidth, cBorder
         );
         DrawLineEx(
                 (Vector2) {
@@ -313,8 +333,7 @@ void DrawPlayer(struct Player *p) {
                         p->rect.x + (p->rect.width - 2 * eyeSpacing) / 2 - eyeWidth + eyeMovementFactor * eyeMovement.x,
                         p->rect.y + (p->rect.height - eyeHeight) / 2 + eyeMovementFactor * eyeMovement.y + eyeHeight
                 },
-                eyeWidth,
-                ColorFromHSV(p->huePhase, 1, 0.7)
+                eyeWidth, cBorder
         );
         DrawRectangleRec(
                 (Rectangle) {
@@ -368,6 +387,7 @@ void DrawPlayerScore(struct Player *p) {
 }
 
 bool IsPlayerShooting(struct Player *p) {
+    if (p->isDead) return false;
     if (p->speed > 2 * p->defaultSpeed) return false;
     if (p->booletType == HITSCAN && GetTime() - p->timeSinceStartedAiming < 0.2f) return false;
     if (GetTime() - p->lastShotTime > p->shotCooldownTime &&
