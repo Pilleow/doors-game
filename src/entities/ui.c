@@ -131,8 +131,8 @@ void InvokeButtonAction(struct Button *b) {
         case SWITCH_FULLSCREEN:
             // todo implement this
             break;
-        case SHOW_FPS:
-            showFPS = !showFPS;
+        case RANDOMIZE_EFFECTS_EVERY_ROUND:
+            randomizeEffectsEveryRound = !randomizeEffectsEveryRound;
             break;
 
         // GAME SETTINGS
@@ -181,8 +181,8 @@ void InvokeButtonUpdate(struct Button *b) {
         case SWITCH_FULLSCREEN:
             b->highlighted = IsWindowFullscreen();
             break;
-        case SHOW_FPS:
-            b->highlighted = showFPS;
+        case RANDOMIZE_EFFECTS_EVERY_ROUND:
+            b->highlighted = randomizeEffectsEveryRound;
             break;
         case SWITCH_ALL_PLAYERS_USING_THE_SAME_WEAPON:
             b->highlighted = playersUseTheSameWeapon;

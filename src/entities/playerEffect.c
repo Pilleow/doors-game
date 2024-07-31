@@ -24,10 +24,10 @@ void applyEffectToPlayer(PlayerEffect effectToApply, struct Player *p) {
             p->defaultSpeed -= player_speed_modifier;
             p->speed -= player_speed_modifier;
             break;
-        case MORE_BULLET_SPEED:
+        case MORE_BOOLET_SPEED:
             p->bulletSpeed += boolet_speed_modifier * playerEffectMultiplier / 2;
             break;
-        case LESS_BULLET_SPEED:
+        case LESS_BOOLET_SPEED:
             p->bulletSpeed -= boolet_speed_modifier;
             break;
         case SMALLER_BODY:
@@ -62,10 +62,10 @@ void applyEffectToPlayer(PlayerEffect effectToApply, struct Player *p) {
         case MORE_FRICTION:
             p->friction -= friction_modifier * playerEffectMultiplier;
             break;
-        case SHORTER_SHOOT_COOLDOWN_TIME:
+        case SHORTER_SHOOT_COOLDOWN:
             p->shotCooldownTime -= shoot_cooldown_time_modifier * playerEffectMultiplier;
             break;
-        case LONGER_SHOOT_COOLDOWN_TIME:
+        case LONGER_SHOOT_COOLDOWN:
             p->shotCooldownTime += shoot_cooldown_time_modifier * playerEffectMultiplier;
             break;
         case SHORTER_DASH_COOLDOWN:
@@ -89,10 +89,10 @@ void undoEffectFromPlayer(PlayerEffect effectToUndo, struct Player *p) {
             p->defaultSpeed += player_speed_modifier;
             p->speed += player_speed_modifier;
             break;
-        case MORE_BULLET_SPEED:
+        case MORE_BOOLET_SPEED:
             p->bulletSpeed -= boolet_speed_modifier * playerEffectMultiplier / 2;
             break;
-        case LESS_BULLET_SPEED:
+        case LESS_BOOLET_SPEED:
             p->bulletSpeed += boolet_speed_modifier;
             break;
         case SMALLER_BODY:
@@ -123,10 +123,10 @@ void undoEffectFromPlayer(PlayerEffect effectToUndo, struct Player *p) {
         case MORE_FRICTION:
             p->friction += friction_modifier * playerEffectMultiplier;
             break;
-        case SHORTER_SHOOT_COOLDOWN_TIME:
+        case SHORTER_SHOOT_COOLDOWN:
             p->shotCooldownTime += shoot_cooldown_time_modifier * playerEffectMultiplier;
             break;
-        case LONGER_SHOOT_COOLDOWN_TIME:
+        case LONGER_SHOOT_COOLDOWN:
             p->shotCooldownTime -= shoot_cooldown_time_modifier * playerEffectMultiplier;
             break;
         case SHORTER_DASH_COOLDOWN:

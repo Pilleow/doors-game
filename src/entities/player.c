@@ -2,6 +2,7 @@
 #include "raymath.h"
 #include "../screens.h"
 
+#include "playerEffect.h"
 #include "player.h"
 #include "boolet.h"
 #include "../constants.h"
@@ -162,7 +163,6 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
             (IsKeyDown(p->keyDodge) || IsGamepadButtonDown(gamepadId, GAMEPAD_BUTTON_LEFT_TRIGGER_2))
             && !p->isDead
             && GetTime() - p->lastDodgeTime > p->dodgeCooldownTime
-            && p->recoilSpeed < p->defaultSpeed / recoilDodgeDivisionLimit
             ) {
         p->lastDodgeTime = GetTime();
         p->speed *= dodgeSpeedMultiplier;
@@ -248,6 +248,26 @@ void DrawPlayerTail(struct Player *p) {
                 p->pastPos[i].x, p->pastPos[i].y,
                 p->rect.width, p->rect.height,
                 ColorAlpha(c, 1 - (float) i / (float) pastPlayerPositionsCount)
+        );
+    }
+    for (int i = 0; i < playerEffectCapacityAndLifespan; ++i) {
+        if (p->activeEffects[i] == -1) continue;
+        float iMod = ((float) (i + 1)) / (float) playerEffectCapacityAndLifespan;
+        float t = PI * iMod + GetTime();
+        Vector2 *pRec = &p->pastPos[(int) (pastPlayerPositionsCount * iMod) - 1];
+        Vector2 posDelta = (Vector2) {
+                cosf(t) * p->rect.width,
+                sinf(t) * p->rect.width
+        };
+        DrawTexturePro(
+                playerEffectSprites[p->activeEffects[i]],
+                (Rectangle) {0, 0, 18, 18},
+                (Rectangle) {
+                    pRec->x + p->rect.width/2.0f + posDelta.x - 20,
+                    pRec->y + p->rect.height/2.0f + posDelta.y - 20,
+                    40, 40
+                    },
+                (Vector2) {0, 0}, 0, WHITE
         );
     }
 }

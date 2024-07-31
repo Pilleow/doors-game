@@ -99,7 +99,7 @@ void InitMainMenuScreen(void) {
     );
     InitButtonDefaults(
             &buttons[14], (Rectangle) {screenWidth - 300 - 175, screenHeight / 2 - 35 + 300, 350, 70},
-            GREEN, WHITE, SHOW_FPS, GetFontDefault(), 40, "SHOW FPS"
+            GREEN, WHITE, RANDOMIZE_EFFECTS_EVERY_ROUND, GetFontDefault(), 40, "DICE ROLL"
     );
     InitButtonDefaults(
             &buttons[15], (Rectangle) {screenWidth / 2 - 250, screenHeight / 2 + 300, 100, 70},
@@ -171,10 +171,10 @@ void UpdateMainMenuScreen(void) {
         }
         _UpdateText();
 
-        if (!warningActive && (playerEffectMultiplier > 1.69 || recoilScale > 1)) {
+        if (!warningActive && (playerEffectMultiplier > 1.69 || recoilScale > 1 || randomizeEffectsEveryRound)) {
             warningActive = true;
             warningPopupAnimStart = GetTime();
-        } else if (warningActive && playerEffectMultiplier <= 1.69 && recoilScale <= 1) {
+        } else if (warningActive && playerEffectMultiplier <= 1.69 && recoilScale <= 1 && !randomizeEffectsEveryRound) {
             warningActive = false;
             warningPopupAnimStart = GetTime();
         }

@@ -8,7 +8,7 @@
 #ifndef RAYLIB_GAME_TEMPLATE_CONSTANTS_H
 #define RAYLIB_GAME_TEMPLATE_CONSTANTS_H
 
-#define playerEffectCapacityAndLifespan 2
+#define playerEffectCapacityAndLifespan 3
 #define recoilDodgeDivisionLimit 30
 #define pastPlayerPositionsCount 16
 #define mainMenuButtonCount 24
@@ -30,6 +30,7 @@
 #define hueRotationSpeedOnHitMultiplier 30
 
 extern bool showFPS;
+extern bool randomizeEffectsEveryRound;
 extern bool playersUseTheSameWeapon;
 
 static int playersPlaying = 4;

@@ -191,6 +191,12 @@ void resetLevel() {
         players[i].lastShotTime = GetTime();
         players[i].health = players[i].maxHealth;
 
+        if (randomizeEffectsEveryRound) {
+            for (int j = 0; j < playerEffectCapacityAndLifespan; ++j) {
+                AssignEffectToPlayer(rand() % playerEffectCount, &players[i]);
+            }
+        }
+
         players[i].booletType = bType;
         if (!playersUseTheSameWeapon) {
             bType = (BooletType) (rand() % booletTypeCount);
@@ -291,7 +297,9 @@ void UpdateGameplayScreen(void) {
         if (players[i].isPlaying) playersCurrentlyPlaying++;
         else continue;
         struct Player *p = &players[i];
-        if (!playGameCrownAnim) ProcessPlayerInput(p, i + (inputState == MIXED ? -1 : 0) - (inputState == KEYBOARD_ONLY ? playerCount : 0));
+        if (!playGameCrownAnim)
+            ProcessPlayerInput(p, i + (inputState == MIXED ? -1 : 0) -
+                                  (inputState == KEYBOARD_ONLY ? playerCount : 0));
         ApplyPlayerVelocity(&players[i]);
         if ((currentLevelIndex >= 0 || i >= maxWallCount - 4)) {
             for (int j = 0; j < maxWallCount; ++j) {
@@ -371,7 +379,8 @@ void UpdateGameplayScreen(void) {
                     y += p->shootingDirection.y * delta;
                     r = (Rectangle) {x, y, p->booletSize, p->booletSize};
                     for (int j = 0; j < maxWallCount; ++j)
-                        if (currentLevelIndex >= 0 && CheckCollisionRecs(r, levels[currentLevelIndex].walls[j].rect))
+                        if (currentLevelIndex >= 0 &&
+                            CheckCollisionRecs(r, levels[currentLevelIndex].walls[j].rect))
                             r.x = -1000;
                     for (int j = 0; j < playerCount; ++j)
                         if (&players[j] != p && !players[j].isDead && players[j].isPlaying &&
@@ -412,7 +421,8 @@ void UpdateGameplayScreen(void) {
                 while (isOutOfWindowBounds(rNext) == -1) {
                     bool isCollidingWall = false;
                     for (int j = 0; j < maxWallCount; ++j) {
-                        if (currentLevelIndex >= 0 && CheckCollisionRecs(rNext, levels[currentLevelIndex].walls[j].rect)) {
+                        if (currentLevelIndex >= 0 &&
+                            CheckCollisionRecs(rNext, levels[currentLevelIndex].walls[j].rect)) {
                             isCollidingWall = true;
                             break;
                         }

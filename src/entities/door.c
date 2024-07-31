@@ -12,16 +12,21 @@
 void InitDoorsWithRandomEffect(struct Door *d) {
     d->animationOpenTime = 60;
 
-    float chance = rand() % 100;
-    if (chance < 40) {
+    if (randomizeEffectsEveryRound) {
         d->isDebuff = false;
-        d->playerEffect = getRandomBuff();
-    } else if (chance < 80) {
-        d->isDebuff = true;
-        d->playerEffect = getRandomDebuff();
+        d->playerEffect = RANDOM_EFFECT_TO_EVERYONE;
     } else {
-        d->isDebuff = false;
-        d->playerEffect = getRandomSpecialEffect();
+        float chance = rand() % 100;
+        if (chance < 40) {
+            d->isDebuff = false;
+            d->playerEffect = getRandomBuff();
+        } else if (chance < 80) {
+            d->isDebuff = true;
+            d->playerEffect = getRandomDebuff();
+        } else {
+            d->isDebuff = false;
+            d->playerEffect = getRandomSpecialEffect();
+        }
     }
 
     d->color = ColorFromHSV((360 / playerEffectCount * d->playerEffect) % 360, .9, .9);

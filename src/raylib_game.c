@@ -19,6 +19,7 @@
 #include "raylib.h"
 #include "screens.h"
 #include "constants.h"
+#include "entities/playerEffect.h"
 
 #define SUPPORT_FILEFORMAT_WAV
 #define SUPPORT_FILEFORMAT_MP3
@@ -73,7 +74,9 @@ static bool onTransition = false;
 static int transFromScreen = -1;
 static float bgmPreviousTime = -1;
 static GameScreen transToScreen = UNKNOWN;
+bool randomizeEffectsEveryRound = false;
 bool playersUseTheSameWeapon = false;
+Texture2D playerEffectSprites[17];
 
 //----------------------------------------------------------------------------------
 // Local Functions Declaration
@@ -131,6 +134,24 @@ int main(void) {
     texBackground = LoadTexture("resources/sprites/bg.png");
     texMainMenu = LoadTexture("resources/sprites/mainmenu.png");
     texGoofyWarning = LoadTexture("resources/sprites/goofy_warning.png");
+
+    playerEffectSprites[MORE_PLAYER_SPEED] = LoadTexture("resources/sprites/effects/more_player_speed.png");
+    playerEffectSprites[LESS_PLAYER_SPEED] = LoadTexture("resources/sprites/effects/less_player_speed.png");
+    playerEffectSprites[MORE_BOOLET_SPEED] = LoadTexture("resources/sprites/effects/more_boolet_speed.png");
+    playerEffectSprites[LESS_BOOLET_SPEED] = LoadTexture("resources/sprites/effects/less_boolet_speed.png");
+    playerEffectSprites[SMALLER_BODY] = LoadTexture("resources/sprites/effects/smaller_body.png");
+    playerEffectSprites[LARGER_BODY] = LoadTexture("resources/sprites/effects/larger_body.png");
+    playerEffectSprites[MORE_BOOLET_AMPLITUDE] = LoadTexture("resources/sprites/effects/more_boolet_amplitude.png");
+    playerEffectSprites[LESS_BOOLET_AMPLITUDE] = LoadTexture("resources/sprites/effects/less_boolet_amplitude.png");
+    playerEffectSprites[MORE_MAX_HEALTH] = LoadTexture("resources/sprites/effects/more_max_health.png");
+    playerEffectSprites[LESS_MAX_HEALTH] = LoadTexture("resources/sprites/effects/less_max_health.png");
+    playerEffectSprites[MORE_FRICTION] = LoadTexture("resources/sprites/effects/more_friction.png");
+    playerEffectSprites[LESS_FRICTION] = LoadTexture("resources/sprites/effects/less_friction.png");
+    playerEffectSprites[SHORTER_SHOOT_COOLDOWN] = LoadTexture("resources/sprites/effects/shorter_shoot_cooldown.png");
+    playerEffectSprites[LONGER_SHOOT_COOLDOWN] = LoadTexture("resources/sprites/effects/longer_shoot_cooldown.png");
+    playerEffectSprites[SHORTER_DASH_COOLDOWN] = LoadTexture("resources/sprites/effects/shorter_dash_cooldown.png");
+    playerEffectSprites[LONGER_DASH_COOLDOWN] = LoadTexture("resources/sprites/effects/longer_dash_cooldown.png");
+    playerEffectSprites[RANDOM_EFFECT_TO_EVERYONE] = LoadTexture("resources/sprites/effects/more_player_speed.png");
 
     screenRenderTexture = LoadRenderTexture(screenWidth, screenHeight);
 
@@ -199,6 +220,7 @@ int main(void) {
     // Unload global data loaded
     for (int i = 0; i < bgMusicCount; ++i) UnloadMusicStream(bgMusic[i]);
     for (int i = 0; i < sfxShootCount; ++i) UnloadSound(sfxShoot[i]);
+    for (int i = 0; i < playerEffectCount; ++i) UnloadTexture(playerEffectSprites[i]);
     UnloadTexture(texBackground);
     UnloadTexture(texMainMenu);
     UnloadTexture(texGoofyWarning);
@@ -290,10 +312,10 @@ static void DrawTransition(void) {
     float x = -finalWidth * t;
     float delta = finalWidth * slide;
 
-    topleft = (Vector2)         {x, 0};
-    topright = (Vector2)        {x + delta + finalWidth, 0};
-    bottomleft = (Vector2)      {x - delta, finalHeight};
-    bottomright = (Vector2)     {x + finalWidth, finalHeight};
+    topleft = (Vector2) {x, 0};
+    topright = (Vector2) {x + delta + finalWidth, 0};
+    bottomleft = (Vector2) {x - delta, finalHeight};
+    bottomright = (Vector2) {x + finalWidth, finalHeight};
 
     DrawTriangle(bottomleft, bottomright, topleft, BLACK);
     DrawTriangle(topright, topleft, bottomright, BLACK);

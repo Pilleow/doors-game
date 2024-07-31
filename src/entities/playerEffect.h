@@ -3,6 +3,7 @@
 //
 
 #include "player.h"
+#include "raylib.h"
 
 #ifndef RAYLIB_GAME_TEMPLATE_PLAYEREFFECT_H
 #define RAYLIB_GAME_TEMPLATE_PLAYEREFFECT_H
@@ -23,8 +24,8 @@ static int specialPlayerEffectCount = 1;
 typedef enum {
     MORE_PLAYER_SPEED = 0,
     LESS_PLAYER_SPEED = 1,
-    MORE_BULLET_SPEED,
-    LESS_BULLET_SPEED,
+    MORE_BOOLET_SPEED,
+    LESS_BOOLET_SPEED,
     SMALLER_BODY,
     LARGER_BODY,
     MORE_BOOLET_AMPLITUDE,
@@ -33,17 +34,17 @@ typedef enum {
     LESS_MAX_HEALTH,
     MORE_FRICTION,
     LESS_FRICTION,
-    SHORTER_SHOOT_COOLDOWN_TIME,
-    LONGER_SHOOT_COOLDOWN_TIME,
+    SHORTER_SHOOT_COOLDOWN,
+    LONGER_SHOOT_COOLDOWN,
     SHORTER_DASH_COOLDOWN,
     LONGER_DASH_COOLDOWN,
     RANDOM_EFFECT_TO_EVERYONE               // do not count this in playerEffectCount as this is a special case
 } PlayerEffect;
-static const char playerEffectNames[][24] = {
+static const char playerEffectNames[][17] = {
         [MORE_PLAYER_SPEED] = "SPEED DEMON",
         [LESS_PLAYER_SPEED] = "SUNDAY DRIVER",
-        [MORE_BULLET_SPEED] = "FAST PIECE",
-        [LESS_BULLET_SPEED] = "SLOW PIECE",
+        [MORE_BOOLET_SPEED] = "FAST PIECE",
+        [LESS_BOOLET_SPEED] = "SLOW PIECE",
         [SMALLER_BODY] = "ANT",
         [LARGER_BODY] = "ANT EATER",
         [MORE_BOOLET_AMPLITUDE] = "MORE SWAY",
@@ -52,12 +53,13 @@ static const char playerEffectNames[][24] = {
         [LESS_MAX_HEALTH] = "ATTRITION",
         [MORE_FRICTION] = "CRAMPONS",
         [LESS_FRICTION] = "ICE SKATES",
-        [SHORTER_SHOOT_COOLDOWN_TIME] = "QUICK HANDS",
-        [LONGER_SHOOT_COOLDOWN_TIME] = "SLOW HANDS",
+        [SHORTER_SHOOT_COOLDOWN] = "QUICK HANDS",
+        [LONGER_SHOOT_COOLDOWN] = "SLOW HANDS",
         [SHORTER_DASH_COOLDOWN] = "NEW BALANCE",
         [LONGER_DASH_COOLDOWN] = "OLD SNEAKERS",
         [RANDOM_EFFECT_TO_EVERYONE] = "???"
 };
+extern Texture2D playerEffectSprites[17];
 
 static const int player_speed_modifier = 100;
 static const int boolet_speed_modifier = 150;
