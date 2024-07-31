@@ -68,9 +68,8 @@ enum InputState inputState = MIXED;
 //----------------------------------------------------------------------------------
 
 // Required variables to manage screen transitions (fade-in, fade-out)
-static float transAlpha = 0.0f;
+static float transProgress = 0.0f;
 static bool onTransition = false;
-static bool transFadeOut = false;
 static int transFromScreen = -1;
 static float bgmPreviousTime = -1;
 static GameScreen transToScreen = UNKNOWN;
@@ -238,68 +237,66 @@ static void ChangeToScreen(GameScreen screen) {
 // Request transition to next screen
 static void TransitionToScreen(GameScreen screen) {
     onTransition = true;
-    transFadeOut = false;
     transFromScreen = currentScreen;
     transToScreen = screen;
-    transAlpha = 0.0f;
+    transProgress = 0.0f;
 }
 
 // Update transition effect (fade-in, fade-out)
 static void UpdateTransition(void) {
-    if (!transFadeOut) {
-        transAlpha += 0.1f;
+    const float a = 0.04;
+    transProgress += -a * (transProgress - 0.5) * (transProgress - 0.5) + a - 0.02;
 
-        // NOTE: Due to float internal representation, condition jumps on 1.0f instead of 1.05f
-        // For that reason we compare against 1.01f, to avoid last frame loading stop
-        if (transAlpha > 1.01f) {
-            transAlpha = 1.0f;
+    if (transProgress > 0.5f && currentScreen != transToScreen) {
 
-            // Unload current screen
-            switch (transFromScreen) {
-                case GAMEPLAY:
-                    UnloadGameplayScreen();
-                    break;
-                default:
-                    break;
-            }
-
-            // Load next screen
-            switch (transToScreen) {
-                case GAMEPLAY:
-                    InitGameplayScreen();
-                    break;
-                case LEVELEDITOR:
-                    InitLevelEditorScreen();
-                    break;
-                case MAINMENU:
-                    InitMainMenuScreen();
-                    break;
-                default:
-                    break;
-            }
-
-            currentScreen = transToScreen;
-
-            // Activate fade out effect to next loaded screen
-            transFadeOut = true;
+        // Unload current screen
+        switch (transFromScreen) {
+            case GAMEPLAY:
+                UnloadGameplayScreen();
+                break;
+            default:
+                break;
         }
-    } else  // Transition fade out logic
-    {
-        transAlpha -= 0.05f;
 
-        if (transAlpha < -0.01f) {
-            transAlpha = 0.0f;
-            transFadeOut = false;
-            onTransition = false;
-            transFromScreen = -1;
-            transToScreen = UNKNOWN;
+        // Load next screen
+        switch (transToScreen) {
+            case GAMEPLAY:
+                InitGameplayScreen();
+                break;
+            case LEVELEDITOR:
+                InitLevelEditorScreen();
+                break;
+            case MAINMENU:
+                InitMainMenuScreen();
+                break;
+            default:
+                break;
         }
+
+        currentScreen = transToScreen;
+    }
+    if (transProgress > 1.01f) {
+        onTransition = false;
+        transFromScreen = -1;
+        transToScreen = UNKNOWN;
     }
 }
 
 // Draw transition effect (full-screen rectangle)
 static void DrawTransition(void) {
-    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, transAlpha));
+    Vector2 topleft, topright, bottomleft, bottomright;
+    const float slide = 1.08f;
+    float t = (transProgress * 4 - 2) * slide;
+    float x = -finalWidth * t;
+    float delta = finalWidth * slide;
+
+    topleft = (Vector2)         {x, 0};
+    topright = (Vector2)        {x + delta + finalWidth, 0};
+    bottomleft = (Vector2)      {x - delta, finalHeight};
+    bottomright = (Vector2)     {x + finalWidth, finalHeight};
+
+    DrawTriangle(bottomleft, bottomright, topleft, BLACK);
+    DrawTriangle(topright, topleft, bottomright, BLACK);
 }
 
 // Update and draw game frame
