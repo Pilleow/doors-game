@@ -51,7 +51,9 @@ void applyEffectToPlayer(PlayerEffect effectToApply, struct Player *p) {
             p->maxHealth += max_health_modifier * playerEffectMultiplier;
             break;
         case LESS_MAX_HEALTH:
-            if (p->maxHealth > max_health_modifier * playerEffectMultiplier) p->maxHealth -= max_health_modifier * playerEffectMultiplier;
+            if (p->maxHealth > max_health_modifier * playerEffectMultiplier) {
+                p->maxHealth -= max_health_modifier * playerEffectMultiplier;
+            }
             else p->activeEffects[p->nextEffectToSwapIndex] = -1;
             break;
         case LESS_FRICTION:
@@ -71,12 +73,6 @@ void applyEffectToPlayer(PlayerEffect effectToApply, struct Player *p) {
             break;
         case LONGER_DASH_COOLDOWN:
             p->dodgeCooldownTime += dodge_cooldown_time_modifier * playerEffectMultiplier;
-            break;
-        case LARGER_BULLET_SIZE:
-            p->booletSize += boolet_size_modifier * playerEffectMultiplier;
-            break;
-        case SMALLER_BULLET_SIZE:
-            p->booletSize -= boolet_size_modifier * playerEffectMultiplier;
             break;
         default:
             break;
@@ -114,7 +110,9 @@ void undoEffectFromPlayer(PlayerEffect effectToUndo, struct Player *p) {
             p->booletAmplitude += boolet_amplitude_modifier * playerEffectMultiplier;
             break;
         case MORE_MAX_HEALTH:
-            if (p->maxHealth > max_health_modifier * playerEffectMultiplier) p->maxHealth -= max_health_modifier * playerEffectMultiplier;
+            if (p->maxHealth > max_health_modifier * playerEffectMultiplier) {
+                p->maxHealth -= max_health_modifier * playerEffectMultiplier;
+            }
             break;
         case LESS_MAX_HEALTH:
             p->maxHealth += max_health_modifier * playerEffectMultiplier;
@@ -136,12 +134,6 @@ void undoEffectFromPlayer(PlayerEffect effectToUndo, struct Player *p) {
             break;
         case LONGER_DASH_COOLDOWN:
             p->dodgeCooldownTime -= dodge_cooldown_time_modifier * playerEffectMultiplier;
-            break;
-        case LARGER_BULLET_SIZE:
-            p->booletSize -= boolet_size_modifier * playerEffectMultiplier;
-            break;
-        case SMALLER_BULLET_SIZE:
-            p->booletSize += boolet_size_modifier * playerEffectMultiplier;
             break;
         default:
             break;
