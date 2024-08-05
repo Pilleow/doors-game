@@ -30,10 +30,11 @@ bool CheckWallBooletCollisionAndFixPosition(struct Wall *w, struct Boolet *e) {
     return true;
 }
 
-void FixPlayerPositionAgainstWall(struct Wall *w, struct Player *p) {// Calculation of centers of rectangles
-    const Vector2 center1 = {p->rect.x + p->rect.width / 2,
-                             p->rect.y + p->rect.height / 2};
-    const Vector2 center2 = {
+void FixPlayerPositionAgainstWall(struct Wall *w, struct Player *p) {
+    // Calculation of centers of rectangles
+    const Vector2 centerPlayer = {p->rect.x + p->rect.width / 2,
+                                  p->rect.y + p->rect.height / 2};
+    const Vector2 centerWall = {
             w->rect.x +
             w->rect.width / 2,
             w->rect.y +
@@ -41,18 +42,17 @@ void FixPlayerPositionAgainstWall(struct Wall *w, struct Player *p) {// Calculat
 
     // Calculation of the distance vector between the centers of the rectangles
     Vector2 delta = (Vector2) {
-            center1.x - center2.x,
-            center1.y - center2.y
+            centerPlayer.x - centerWall.x,
+            centerPlayer.y - centerWall.y
     };
 
     // Calculation of half-widths and half-heights of rectangles
-    const Vector2 hs1 = {p->rect.width * .5f, p->rect.height * .5f};
-    const Vector2 hs2 = {w->rect.width * .5f,
-                         w->rect.height * .5f};
+    const Vector2 hsPlayer = {p->rect.width * .5f, p->rect.height * .5f};
+    const Vector2 hsWall = {w->rect.width * .5f, w->rect.height * .5f};
 
     // Calculation of the minimum distance at which the two rectangles can be separated
-    const float minDistX = hs1.x + hs2.x - fabsf(delta.x);
-    const float minDistY = hs1.y + hs2.y - fabsf(delta.y);
+    const float minDistX = hsPlayer.x + hsWall.x - fabsf(delta.x);
+    const float minDistY = hsPlayer.y + hsWall.y - fabsf(delta.y);
 
     // Adjusted object position based on minimum distance
     if (minDistX < minDistY) {
@@ -63,5 +63,5 @@ void FixPlayerPositionAgainstWall(struct Wall *w, struct Player *p) {// Calculat
 }
 
 void DrawWall(struct Wall *w) {
-    DrawRectangleRec(w->rect, ColorFromHSV((int) hueRotationTimer % 360, 1, 1));
+    DrawRectangleRec(w->rect, ColorFromHSV((int) hueRotationTimer % 360, 0.5, 1));
 }

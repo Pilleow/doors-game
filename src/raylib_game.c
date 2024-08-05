@@ -57,12 +57,13 @@ RenderTexture2D screenRenderTexture;
 Texture2D texBackground;
 Texture2D texMainMenu;
 Texture2D texGoofyWarning;
+Texture2D texGlow;
 
 float recoilScale = 0.8f;
 float playerEffectMultiplier = 1.5;
 int winsNeededToWinGame = 10;
 bool showFPS = false;
-enum InputState inputState = MIXED;
+enum InputState inputState = GAMEPAD_ONLY;
 
 //----------------------------------------------------------------------------------
 // Local Variables Definition (local to this module)
@@ -131,6 +132,7 @@ int main(void) {
     InitWindow(finalWidth, finalHeight, "Door Game");
     ToggleFullscreen();
 
+    texGlow = LoadTexture("resources/sprites/glow.png");
     texBackground = LoadTexture("resources/sprites/bg.png");
     texMainMenu = LoadTexture("resources/sprites/mainmenu.png");
     texGoofyWarning = LoadTexture("resources/sprites/goofy_warning.png");
@@ -221,9 +223,10 @@ int main(void) {
     for (int i = 0; i < bgMusicCount; ++i) UnloadMusicStream(bgMusic[i]);
     for (int i = 0; i < sfxShootCount; ++i) UnloadSound(sfxShoot[i]);
     for (int i = 0; i < playerEffectCount; ++i) UnloadTexture(playerEffectSprites[i]);
+    UnloadTexture(texGoofyWarning);
     UnloadTexture(texBackground);
     UnloadTexture(texMainMenu);
-    UnloadTexture(texGoofyWarning);
+    UnloadTexture(texGlow);
     UnloadRenderTexture(screenRenderTexture);
     CloseAudioDevice();     // Close audio context
     CloseWindow();          // Close window and OpenGL context

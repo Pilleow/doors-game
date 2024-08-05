@@ -564,6 +564,9 @@ void UpdateGameplayScreen(void) {
 
     // read the code
     if (IsKeyPressed(KEY_F6)) currentMusicIndex = (currentMusicIndex + 1) % bgMusicCount;
+
+    // add crowns
+    if (IsKeyPressed((KEY_F7))) for (int i = 0; i < playerCount; ++i) players[i].totalGameWins++;
 }
 
 // this function handles drawing of all elements on the window
@@ -587,7 +590,7 @@ void DrawGameplayScreen(bool overrideMode) {
 
     if (!overrideMode) BeginMode2D(camera);
 
-    DrawTexture(texBackground, 0, 0, ColorFromHSV((int) hueRotationTimer % 360, 0.7, 1));
+    DrawTexture(texBackground, 0, 0, WHITE);
 
     if (gameState == TRANSITION) {
         switch (transitionStartLoc) {

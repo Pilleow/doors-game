@@ -18,8 +18,9 @@ typedef enum GameScreen {
 //----------------------------------------------------------------------------------
 // Global Variables Declaration (shared by several modules)
 //----------------------------------------------------------------------------------
-extern Texture2D texBackground;
+extern Texture2D texGlow;
 extern Texture2D texMainMenu;
+extern Texture2D texBackground;
 extern Texture2D texGoofyWarning;
 extern GameScreen currentScreen;
 extern Sound sfxShoot[sfxShootCount];

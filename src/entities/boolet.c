@@ -3,6 +3,7 @@
 //
 
 #include "boolet.h"
+#include "../screens.h"
 #include "raymath.h"
 
 #include <math.h>
@@ -51,6 +52,7 @@ void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, f
     b->amplitude = amplitude;
     b->timeCreated = GetTime();
     b->decayTimeLeft = decayTimeLeft;
+    b->glowAlpha = 0.7f;
 }
 
 void ExplodeBoolet(struct Boolet *b, int *nextBooletIndex, struct Boolet boolets[], BooletType type) {
@@ -114,7 +116,12 @@ void MoveBulletBackOneStep(struct Boolet *b) {
 }
 
 void DrawBoolet(struct Boolet *b) {
-    DrawRectangle(b->rect.x, b->rect.y, b->rect.width, b->rect.height, b->color);
+    Vector2 posG = (Vector2) {
+        b->rect.x + b->rect.width/2 - texGlow.width/2,
+        b->rect.y + b->rect.height/2 - texGlow.height/2
+    };
+    DrawTexture(texGlow, posG.x, posG.y, ColorAlpha(b->color, b->glowAlpha));
+    DrawRectangle(b->rect.x, b->rect.y, b->rect.width, b->rect.height, WHITE);
 }
 
 void ApplyBooletVelocity(struct Boolet *b) {
@@ -127,6 +134,7 @@ void ApplyBooletVelocity(struct Boolet *b) {
     } else if (b->decayTimeLeft < 0.2) {
         b->rect.width *= 0.9;
         b->rect.height *= 0.9;
+        b->glowAlpha *= 0.9;
     }
 
     Vector2Normalize(b->velocity);

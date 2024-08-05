@@ -66,7 +66,7 @@ void InitPlayerDefaults(
     p->shotCooldownTime = 0.5F;
     p->booletType = STRAIGHT;
     p->booletAmplitude = 3;
-    p->booletSize = 6;
+    p->booletSize = 9;
     p->friction = 0.91F;
     p->bulletSpeed = 600;
     p->lastDodgeTime = GetTime();
@@ -273,6 +273,16 @@ void DrawPlayerTail(struct Player *p) {
 }
 
 void DrawPlayer(struct Player *p) {
+    Vector2 posG = (Vector2) {
+            p->rect.x + p->rect.width/2 - texGlow.width * 0.9f,
+            p->rect.y + p->rect.height/2 - texGlow.height * 0.9f
+    };
+    DrawTexturePro(
+            texGlow,
+            (Rectangle) {0, 0, texGlow.width, texGlow.height},
+            (Rectangle) {posG.x, posG.y, texGlow.width * 1.8f, texGlow.height * 1.8f},
+            (Vector2) {0, 0}, 0, ColorAlpha(ColorFromHSV(p->huePhase, 0.5, 1), 0.6f)
+            );
     if (p->shootingDirection.x != 0 || p->shootingDirection.y != 0) {
         int centerX = p->rect.x + p->rect.width / 2;
         int centerY = p->rect.y + p->rect.height / 2;

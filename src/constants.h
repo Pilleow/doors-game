@@ -92,10 +92,10 @@ typedef enum {
     HITSCAN,
     SHOTGUN,
     COPYMOVE,
-    INVERTED,
     BOOMERANG,
-    RANDOM
+    INVERTED,       // turned off
+    RANDOM          // turned off
 } BooletType;
-static const int booletTypeCount = 11;   // this counts only implemented bullet types
+static const int booletTypeCount = 9;   // this counts only implemented bullet types
 
 #endif //RAYLIB_GAME_TEMPLATE_CONSTANTS_H

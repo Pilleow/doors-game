@@ -22,6 +22,7 @@ struct Boolet {
     int timeCreated;
     int amplitude;
     float decayTimeLeft;
+    float glowAlpha;
 };
 
 void InitBooletDefaults(struct Boolet *b, struct Player *parent, float xStart, float yStart, float size, float xVelocity, float yVelocity,
