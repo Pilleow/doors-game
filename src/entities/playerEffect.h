@@ -61,8 +61,8 @@ static const char playerEffectNames[][17] = {
 };
 extern Texture2D playerEffectSprites[17];
 
-static const int player_speed_modifier = 100;
-static const int boolet_speed_modifier = 150;
+static const int player_speed_modifier = 50;
+static const int boolet_speed_modifier = 100;
 static const int body_size_modifier = 15;
 static const int boolet_amplitude_modifier = 2;
 static const int max_health_modifier = 1;

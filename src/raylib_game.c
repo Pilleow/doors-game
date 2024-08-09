@@ -63,7 +63,7 @@ float recoilScale = 0.8f;
 float playerEffectMultiplier = 1.5;
 int winsNeededToWinGame = 10;
 bool showFPS = false;
-enum InputState inputState = GAMEPAD_ONLY;
+enum InputState inputState = MIXED;
 
 //----------------------------------------------------------------------------------
 // Local Variables Definition (local to this module)
@@ -76,8 +76,9 @@ static int transFromScreen = -1;
 static float bgmPreviousTime = -1;
 static GameScreen transToScreen = UNKNOWN;
 bool randomizeEffectsEveryRound = false;
-bool playersUseTheSameWeapon = false;
+bool playersUseTheSameWeapon = true;
 Texture2D playerEffectSprites[17];
+Texture2D booletIconSprites[9];
 
 //----------------------------------------------------------------------------------
 // Local Functions Declaration
@@ -154,6 +155,16 @@ int main(void) {
     playerEffectSprites[SHORTER_DASH_COOLDOWN] = LoadTexture("resources/sprites/effects/shorter_dash_cooldown.png");
     playerEffectSprites[LONGER_DASH_COOLDOWN] = LoadTexture("resources/sprites/effects/longer_dash_cooldown.png");
     playerEffectSprites[RANDOM_EFFECT_TO_EVERYONE] = LoadTexture("resources/sprites/effects/more_player_speed.png");
+
+    booletIconSprites[STRAIGHT] = LoadTexture("resources/sprites/boolets/straight.png");
+    booletIconSprites[SWIRLY] = LoadTexture("resources/sprites/boolets/swirly.png");
+    booletIconSprites[TIMEBENDING] = LoadTexture("resources/sprites/boolets/timebending.png");
+    booletIconSprites[EXPLODING] = LoadTexture("resources/sprites/boolets/exploding.png");
+    booletIconSprites[BOUNCING] = LoadTexture("resources/sprites/boolets/bouncing.png");
+    booletIconSprites[HITSCAN] = LoadTexture("resources/sprites/boolets/hitscan.png");
+    booletIconSprites[SHOTGUN] = LoadTexture("resources/sprites/boolets/shotgun.png");
+    booletIconSprites[COPYMOVE] = LoadTexture("resources/sprites/boolets/copymove.png");
+    booletIconSprites[BOOMERANG] = LoadTexture("resources/sprites/boolets/boomerang.png");
 
     screenRenderTexture = LoadRenderTexture(screenWidth, screenHeight);
 

@@ -41,6 +41,8 @@ add_executable(${PROJECT_NAME}
         src/screen_leveleditor.c
         src/entities/ui.c
         src/entities/ui.h
+        src/entities/pickupItem.c
+        src/entities/pickupItem.h
 )
 add_subdirectory(src)
 

@@ -4,6 +4,7 @@
 
 #include <stdbool.h>
 #include <math.h>
+#include "raylib.h"
 
 #ifndef RAYLIB_GAME_TEMPLATE_CONSTANTS_H
 #define RAYLIB_GAME_TEMPLATE_CONSTANTS_H
@@ -14,6 +15,7 @@
 #define mainMenuButtonCount 24
 #define maxBooletsOnMap 128
 #define sfxDoorOpenCount 3
+#define maxPickupItems 4
 #define winsFontSize 96
 #define doorFontSize 48
 #define maxWallCount 128
@@ -97,5 +99,10 @@ typedef enum {
     RANDOM          // turned off
 } BooletType;
 static const int booletTypeCount = 9;   // this counts only implemented bullet types
+extern Texture2D booletIconSprites[9];
+
+typedef enum {
+    BOOLETSWAP,
+} PickupItemType;
 
 #endif //RAYLIB_GAME_TEMPLATE_CONSTANTS_H

@@ -12,6 +12,7 @@
 #include "entities/level.h"
 #include "entities/player.h"
 #include "entities/boolet.h"
+#include "entities/pickupItem.h"
 #include "entities/playerEffect.h"
 
 // local variable declaration below ------------------------------------------------------------------------------------
@@ -36,6 +37,7 @@ static Vector2 center;
 
 struct Player players[playerCount];
 struct Boolet boolets[maxBooletsOnMap];
+struct PickupItem pItems[maxPickupItems];
 struct Door doors[4];
 
 float hueRotationSpeed = 40;
@@ -170,7 +172,7 @@ void resetLevel() {
             BOTTOMLEFT, BOTTOMRIGHT
     };
 
-    BooletType bType = (BooletType) (rand() % booletTypeCount);
+    BooletType bType;
     for (int i = 0; i < playerCount; ++i) {
         if (players[i].wins >= winsNeededToWinGame) {
             players[i].totalGameWins++;
@@ -197,10 +199,12 @@ void resetLevel() {
             }
         }
 
-        players[i].booletType = bType;
         if (!playersUseTheSameWeapon) {
             bType = (BooletType) (rand() % booletTypeCount);
+        } else {
+            bType = STRAIGHT;
         }
+        players[i].booletType = bType;
 
         for (int j = 0; j < pastPlayerPositionsCount; ++j) {
             players[i].pastPos[j].x = players[i].rect.x;
@@ -215,19 +219,11 @@ void resetLevel() {
     currentLevelIndex++;
     currentLevelIndex %= levelCount;
 
-    int borderWallThickness = 3;
-    levels[currentLevelIndex].walls[maxWallCount - 4] = (struct Wall) {
-            (Rectangle) {0, 0, borderWallThickness, screenHeight}, true
-    };
-    levels[currentLevelIndex].walls[maxWallCount - 3] = (struct Wall) {
-            (Rectangle) {0, 0, screenWidth, borderWallThickness}, true
-    };
-    levels[currentLevelIndex].walls[maxWallCount - 2] = (struct Wall) {
-            (Rectangle) {screenWidth - borderWallThickness, 0, borderWallThickness, screenHeight}, true
-    };
-    levels[currentLevelIndex].walls[maxWallCount - 1] = (struct Wall) {
-            (Rectangle) {0, screenHeight - borderWallThickness, screenWidth, borderWallThickness}, true
-    };
+    for (int i = 0; i < maxPickupItems; ++i) {
+        InitPickupItem(&pItems[i], &texGlow);
+        bool out = SetRandomPickupItemPosition(&pItems[i], levels[currentLevelIndex].walls, pItems, i * 2 + 2 * (i / 2), players);
+        if (!out) pItems[i].enabled = false;
+    }
 }
 
 // this function returns if ANY PART of the rectangle is out of bounds
@@ -484,6 +480,7 @@ void UpdateGameplayScreen(void) {
         int oob = isOutOfWindowBounds(boolets[i].rect);
         if (oob != -1) {
             if (boolets[i].type == BOUNCING) {
+                MoveBulletBackOneStep(&boolets[i]);
                 switch (oob) {
                     case TOP:
                     case BOTTOM:
@@ -532,6 +529,28 @@ void UpdateGameplayScreen(void) {
         }
     }
 
+    // pickup item update ----------------------------------------------------------------------------------------------
+    struct PickupItem *pItem;
+    struct Player *player;
+    for (int itemIndex = 0; itemIndex < maxPickupItems; ++itemIndex) {
+        pItem = &pItems[itemIndex];
+        UpdatePickupItem(pItem, players);
+        if (!pItem->enabled) continue;
+        Rectangle collisionRect = (Rectangle) {
+                pItem->pos.x + pItem->wallCollisionSize.x / 2 - pItem->spriteSize.x / 2,
+                pItem->pos.y + pItem->wallCollisionSize.y / 2 - pItem->spriteSize.y / 2,
+                pItem->spriteSize.x, pItem->spriteSize.y
+        };
+        for (int playerIndex = 0; playerIndex < playerCount; ++playerIndex) {
+            player = &players[playerIndex];
+            if (!player->isPlaying || player->isDead) continue;
+            if (CheckCollisionRecs(player->rect, collisionRect)) {
+                ApplyPickupItemOnPlayer(pItem, player);
+                pItem->enabled = false;
+            }
+        }
+    }
+
     // go to main menu
     if (IsKeyPressed(KEY_ESCAPE)) {
         gotoMainMenu = true;
@@ -562,11 +581,17 @@ void UpdateGameplayScreen(void) {
     // go to level editor
     if (IsKeyPressed(KEY_F5)) gotoLevelEditor = true;
 
-    // read the code
+    // change music
     if (IsKeyPressed(KEY_F6)) currentMusicIndex = (currentMusicIndex + 1) % bgMusicCount;
 
-    // add crowns
-    if (IsKeyPressed((KEY_F7))) for (int i = 0; i < playerCount; ++i) players[i].totalGameWins++;
+    // spawn pickup items
+    if (IsKeyPressed((KEY_F7))) {
+        for (int i = 0; i < maxPickupItems; ++i) {
+            InitPickupItem(&pItems[i], &texGlow);
+            bool out = SetRandomPickupItemPosition(&pItems[i], levels[currentLevelIndex].walls, pItems, i * 2 + 2 * (i / 2), players);
+            if (!out) pItems[i].enabled = false;
+        }
+    }
 }
 
 // this function handles drawing of all elements on the window
@@ -769,6 +794,11 @@ void DrawGameplayScreen(bool overrideMode) {
                 );
         }
     }
+
+    for (int i = 0; i < maxPickupItems; ++i) {
+        if (pItems[i].enabled) DrawPickupItem(&pItems[i]);
+    }
+
     if (gameState == CHOOSEDOOR) for (int i = 0; i < 4; ++i) DrawDoor(&doors[i]);
 
     if (playersCurrentlyPlaying < 2 && gameState == FIGHT) {
