@@ -221,7 +221,8 @@ void resetLevel() {
 
     for (int i = 0; i < maxPickupItems; ++i) {
         InitPickupItem(&pItems[i], &texGlow);
-        bool out = SetRandomPickupItemPosition(&pItems[i], levels[currentLevelIndex].walls, pItems, i * 2 + 2 * (i / 2), players);
+        bool out = SetRandomPickupItemPosition(&pItems[i], levels[currentLevelIndex].walls, pItems, i * 2 + 2 * (i / 2),
+                                               players);
         if (!out) pItems[i].enabled = false;
     }
 }
@@ -536,15 +537,18 @@ void UpdateGameplayScreen(void) {
         pItem = &pItems[itemIndex];
         UpdatePickupItem(pItem, players);
         if (!pItem->enabled) continue;
-        Rectangle collisionRect = (Rectangle) {
-                pItem->pos.x + pItem->wallCollisionSize.x / 2 - pItem->spriteSize.x / 2,
-                pItem->pos.y + pItem->wallCollisionSize.y / 2 - pItem->spriteSize.y / 2,
-                pItem->spriteSize.x, pItem->spriteSize.y
+        Vector2 itemCenter = (Vector2) {
+                pItem->pos.x + pItem->wallCollisionSize.x / 2,
+                pItem->pos.y + pItem->wallCollisionSize.y / 2
         };
         for (int playerIndex = 0; playerIndex < playerCount; ++playerIndex) {
             player = &players[playerIndex];
+            Vector2 playerCenter = (Vector2) {
+                    player->rect.x + player->rect.width / 2,
+                    player->rect.y + player->rect.height / 2
+            };
             if (!player->isPlaying || player->isDead) continue;
-            if (CheckCollisionRecs(player->rect, collisionRect)) {
+            if (Vector2DistanceSqr(itemCenter, playerCenter) < pItem->pickupRadiusSqr) {
                 ApplyPickupItemOnPlayer(pItem, player);
                 pItem->enabled = false;
             }
@@ -588,7 +592,8 @@ void UpdateGameplayScreen(void) {
     if (IsKeyPressed((KEY_F7))) {
         for (int i = 0; i < maxPickupItems; ++i) {
             InitPickupItem(&pItems[i], &texGlow);
-            bool out = SetRandomPickupItemPosition(&pItems[i], levels[currentLevelIndex].walls, pItems, i * 2 + 2 * (i / 2), players);
+            bool out = SetRandomPickupItemPosition(&pItems[i], levels[currentLevelIndex].walls, pItems,
+                                                   i * 2 + 2 * (i / 2), players);
             if (!out) pItems[i].enabled = false;
         }
     }
@@ -657,15 +662,19 @@ void DrawGameplayScreen(bool overrideMode) {
                 break;
         }
     }
-
     playersCurrentlyPlaying = 0;
     for (int i = 0; i < playerCount; ++i) {
         if (players[i].isPlaying) {
             playersCurrentlyPlaying++;
             DrawPlayerTail(&players[i]);
         }
+    }
+    for (int i = 0; i < playerCount; ++i) {
         if (!players[i].isPlaying || !players[i].isDead) continue;
         DrawPlayer(&players[i]);
+    }
+    for (int i = 0; i < maxPickupItems; ++i) {
+        if (pItems[i].enabled) DrawPickupItem(&pItems[i]);
     }
     for (int i = 0; i < maxBooletsOnMap; ++i) if (boolets[i].enabled) DrawBoolet(&boolets[i]);
     for (int i = 0; i < maxWallCount; ++i) {
@@ -795,9 +804,6 @@ void DrawGameplayScreen(bool overrideMode) {
         }
     }
 
-    for (int i = 0; i < maxPickupItems; ++i) {
-        if (pItems[i].enabled) DrawPickupItem(&pItems[i]);
-    }
 
     if (gameState == CHOOSEDOOR) for (int i = 0; i < 4; ++i) DrawDoor(&doors[i]);
 

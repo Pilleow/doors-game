@@ -17,7 +17,7 @@ struct PickupItem {
     PickupItemType pickupItemType;
     BooletType booletType;
     Vector2 pos;
-    unsigned int pickupRadius;
+    unsigned int pickupRadiusSqr;
     Vector2 spriteSize;
     Vector2 wallCollisionSize;
     Texture2D *textureAddr;

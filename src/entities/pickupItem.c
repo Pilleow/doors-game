@@ -9,7 +9,7 @@
 
 void InitPickupItem(struct PickupItem *p, Texture2D *textureAddr) {
     p->enabled = true;
-    p->pickupRadius = 5;
+    p->pickupRadiusSqr = 100;
     p->wallCollisionSize = (Vector2) {200, 200};
     p->rotation = 0;
 
@@ -90,7 +90,7 @@ bool SetRandomPickupItemPosition(struct PickupItem *p, struct Wall *walls, struc
             if (&pickupItemArray[index] == p) continue;
             if (!pickupItemArray[index].enabled) continue;
             if (Vector2DistanceSqr(pickupItemArray[index].pos, (Vector2) {pItemRect.x, pItemRect.y}) <
-                16 * p->pickupRadius * p->pickupRadius) {
+                16 * p->pickupRadiusSqr * p->pickupRadiusSqr) {
                 shouldRetry = true;
                 break;
             }
@@ -139,22 +139,25 @@ void FixPickupItemPositionAgainstWall(struct Wall *w, Rectangle *pItemRect) {
 
 void UpdatePickupItem(struct PickupItem *pi, struct Player *players) {
     pi->rotation = 30 * sinf(GetTime() * 2 + pi->booletType);
-//    Vector2 itemCenter = (Vector2) {
-//            pi->pos.x + pi->wallCollisionSize.x / 2,
-//            pi->pos.y + pi->wallCollisionSize.y / 2
-//    };
-//    for (int i = 0; i < playerCount; ++i) {
-//        if (!players[i].isPlaying || players[i].isDead) continue;
-//        Vector2 playerCenter = (Vector2) {
-//            players[i].rect.x + players[i].rect.width / 2,
-//            players[i].rect.y + players[i].rect.height / 2
-//        };
-//        float dist = Vector2Distance(playerCenter, itemCenter);
-//        if (dist < pi->wallCollisionSize.x) {
-//            Vector2 delta = Vector2Subtract(playerCenter, itemCenter);
-//
-//        }
-//    }
+    Vector2 itemCenter = (Vector2) {
+            pi->pos.x + pi->wallCollisionSize.x / 2,
+            pi->pos.y + pi->wallCollisionSize.y / 2
+    };
+    for (int i = 0; i < playerCount; ++i) {
+        if (!players[i].isPlaying || players[i].isDead) continue;
+        Vector2 playerCenter = (Vector2) {
+            players[i].rect.x + players[i].rect.width / 2,
+            players[i].rect.y + players[i].rect.height / 2
+        };
+        float dist = Vector2Distance(playerCenter, itemCenter);
+        if (dist < pi->wallCollisionSize.x) {
+            Vector2 delta = Vector2Subtract(playerCenter, itemCenter);
+            delta = Vector2Normalize(delta);
+            delta.x *= 100 / dist;
+            delta.y *= 100 / dist;
+            pi->pos = Vector2Add(pi->pos, delta);
+        }
+    }
 }
 
 void DrawPickupItem(struct PickupItem *p) {

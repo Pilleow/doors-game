@@ -28,6 +28,7 @@ extern struct Player players[playerCount];
 
 // this function initializes the gameplay screen
 void InitLevelEditorScreen(void) {
+    LoadAllLevels(levels, false);
     sprintf(nextWallIndexMinus1String, "%d / %d", nextWallIndex, maxWallCount);
     ShowCursor();
     clickCount = 0;
@@ -125,7 +126,7 @@ void UpdateLevelEditorScreen(void) {
         }
     }
 
-    // print level code to stdout
+    // print level code to file
     if (IsKeyPressed(KEY_F1)) {
         char filename[64];
 
@@ -156,6 +157,18 @@ void UpdateLevelEditorScreen(void) {
     if (IsKeyPressed((KEY_F4))) {
         InitLevelEditorScreen();
         levelIndex++;
+    }
+
+    // load level
+    if (IsKeyPressed(KEY_F2)) {
+        levelIndex = (levelIndex + 1) % levelCount;
+        int lastEnabledIndex = 0;
+        for (int i = 0; i < maxWallCount; ++i) {
+            walls[i] = levels[levelIndex].walls[i];
+            if (levels[levelIndex].walls[i].enabled) lastEnabledIndex = i;
+        }
+        nextWallIndex = lastEnabledIndex + 1;
+        sprintf(nextWallIndexMinus1String, "%d / %d", nextWallIndex - 1, maxWallCount);
     }
 }
 

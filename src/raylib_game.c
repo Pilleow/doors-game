@@ -204,7 +204,7 @@ int main(void) {
     // Setup and init first screen
     SetExitKey(KEY_NULL);
     currentScreen = MAINMENU;
-    LoadAllLevels(levels);
+    LoadAllLevels(levels, true);
     InitMainMenuScreen();
 
 #if defined(PLATFORM_WEB)

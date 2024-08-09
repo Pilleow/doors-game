@@ -16,6 +16,6 @@ struct Level {
     struct Wall walls[maxWallCount];
 };
 
-void LoadAllLevels(struct Level levels[]);
+void LoadAllLevels(struct Level levels[], bool loadBorders);
 
 #endif //DOORS_GAME_LEVEL_H
