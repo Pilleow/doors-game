@@ -71,7 +71,7 @@ void InitMainMenuScreen(void) {
     );
     InitButtonDefaults(
             &buttons[7], (Rectangle) {300 - 175, screenHeight / 2 - 35 + 300, 350, 70},
-            GREEN, WHITE, SWITCH_ALL_PLAYERS_USING_THE_SAME_WEAPON, GetFontDefault(), 40, "SAME GUNS"
+            GREEN, WHITE, SWITCH_PLAYERS_KEEP_WEAPONS, GetFontDefault(), 40, "KEEP GUNS"
     );
     InitButtonDefaults(
             &buttons[8], (Rectangle) {screenWidth - 100 - 400, screenHeight / 2 - 35, 100, 70},

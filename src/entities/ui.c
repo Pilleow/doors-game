@@ -137,8 +137,8 @@ void InvokeButtonAction(struct Button *b) {
 
         // GAME SETTINGS
 
-        case SWITCH_ALL_PLAYERS_USING_THE_SAME_WEAPON:
-            playersUseTheSameWeapon = !playersUseTheSameWeapon;
+        case SWITCH_PLAYERS_KEEP_WEAPONS:
+            playersKeepWeaponsBetweenRounds = !playersKeepWeaponsBetweenRounds;
             break;
         case INCREASE_PLAYER_EFFECT_MULTIPLIER:
             ChangeValueAndClamp(&playerEffectMultiplier, 0.1f, 0, 2, 1);
@@ -184,8 +184,8 @@ void InvokeButtonUpdate(struct Button *b) {
         case RANDOMIZE_EFFECTS_EVERY_ROUND:
             b->highlighted = randomizeEffectsEveryRound;
             break;
-        case SWITCH_ALL_PLAYERS_USING_THE_SAME_WEAPON:
-            b->highlighted = playersUseTheSameWeapon;
+        case SWITCH_PLAYERS_KEEP_WEAPONS:
+            b->highlighted = playersKeepWeaponsBetweenRounds;
             break;
         default:
             break;

@@ -29,7 +29,7 @@ void InitPlayerDefaults(
     p->shootingDirection.y = 0;
     p->maxHealth = 2;
     p->health = p->maxHealth;
-    p->defaultSpeed = 400;
+    p->defaultSpeed = 350;
     p->totalGameWins = 0;
     p->speed = p->defaultSpeed;
     p->recoilSpeed = 0;
@@ -165,6 +165,8 @@ void ProcessPlayerInput(struct Player *p, char gamepadId) {
             && GetTime() - p->lastDodgeTime > p->dodgeCooldownTime
             ) {
         p->lastDodgeTime = GetTime();
+        p->lastShotTime = GetTime();
+        p->recoilSpeed = 0;
         p->speed *= dodgeSpeedMultiplier;
         PlaySound(sfxDash[rand() % sfxDashCount]);
     }
@@ -306,7 +308,7 @@ void DrawPlayer(struct Player *p) {
         if (s < 0.2) s = 0.2;
     }
     Color c = ColorFromHSV(p->huePhase, s, value);
-    Color cBorder = ColorFromHSV(p->huePhase, s / 2 + 0.5f, value * 0.7);
+    Color cBorder = ColorFromHSV(p->huePhase, s / 2 + 0.5f, value * 0.5);
     DrawRectangle(p->rect.x, p->rect.y, p->rect.width, p->rect.height, cBorder);
     DrawRectangle(p->rect.x + pd, p->rect.y + pd, p->rect.width - 2 * pd, p->rect.height - 2 * pd, c);
 
@@ -424,7 +426,7 @@ bool IsPlayerShooting(struct Player *p) {
         (p->shootingDirection.x != 0 || p->shootingDirection.y != 0)) {
         p->lastShotTime = GetTime();
         if (p->booletType == SWIRLY) p->lastShotTime -= p->shotCooldownTime * 0.25;
-        else if (p->booletType == STRAIGHT) p->lastShotTime -= p->shotCooldownTime * 0.5;
+        else if (p->booletType == STRAIGHT) p->lastShotTime -= p->shotCooldownTime * 0.15;
         else if (p->booletType == EXPLODING) p->lastShotTime += p->shotCooldownTime * 0.75;
         else if (p->booletType == SHOTGUN) p->lastShotTime += p->shotCooldownTime;
         else if (p->booletType == HITSCAN) p->lastShotTime += p->shotCooldownTime;
@@ -434,7 +436,6 @@ bool IsPlayerShooting(struct Player *p) {
         p->recoilVelocity.x = -p->shootingDirection.x;
         p->recoilVelocity.y = -p->shootingDirection.y;
         Vector2Normalize(p->recoilVelocity);
-        p->lastDodgeTime = GetTime() - p->dodgeCooldownTime * 0.4;
         return true;
     }
     return false;

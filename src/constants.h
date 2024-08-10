@@ -13,10 +13,11 @@
 #define recoilDodgeDivisionLimit 30
 #define pastPlayerPositionsCount 16
 #define mainMenuButtonCount 24
-#define maxBooletsOnMap 128
+#define maxBooletsOnMap 64
 #define sfxDoorOpenCount 3
 #define maxPickupItems 4
 #define winsFontSize 96
+#define maxParticles 64
 #define doorFontSize 48
 #define maxWallCount 128
 #define sfxShootCount 7
@@ -33,7 +34,7 @@
 
 extern bool showFPS;
 extern bool randomizeEffectsEveryRound;
-extern bool playersUseTheSameWeapon;
+extern bool playersKeepWeaponsBetweenRounds;
 
 static int playersPlaying = 4;
 extern int winsNeededToWinGame;

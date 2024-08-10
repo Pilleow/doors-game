@@ -12,6 +12,7 @@
 #include "entities/level.h"
 #include "entities/player.h"
 #include "entities/boolet.h"
+#include "entities/particle.h"
 #include "entities/pickupItem.h"
 #include "entities/playerEffect.h"
 
@@ -37,6 +38,7 @@ static Vector2 center;
 
 struct Player players[playerCount];
 struct Boolet boolets[maxBooletsOnMap];
+struct Particle particles[maxParticles];
 struct PickupItem pItems[maxPickupItems];
 struct Door doors[4];
 
@@ -148,6 +150,7 @@ void InitGameplayScreen(void) {
     }
 
     for (int i = 0; i < maxBooletsOnMap; ++i) boolets[i].enabled = false;
+    for (int i = 0; i < maxParticles; ++i) particles[i].enabled = false;
 
     doors[0].location = LEFT;
     doors[1].location = RIGHT;
@@ -172,7 +175,6 @@ void resetLevel() {
             BOTTOMLEFT, BOTTOMRIGHT
     };
 
-    BooletType bType;
     for (int i = 0; i < playerCount; ++i) {
         if (players[i].wins >= winsNeededToWinGame) {
             players[i].totalGameWins++;
@@ -185,6 +187,11 @@ void resetLevel() {
                 SetWinToZeroPlayer(&players[j]);
             }
         }
+
+        if (!playersKeepWeaponsBetweenRounds || players[i].isDead) {
+            players[i].booletType = STRAIGHT;
+        }
+
         SetPlayerLocation(&players[i], possibleSpawnLocations[(i + atCornerPhase) % 4]);
         players[i].isDead = false;
         players[i].velocity.x = 0;
@@ -199,12 +206,6 @@ void resetLevel() {
             }
         }
 
-        if (!playersUseTheSameWeapon) {
-            bType = (BooletType) (rand() % booletTypeCount);
-        } else {
-            bType = STRAIGHT;
-        }
-        players[i].booletType = bType;
 
         for (int j = 0; j < pastPlayerPositionsCount; ++j) {
             players[i].pastPos[j].x = players[i].rect.x;
@@ -224,6 +225,34 @@ void resetLevel() {
         bool out = SetRandomPickupItemPosition(&pItems[i], levels[currentLevelIndex].walls, pItems, i * 2 + 2 * (i / 2),
                                                players);
         if (!out) pItems[i].enabled = false;
+    }
+}
+
+void spawnNewParticleBatch(int booletIndex) {
+    for (int m = 0; m < 3; ++m) {
+        int index;
+        Vector2 velocity;
+        float angle = Vector2Angle((Vector2) {0, 1}, boolets[booletIndex].velocity);
+        float angleRand = angle + (float) (rand() % 61 - 30) / 60 * PI / 3;
+        for (int tries = 0; tries < 100; ++tries) {
+            index = rand() % maxParticles;
+            if (particles[index].enabled) continue;
+            velocity = Vector2Normalize((Vector2) {
+                    sinf(angleRand),
+                    -cosf(-angleRand)
+            });
+            InitParticle(
+                    &particles[index],
+                    (Vector2) {boolets[booletIndex].rect.x, boolets[booletIndex].rect.y},
+                    boolets[booletIndex].rect.width,
+                    boolets[booletIndex].startingSpeed,
+                    velocity,
+                    0.4,
+                    boolets[booletIndex].color,
+                    12
+            );
+            break;
+        }
     }
 }
 
@@ -475,6 +504,11 @@ void UpdateGameplayScreen(void) {
         }
     }
 
+    // particle update -------------------------------------------------------------------------------------------------
+    for (int i = 0; i < maxParticles; ++i) {
+        UpdateParticle(&particles[i]);
+    }
+
     // boolet update ---------------------------------------------------------------------------------------------------
     for (int i = 0; i < maxBooletsOnMap; ++i) {
         if (!boolets[i].enabled) continue;
@@ -495,7 +529,9 @@ void UpdateGameplayScreen(void) {
             } else if (boolets[i].type == EXPLODING) {
                 MoveBulletBackOneStep(&boolets[i]);
                 ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
-            } else boolets[i].enabled = false;
+            } else {
+                boolets[i].enabled = false;
+            }
         }
         ApplyBooletVelocity(&boolets[i]);
         for (int j = 0; j < maxWallCount; ++j)
@@ -505,6 +541,7 @@ void UpdateGameplayScreen(void) {
                     MoveBulletBackOneStep(&boolets[i]);
                     ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
                 }
+                spawnNewParticleBatch(i);
             }
         if (boolets[i].type == EXPLODING && boolets[i].speed < 300) {
             ExplodeBoolet(&boolets[i], &nextBooletIndex, boolets, STRAIGHT);
@@ -525,6 +562,7 @@ void UpdateGameplayScreen(void) {
                         PlaySound(sfxHit[rand() % sfxHitCount]);
                     }
                     boolets[i].enabled = false;
+                    spawnNewParticleBatch(i);
                 }
             }
         }
@@ -675,6 +713,9 @@ void DrawGameplayScreen(bool overrideMode) {
     }
     for (int i = 0; i < maxPickupItems; ++i) {
         if (pItems[i].enabled) DrawPickupItem(&pItems[i]);
+    }
+    for (int i = 0; i < maxParticles; ++i) {
+        DrawParticle(&particles[i]);
     }
     for (int i = 0; i < maxBooletsOnMap; ++i) if (boolets[i].enabled) DrawBoolet(&boolets[i]);
     for (int i = 0; i < maxWallCount; ++i) {

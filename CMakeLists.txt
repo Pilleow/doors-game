@@ -43,6 +43,8 @@ add_executable(${PROJECT_NAME}
         src/entities/ui.h
         src/entities/pickupItem.c
         src/entities/pickupItem.h
+        src/entities/particle.c
+        src/entities/particle.h
 )
 add_subdirectory(src)
 

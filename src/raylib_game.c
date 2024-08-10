@@ -76,7 +76,7 @@ static int transFromScreen = -1;
 static float bgmPreviousTime = -1;
 static GameScreen transToScreen = UNKNOWN;
 bool randomizeEffectsEveryRound = false;
-bool playersUseTheSameWeapon = true;
+bool playersKeepWeaponsBetweenRounds = false;
 Texture2D playerEffectSprites[17];
 Texture2D booletIconSprites[9];
 
